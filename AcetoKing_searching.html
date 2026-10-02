@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linear Search: Ace to King</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #fdfbf7;
+            color: #1e1e24;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 30px 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 25px;
+            max-width: 800px;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+            color: #2b2d42;
+        }
+
+        p.subtitle {
+            color: #5c677d;
+            font-size: 1rem;
+        }
+
+        .game-panel {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+            border-radius: 14px;
+            padding: 20px 25px;
+            width: 100%;
+            max-width: 950px;
+            margin-bottom: 25px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+        }
+
+        .controls-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 100%;
+            max-width: 650px;
+        }
+
+        .dropdown-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        label {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: #2b2d42;
+        }
+
+        select {
+            padding: 8px 12px;
+            border: 2px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            color: #2b2d42;
+            background-color: #ffffff;
+            cursor: pointer;
+            transition: border-color 0.2s;
+            outline: none;
+        }
+
+        select:focus {
+            border-color: #6366f1;
+        }
+
+        button {
+            background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%);
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            padding: 9px 18px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(79, 70, 229, 0.25);
+            transition: all 0.2s ease;
+        }
+
+        button:hover {
+            opacity: 0.95;
+            transform: translateY(-1px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .stats-group {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .stat-box {
+            text-align: right;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            color: #64748b;
+            letter-spacing: 0.5px;
+            font-weight: 700;
+        }
+
+        .stat-value {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: #4f46e5;
+        }
+
+        .quick-select {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-top: 4px;
+        }
+
+        .chip {
+            background: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            padding: 5px 11px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            cursor: pointer;
+            color: #334155;
+            transition: all 0.15s ease;
+            user-select: none;
+        }
+
+        .chip:hover {
+            background: #4f46e5;
+            color: #ffffff;
+            border-color: #4f46e5;
+        }
+
+        .chip.active {
+            background: #4f46e5;
+            color: #ffffff;
+            border-color: #4f46e5;
+            box-shadow: 0 2px 6px rgba(79, 70, 229, 0.3);
+        }
+
+        .status-message {
+            width: 100%;
+            max-width: 950px;
+            padding: 14px 18px;
+            border-radius: 10px;
+            background-color: #ffffff;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+            color: #1e293b;
+            font-weight: 600;
+            font-size: 1rem;
+            margin-bottom: 25px;
+            text-align: center;
+            min-height: 52px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .status-message.warning-mode {
+            background-color: #fff1f2;
+            border-color: #fecdd3;
+            color: #e11d48;
+        }
+
+        .status-message.success-mode {
+            background-color: #f0fdf4;
+            border-color: #bbf7d0;
+            color: #15803d;
+        }
+
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(95px, 1fr));
+            gap: 14px;
+            width: 100%;
+            max-width: 1100px;
+        }
+
+        .card-container {
+            perspective: 1000px;
+            aspect-ratio: 2.5 / 3.5;
+        }
+
+        .card-wrapper {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+            transform-style: preserve-3d;
+            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .card-wrapper.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .card-wrapper.shake {
+            animation: shake 0.4s ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-6px); }
+            40%, 80% { transform: translateX(6px); }
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px;
+            user-select: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .card-back {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #c026d3 100%);
+            border: 3px solid #ffffff;
+            color: #ffffff;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 6px 16px rgba(124, 58, 237, 0.25);
+        }
+
+        .card-back-pattern {
+            width: 86%;
+            height: 86%;
+            border: 1.5px dashed rgba(255, 255, 255, 0.5);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6rem;
+            color: #ffffff;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(2px);
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .card-index-tag {
+            position: absolute;
+            top: 5px;
+            left: 7px;
+            font-size: 0.7rem;
+            font-weight: 800;
+            color: rgba(255, 255, 255, 0.9);
+            font-family: monospace;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 1px 4px;
+            border-radius: 3px;
+        }
+
+        .card-front {
+            transform: rotateY(180deg);
+            background: linear-gradient(180deg, #ffffff 0%, #fff5f5 100%);
+            border: 2px solid #fecdd3;
+            color: #e11d48;
+        }
+
+        .card-front.matched {
+            border: 3px solid #16a34a;
+            background: linear-gradient(180deg, #f0fdf4 0%, #dcfce7 100%);
+            box-shadow: 0 0 18px rgba(22, 163, 74, 0.4);
+        }
+
+        .card-corner {
+            font-weight: 800;
+            font-size: 0.95rem;
+            line-height: 1;
+            align-self: flex-start;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .card-corner.bottom-right {
+            align-self: flex-end;
+            transform: rotate(180deg);
+        }
+
+        .card-suit-symbol {
+            font-size: 0.8rem;
+        }
+
+        .card-center {
+            font-size: 1.9rem;
+            font-weight: 800;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            filter: drop-shadow(0 2px 3px rgba(225, 29, 72, 0.15));
+        }
+
+        .index-indicator {
+            text-align: center;
+            margin-top: 6px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #64748b;
+            font-family: monospace;
+        }
+
+        .next-prompt {
+            outline: 3px solid #6366f1;
+            outline-offset: 3px;
+            border-radius: 10px;
+            animation: pulse-border 1.8s infinite;
+        }
+
+        @keyframes pulse-border {
+            0% { outline-color: rgba(99, 102, 241, 0.9); }
+            50% { outline-color: rgba(99, 102, 241, 0.3); }
+            100% { outline-color: rgba(99, 102, 241, 0.9); }
+        }
+
+        @media (max-width: 600px) {
+            .cards-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+            .game-panel {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .stats-group {
+                justify-content: space-between;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Linear Search: Ace to King (Auto-Flip)</h1>
+        <p class="subtitle">Once the target is found, the loop automatically opens all remaining cards until all 13 flips complete.</p>
+    </header>
+
+    <div class="game-panel">
+        <div class="controls-group">
+            <div class="dropdown-row">
+                <label for="targetSelect">Target Card:</label>
+                <select id="targetSelect">
+                    <!-- Options generated dynamically -->
+                </select>
+                <button id="setTargetBtn">Set Target</button>
+                <button id="resetBtn" style="background: #f1f5f9; color: #1e293b; border: 1px solid #cbd5e1; box-shadow: none;">Reset / Shuffle</button>
+            </div>
+            
+            <div class="quick-select" id="quickSelectContainer">
+                <!-- 13 Quick-select buttons generated dynamically -->
+            </div>
+        </div>
+
+        <div class="stats-group">
+            <div class="stat-box">
+                <div class="stat-label">Total Flips</div>
+                <div class="stat-value" id="flipsCount">0 / 13</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="status-message" id="statusMsg">
+        Select a target card and click on Card [0] to start searching.
+    </div>
+
+    <div class="cards-grid" id="cardsGrid">
+        <!-- Cards generated dynamically via JavaScript -->
+    </div>
+
+    <script>
+        const CARD_VALUES = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+
+        let arrayData = [];
+        let targetValue = '7';
+        let currentIndex = 0;
+        let totalFlips = 0;
+        let foundIndex = -1;
+        let isGameActive = true;
+        let isAutoFlipping = false;
+        let autoFlipInterval = null;
+
+        const cardsGrid = document.getElementById('cardsGrid');
+        const targetSelect = document.getElementById('targetSelect');
+        const quickSelectContainer = document.getElementById('quickSelectContainer');
+        const setTargetBtn = document.getElementById('setTargetBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const flipsCountEl = document.getElementById('flipsCount');
+        const statusMsgEl = document.getElementById('statusMsg');
+
+        function populateSelectAndButtons() {
+            targetSelect.innerHTML = '';
+            quickSelectContainer.innerHTML = '';
+
+            CARD_VALUES.forEach(val => {
+                const optionEl = document.createElement('option');
+                optionEl.value = val;
+                optionEl.textContent = val;
+                if (val === targetValue) optionEl.selected = true;
+                targetSelect.appendChild(optionEl);
+
+                const chip = document.createElement('span');
+                chip.className = 'chip';
+                chip.id = `chip-${val}`;
+                chip.textContent = val;
+                chip.onclick = () => setQuickTarget(val);
+                quickSelectContainer.appendChild(chip);
+            });
+            updateActiveChip(targetValue);
+        }
+
+        function updateActiveChip(val) {
+            document.querySelectorAll('.chip').forEach(chip => chip.classList.remove('active'));
+            const activeChip = document.getElementById(`chip-${val}`);
+            if (activeChip) activeChip.classList.add('active');
+        }
+
+        function shuffleArray(arr) {
+            const newArr = [...arr];
+            for (let i = newArr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [newArr[i], newArr[j]] = [newArr[j], newArr[i]];
+            }
+            return newArr;
+        }
+
+        function clearAutoFlip() {
+            if (autoFlipInterval) {
+                clearInterval(autoFlipInterval);
+                autoFlipInterval = null;
+            }
+            isAutoFlipping = false;
+        }
+
+        function initGame() {
+            clearAutoFlip();
+            arrayData = shuffleArray(CARD_VALUES);
+            currentIndex = 0;
+            totalFlips = 0;
+            foundIndex = -1;
+            isGameActive = true;
+            flipsCountEl.textContent = '0 / 13';
+
+            targetValue = targetSelect.value || '7';
+
+            updateActiveChip(targetValue);
+            renderCards();
+            updateStatus(`Target set to <strong>${targetValue}&hearts;</strong>. Click <strong>Card [0]</strong> to begin searching.`, 'normal');
+        }
+
+        function renderCards() {
+            cardsGrid.innerHTML = '';
+            arrayData.forEach((val, index) => {
+                const container = document.createElement('div');
+                container.className = 'card-container';
+                if (index === currentIndex && isGameActive && !isAutoFlipping) {
+                    container.classList.add('next-prompt');
+                }
+
+                const wrapper = document.createElement('div');
+                wrapper.className = 'card-wrapper';
+                wrapper.id = `card-wrapper-${index}`;
+
+                const back = document.createElement('div');
+                back.className = 'card-face card-back';
+                back.innerHTML = `
+                    <span class="card-index-tag">[${index}]</span>
+                    <div class="card-back-pattern">&hearts;</div>
+                `;
+
+                const front = document.createElement('div');
+                front.className = 'card-face card-front';
+                front.id = `card-front-${index}`;
+                front.innerHTML = `
+                    <div class="card-corner">
+                        <span>${val}</span>
+                        <span class="card-suit-symbol">&hearts;</span>
+                    </div>
+                    <div class="card-center">
+                        <span>${val}</span>
+                        <span class="card-suit-symbol">&hearts;</span>
+                    </div>
+                    <div class="card-corner bottom-right">
+                        <span>${val}</span>
+                        <span class="card-suit-symbol">&hearts;</span>
+                    </div>
+                `;
+
+                wrapper.appendChild(back);
+                wrapper.appendChild(front);
+                container.appendChild(wrapper);
+
+                const label = document.createElement('div');
+                label.className = 'index-indicator';
+                label.textContent = `[${index}]`;
+                container.appendChild(label);
+
+                wrapper.addEventListener('click', () => handleCardClick(index));
+
+                cardsGrid.appendChild(container);
+            });
+        }
+
+        function flipNextCard() {
+            if (currentIndex >= arrayData.length) {
+                clearAutoFlip();
+                finishGame();
+                return;
+            }
+
+            const wrapper = document.getElementById(`card-wrapper-${currentIndex}`);
+            const front = document.getElementById(`card-front-${currentIndex}`);
+
+            if (wrapper) wrapper.classList.add('flipped');
+            totalFlips++;
+            flipsCountEl.textContent = `${totalFlips} / 13`;
+
+            const revealedVal = arrayData[currentIndex];
+
+            if (revealedVal === targetValue) {
+                front.classList.add('matched');
+                if (foundIndex === -1) {
+                    foundIndex = currentIndex;
+                }
+            }
+
+            currentIndex++;
+
+            if (currentIndex < arrayData.length) {
+                if (foundIndex !== -1 && !isAutoFlipping) {
+                    // Target was just found on manual click -> Start auto-flipping the rest!
+                    isAutoFlipping = true;
+                    highlightNextPrompt(-1);
+                    updateStatus(`Target <strong>${targetValue}&hearts;</strong> found at index [${foundIndex}]! Auto-flipping remaining cards to complete the <code>for</code> loop...`, 'normal');
+                    autoFlipInterval = setInterval(flipNextCard, 280);
+                } else if (!isAutoFlipping) {
+                    // Normal manual step
+                    updateStatus(`Flipped Card [${currentIndex - 1}]: <strong>${revealedVal}&hearts;</strong>. Continue searching &rarr; click <strong>Card [${currentIndex}]</strong>.`, 'normal');
+                    highlightNextPrompt(currentIndex);
+                }
+            } else {
+                clearAutoFlip();
+                finishGame();
+            }
+        }
+
+        function finishGame() {
+            isGameActive = false;
+            highlightNextPrompt(-1);
+
+            if (foundIndex !== -1) {
+                updateStatus(`<strong>Search Completed!</strong>  Target index = <strong>${foundIndex}</strong>  |  Number of flips = <strong>${totalFlips}</strong>`, 'success');
+            } else {
+                updateStatus(`<strong>Search Completed!</strong>  Target card <strong>${targetValue}&hearts;</strong> was not found | Number of flips = <strong>${totalFlips}</strong>`, 'warning');
+            }
+        }
+
+        function handleCardClick(index) {
+            if (!isGameActive || isAutoFlipping) return;
+
+            if (index !== currentIndex) {
+                const wrapper = document.getElementById(`card-wrapper-${index}`);
+                if (wrapper && !wrapper.classList.contains('flipped')) {
+                    wrapper.classList.add('shake');
+                    setTimeout(() => wrapper.classList.remove('shake'), 400);
+                }
+                updateStatus(`<strong>Invalid Click!</strong> Standard linear search processes in order. Please click <strong>Card [${currentIndex}]</strong> next.`, 'warning');
+                return;
+            }
+
+            flipNextCard();
+        }
+
+        function highlightNextPrompt(idx) {
+            const containers = document.querySelectorAll('.card-container');
+            containers.forEach((c, i) => {
+                if (i === idx && isGameActive && !isAutoFlipping) {
+                    c.classList.add('next-prompt');
+                } else {
+                    c.classList.remove('next-prompt');
+                }
+            });
+        }
+
+        function updateStatus(msg, mode = 'normal') {
+            statusMsgEl.innerHTML = msg;
+            statusMsgEl.classList.remove('warning-mode', 'success-mode');
+            if (mode === 'warning') {
+                statusMsgEl.classList.add('warning-mode');
+            } else if (mode === 'success') {
+                statusMsgEl.classList.add('success-mode');
+            }
+        }
+
+        function setQuickTarget(val) {
+            targetSelect.value = val;
+            initGame();
+        }
+
+        setTargetBtn.addEventListener('click', () => {
+            initGame();
+        });
+
+        resetBtn.addEventListener('click', () => {
+            initGame();
+        });
+
+        targetSelect.addEventListener('change', () => {
+            initGame();
+        });
+
+        window.onload = () => {
+            populateSelectAndButtons();
+            initGame();
+        };
+    </script>
+</body>
+</html>
