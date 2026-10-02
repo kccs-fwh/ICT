@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form 4 ICT - ASCII Foundations Pre-Task</title>
+    <!-- Include jsPDF Library for PDF Certificate Generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #0f172a;
+            --border: #e2e8f0;
+            --success: #16a34a;
+            --error: #dc2626;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: var(--card-bg);
+            padding: 24px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            margin-bottom: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        h1 { margin: 0 0 8px 0; color: var(--primary); font-size: 1.8rem; }
+        p { margin: 0; color: #475569; }
+
+        .profile-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 16px;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+        }
+
+        .card {
+            background: var(--card-bg);
+            padding: 24px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            margin-bottom: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        h2 { margin-top: 0; border-bottom: 2px solid var(--bg); padding-bottom: 10px; font-size: 1.3rem; }
+
+        .lookup-controls {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        input[type="text"], input[type="number"] {
+            padding: 10px 14px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 1rem;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .table-container {
+            max-height: 250px;
+            overflow-y: auto;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: monospace;
+        }
+
+        th, td {
+            padding: 8px 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th { background: #f1f5f9; position: sticky; top: 0; }
+
+        .question {
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px dashed var(--border);
+        }
+
+        .question:last-child { border-bottom: none; }
+
+        .code-block {
+            background: #1e293b;
+            color: #38bdf8;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-family: monospace;
+            display: inline-block;
+            margin: 6px 0;
+            letter-spacing: 1px;
+        }
+
+        button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        button:hover { background: var(--primary-hover); }
+
+        .btn-success { background: var(--success); }
+        .btn-success:hover { background: #15803d; }
+        .btn-secondary { background: #64748b; }
+        .btn-secondary:hover { background: #475569; }
+
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 16px;
+        }
+
+        .feedback {
+            margin-top: 8px;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .feedback.correct { color: var(--success); }
+        .feedback.incorrect { color: var(--error); }
+
+        .options label {
+            display: block;
+            margin: 8px 0;
+            cursor: pointer;
+        }
+
+        .summary-box {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            padding: 20px;
+            border-radius: 8px;
+            display: none;
+            margin-top: 16px;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            background: #e2e8f0;
+            color: #475569;
+            margin-left: 8px;
+        }
+        .status-badge.saved { background: #dcfce7; color: #15803d; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>ICT Form 4: ASCII Foundations Pre-Task</h1>
+        <p>Complete the exercises below. Your progress auto-saves locally.</p>
+        
+        <div class="profile-grid">
+            <div>
+                <label style="font-weight:600; font-size:0.9rem;">Student Full Name:</label>
+                <input type="text" id="studentName" placeholder="e.g. Alex Wong" onchange="saveProgress()">
+            </div>
+            <div>
+                <label style="font-weight:600; font-size:0.9rem;">Class & Class No.:</label>
+                <input type="text" id="studentClass" placeholder="e.g. 4A (25)" onchange="saveProgress()">
+            </div>
+        </div>
+    </header>
+
+    <!-- SECTION 1: INTERACTIVE ASCII LOOKUP -->
+    <div class="card">
+        <h2>Tool: Interactive ASCII Reference Table</h2>
+        <div class="lookup-controls">
+            <input type="text" id="searchInput" placeholder="Filter by character, decimal, or binary..." onkeyup="filterTable()">
+        </div>
+        <div class="table-container">
+            <table id="asciiTable">
+                <thead>
+                    <tr>
+                        <th>Character</th>
+                        <th>Decimal</th>
+                        <th>8-Bit Binary</th>
+                        <th>Type</th>
+                    </tr>
+                </thead>
+                <tbody id="asciiTableBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- SECTION 2: DECODING CHALLENGES -->
+    <div class="card">
+        <h2>Part 1: ASCII Lookup & Decoding Challenge <span id="p1-status" class="status-badge">In Progress</span></h2>
+        
+        <div class="question">
+            <p>1. Decode this 8-bit binary string into text:</p>
+            <div class="code-block">01001000 01000101 01001100 01001100 01001111</div>
+            <input type="text" id="q1_input" placeholder="Enter decoded text">
+            <button onclick="checkQ1()">Submit Answer</button>
+            <div id="q1_fb" class="feedback"></div>
+        </div>
+
+        <div class="question">
+            <p>2. Convert these decimal ASCII values to text:</p>
+            <div class="code-block">73 67 84</div>
+            <input type="text" id="q2_input" placeholder="Enter decoded text">
+            <button onclick="checkQ2()">Submit Answer</button>
+            <div id="q2_fb" class="feedback"></div>
+        </div>
+
+        <div class="question">
+            <p>3. Convert <strong style="font-family: monospace;">"CAT"</strong> into 8-bit binary representation (separate bytes with spaces):</p>
+            <input type="text" id="q3_input" placeholder="e.g. 01000000 01000000 01000000">
+            <button onclick="checkQ3()">Submit Answer</button>
+            <div id="q3_fb" class="feedback"></div>
+        </div>
+    </div>
+
+    <!-- SECTION 3: PATTERN RECOGNITION QUIZ -->
+    <div class="card">
+        <h2>Part 2: Pattern Recognition & Analysis <span id="p2-status" class="status-badge">In Progress</span></h2>
+
+        <div class="question">
+            <p>1. What is the numerical difference between uppercase 'A' and lowercase 'a'?</p>
+            <div class="options">
+                <label><input type="radio" name="q4" value="16" onchange="saveProgress()"> 16 (2<sup>4</sup>)</label>
+                <label><input type="radio" name="q4" value="32" onchange="saveProgress()"> 32 (2<sup>5</sup> — toggles bit 5)</label>
+                <label><input type="radio" name="q4" value="64" onchange="saveProgress()"> 64 (2<sup>6</sup>)</label>
+            </div>
+            <button onclick="checkQ4()">Submit Answer</button>
+            <div id="q4_fb" class="feedback"></div>
+        </div>
+
+        <div class="question">
+            <p>2. Standard ASCII uses 7 bits per character. How many unique characters can it represent?</p>
+            <div class="options">
+                <label><input type="radio" name="q5" value="64" onchange="saveProgress()"> 64 (2<sup>6</sup>)</label>
+                <label><input type="radio" name="q5" value="128" onchange="saveProgress()"> 128 (2<sup>7</sup>)</label>
+                <label><input type="radio" name="q5" value="256" onchange="saveProgress()"> 256 (2<sup>8</sup>)</label>
+            </div>
+            <button onclick="checkQ5()">Submit Answer</button>
+            <div id="q5_fb" class="feedback"></div>
+        </div>
+    </div>
+
+    <!-- SECTION 4: COMPLETION, PDF CERTIFICATE & TRACKING -->
+    <div class="card">
+        <h2>Submission & Export Tools</h2>
+        <p>Complete all tasks to unlock your official PDF Certificate and VLE data export file.</p>
+        
+        <div class="btn-group">
+            <button onclick="generateSummary()" class="btn-success">Check Final Results</button>
+            <button onclick="resetProgress()" class="btn-secondary">Reset All Progress</button>
+        </div>
+
+        <div id="summaryBox" class="summary-box">
+            <h3>Module Summary</h3>
+            <p id="summaryText"></p>
+            <p><strong>Verification Code:</strong></p>
+            <div id="verificationCode" class="code-block" style="font-size: 1.1rem; user-select: all;"></div>
+
+            <div class="btn-group">
+                <button onclick="downloadPDF()" class="btn-success">Download PDF Certificate</button>
+                <button onclick="exportJSON()" class="btn-secondary">Export Results (JSON File)</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Generate Printable ASCII Table
+    const tableBody = document.getElementById('asciiTableBody');
+    const asciiData = [];
+
+    for (let i = 32; i <= 126; i++) {
+        let char = String.fromCharCode(i);
+        if (i === 32) char = '[Space]';
+        let bin = i.toString(2).padStart(8, '0');
+        let type = (i >= 48 && i <= 57) ? 'Digit' : (i >= 65 && i <= 90) ? 'Uppercase' : (i >= 97 && i <= 122) ? 'Lowercase' : 'Symbol';
+        asciiData.push({ char, dec: i, bin, type });
+    }
+
+    function renderTable(data) {
+        tableBody.innerHTML = '';
+        data.forEach(row => {
+            let tr = document.createElement('tr');
+            tr.innerHTML = `<td><strong>${row.char}</strong></td><td>${row.dec}</td><td>${row.bin}</td><td>${row.type}</td>`;
+            tableBody.appendChild(tr);
+        });
+    }
+    renderTable(asciiData);
+
+    function filterTable() {
+        const query = document.getElementById('searchInput').value.toLowerCase();
+        const filtered = asciiData.filter(item => 
+            item.char.toLowerCase().includes(query) ||
+            item.dec.toString().includes(query) ||
+            item.bin.includes(query) ||
+            item.type.toLowerCase().includes(query)
+        );
+        renderTable(filtered);
+    }
+
+    // Task Validation & Scoring Logic
+    const scores = { q1: false, q2: false, q3: false, q4: false, q5: false };
+
+    function checkQ1() {
+        const val = document.getElementById('q1_input').value.trim().toUpperCase();
+        const fb = document.getElementById('q1_fb');
+        if (val === "HELLO") {
+            fb.textContent = "Correct!"; fb.className = "feedback correct"; scores.q1 = true;
+        } else {
+            fb.textContent = "Incorrect. Try converting each 8-bit byte individually."; fb.className = "feedback incorrect"; scores.q1 = false;
+        }
+        saveProgress();
+    }
+
+    function checkQ2() {
+        const val = document.getElementById('q2_input').value.trim().toUpperCase();
+        const fb = document.getElementById('q2_fb');
+        if (val === "ICT") {
+            fb.textContent = "Correct!"; fb.className = "feedback correct"; scores.q2 = true;
+        } else {
+            fb.textContent = "Incorrect. Find 73, 67, and 84 in the lookup table."; fb.className = "feedback incorrect"; scores.q2 = false;
+        }
+        saveProgress();
+    }
+
+    function checkQ3() {
+        const val = document.getElementById('q3_input').value.trim().replace(/\s+/g, ' ');
+        const expected = "01000011 01000001 01010100";
+        const fb = document.getElementById('q3_fb');
+        if (val === expected) {
+            fb.textContent = "Correct!"; fb.className = "feedback correct"; scores.q3 = true;
+        } else {
+            fb.textContent = "Incorrect. Format: '01000011 01000001 01010100'"; fb.className = "feedback incorrect"; scores.q3 = false;
+        }
+        saveProgress();
+    }
+
+    function checkQ4() {
+        const selected = document.querySelector('input[name="q4"]:checked');
+        const fb = document.getElementById('q4_fb');
+        if (selected && selected.value === "32") {
+            fb.textContent = "Correct! 97 - 65 = 32 (Bit 5)."; fb.className = "feedback correct"; scores.q4 = true;
+        } else {
+            fb.textContent = "Incorrect. Compute 97 - 65."; fb.className = "feedback incorrect"; scores.q4 = false;
+        }
+        saveProgress();
+    }
+
+    function checkQ5() {
+        const selected = document.querySelector('input[name="q5"]:checked');
+        const fb = document.getElementById('q5_fb');
+        if (selected && selected.value === "128") {
+            fb.textContent = "Correct! 2^7 = 128 possibilities."; fb.className = "feedback correct"; scores.q5 = true;
+        } else {
+            fb.textContent = "Incorrect. Use 2^n for 7 bits."; fb.className = "feedback incorrect"; scores.q5 = false;
+        }
+        saveProgress();
+    }
+
+    function getTotalScore() {
+        return Object.values(scores).filter(Boolean).length;
+    }
+
+    function getVerificationCode(score) {
+        const name = document.getElementById('studentName').value || "ANON";
+        const cleanName = name.replace(/[^a-zA-Z0-0]/g, "").toUpperCase().substring(0, 4);
+        return `ASCII-${cleanName}-${score}OF5-${btoa(score + '-' + cleanName).substring(0, 6)}`;
+    }
+
+    function generateSummary() {
+        const name = document.getElementById('studentName').value.trim();
+        if (!name) {
+            alert("Please enter your Full Name in the header before generating your summary/certificate.");
+            return;
+        }
+
+        const total = getTotalScore();
+        document.getElementById('summaryText').innerHTML = `Student: <strong>${name}</strong><br>Score Achieved: <strong>${total} / 5</strong> (${(total/5)*100}%)`;
+        document.getElementById('verificationCode').textContent = getVerificationCode(total);
+        document.getElementById('summaryBox').style.display = 'block';
+        saveProgress();
+    }
+
+    // Local Storage & Tracking Functions
+    function saveProgress() {
+        const state = {
+            studentName: document.getElementById('studentName').value,
+            studentClass: document.getElementById('studentClass').value,
+            q1: document.getElementById('q1_input').value,
+            q2: document.getElementById('q2_input').value,
+            q3: document.getElementById('q3_input').value,
+            q4: document.querySelector('input[name="q4"]:checked')?.value || null,
+            q5: document.querySelector('input[name="q5"]:checked')?.value || null,
+            scores: scores
+        };
+        localStorage.setItem('ict_ascii_pretask', JSON.stringify(state));
+    }
+
+    function loadProgress() {
+        const saved = localStorage.getItem('ict_ascii_pretask');
+        if (!saved) return;
+        
+        const state = JSON.parse(saved);
+        document.getElementById('studentName').value = state.studentName || '';
+        document.getElementById('studentClass').value = state.studentClass || '';
+        document.getElementById('q1_input').value = state.q1 || '';
+        document.getElementById('q2_input').value = state.q2 || '';
+        document.getElementById('q3_input').value = state.q3 || '';
+        
+        if (state.q4) {
+            const el = document.querySelector(`input[name="q4"][value="${state.q4}"]`);
+            if (el) el.checked = true;
+        }
+        if (state.q5) {
+            const el = document.querySelector(`input[name="q5"][value="${state.q5}"]`);
+            if (el) el.checked = true;
+        }
+
+        if (state.scores) {
+            Object.assign(scores, state.scores);
+            if (scores.q1) checkQ1();
+            if (scores.q2) checkQ2();
+            if (scores.q3) checkQ3();
+            if (scores.q4) checkQ4();
+            if (scores.q5) checkQ5();
+        }
+    }
+
+    function resetProgress() {
+        if (confirm("Are you sure you want to reset all saved answers and scores?")) {
+            localStorage.removeItem('ict_ascii_pretask');
+            location.reload();
+        }
+    }
+
+    // Export Data as JSON File
+    function exportJSON() {
+        const name = document.getElementById('studentName').value.trim() || 'Student';
+        const data = {
+            studentName: name,
+            studentClass: document.getElementById('studentClass').value,
+            score: getTotalScore(),
+            totalQuestions: 5,
+            verificationCode: getVerificationCode(getTotalScore()),
+            timestamp: new Date().toISOString()
+        };
+
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `${name.replace(/\s+/g, '_')}_ASCII_PreTask.json`;
+        a.click();
+    }
+
+    // PDF Certificate Generation (Landscape A4)
+    function downloadPDF() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+
+        const name = document.getElementById('studentName').value.trim() || 'Student';
+        const studentClass = document.getElementById('studentClass').value.trim() || 'Form 4 ICT';
+        const score = getTotalScore();
+        const code = getVerificationCode(score);
+        const dateStr = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+
+        // Decorative Borders
+        doc.setLineWidth(2);
+        doc.setDrawColor(37, 99, 235);
+        doc.rect(10, 10, 277, 190);
+
+        doc.setLineWidth(0.5);
+        doc.setDrawColor(148, 163, 184);
+        doc.rect(14, 14, 269, 182);
+
+        // Certificate Header
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(26);
+        doc.setTextColor(37, 99, 235);
+        doc.text("CERTIFICATE OF COMPLETION", 148.5, 42, { align: "center" });
+
+        doc.setFontSize(13);
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(71, 85, 105);
+        doc.text("Form 4 ICT Module: Character Encoding & ASCII Foundations", 148.5, 52, { align: "center" });
+
+        // Recipient Info
+        doc.setFontSize(12);
+        doc.text("This is proudly presented to", 148.5, 75, { align: "center" });
+
+        doc.setFontSize(22);
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(15, 23, 42);
+        doc.text(`${name} (${studentClass})`, 148.5, 90, { align: "center" });
+
+        doc.setFontSize(12);
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(71, 85, 105);
+        doc.text("for successfully completing the interactive ASCII binary lookup, decoding challenges,", 148.5, 108, { align: "center" });
+        doc.text("and bit-pattern analysis pre-task.", 148.5, 115, { align: "center" });
+
+        // Performance Score
+        doc.setFontSize(24);
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(22, 163, 74);
+        doc.text(`Score: ${score} / 5 (${(score/5)*100}%)`, 148.5, 135, { align: "center" });
+
+        // Verification & Date Footer
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(100, 116, 139);
+        doc.text(`Date of Completion: ${dateStr}`, 148.5, 155, { align: "center" });
+
+        doc.setFont("monospace", "bold");
+        doc.setFontSize(11);
+        doc.setTextColor(30, 41, 59);
+        doc.text(`Verification Code: ${code}`, 148.5, 165, { align: "center" });
+
+        // Save PDF
+        doc.save(`${name.replace(/\s+/g, '_')}_ASCII_Certificate.pdf`);
+    }
+
+    // Auto-load saved state on boot
+    window.onload = loadProgress;
+</script>
+</body>
+</html>
