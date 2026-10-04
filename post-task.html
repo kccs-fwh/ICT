@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Post-Task: Beyond ASCII – Global Encodings</title>
+    <!-- Tailwind CSS for modern student web interface -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- html2pdf.js library for direct browser PDF generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen py-8 px-4 sm:px-6 lg:px-8">
+
+    <div class="max-w-4xl mx-auto bg-white rounded-xl shadow-md overflow-hidden p-6 sm:p-10 border border-slate-200">
+        
+        <!-- Header Section -->
+        <header class="border-b border-slate-200 pb-6 mb-6">
+            <h1 class="text-2xl sm:text-3xl font-bold text-slate-900">Post-Task: Beyond ASCII – Global Encodings[span_0](start_span)[span_0](end_span)</h1>
+            <p class="text-sm text-slate-600 mt-2"><strong>Objective:</strong> Compare multi-byte encoding standards (Big5, GB2312/GBK, Unicode/UTF-8) and explain how they resolve ASCII's limitations for localized and global text processing.[span_1](start_span)[span_1](end_span)</p>
+        </header>
+
+        <!-- Google Classroom Submission Instructions Banner -->
+        <div class="mb-6 bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r">
+            <p class="text-xs font-bold text-amber-900 uppercase tracking-wider">Submission Instructions</p>
+            <p class="text-sm text-amber-800 mt-1">Complete all fields below. When finished, click <strong>Download PDF</strong> at the bottom to save your clean answer sheet, then upload the downloaded PDF file to <strong>Google Classroom</strong>.</p>
+        </div>
+
+        <!-- Interactive Worksheet Form -->
+        <form id="worksheetForm" onsubmit="generateTeacherReviewPDF(event)">
+            
+            <!-- Student Information Section -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8 bg-slate-50 p-4 rounded-lg border border-slate-200">
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1" for="studentName">Student Name *</label>
+                    <input type="text" id="studentName" required class="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="e.g. Jane Doe">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1" for="classNo">Class and Class No. *</label>
+                    <input type="text" id="classNo" required class="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="e.g. 3A (15)">
+                </div>
+            </div>
+
+            <!-- Part 1: Research Matrix -->
+            <section class="mb-8">
+                <h2 class="text-lg font-bold text-slate-900 mb-1">Part 1: Research Matrix[span_2](start_span)[span_2](end_span)</h2>
+                <p class="text-xs text-slate-600 mb-4"><strong>Instructions:</strong> Check your textbook or search online to complete the comparative matrix detailing character set extensions below:[span_3](start_span)[span_3](end_span)</p>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm border-collapse border border-slate-300">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-700 font-semibold border-b border-slate-300">
+                                <th class="p-3 border-r border-slate-300 w-1/5">Encoding System[span_4](start_span)[span_4](end_span)</th>
+                                <th class="p-3 border-r border-slate-300 w-1/5">Target Language / Script[span_5](start_span)[span_5](end_span)</th>
+                                <th class="p-3 border-r border-slate-300 w-1/5">Code Length (Bytes)[span_6](start_span)[span_6](end_span)</th>
+                                <th class="p-3 border-r border-slate-300 w-1/5">Total Supported Characters[span_7](start_span)[span_7](end_span)</th>
+                                <th class="p-3 w-1/5">Common Historical / Current Use Case[span_8](start_span)[span_8](end_span)</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-300">
+                            <!-- ASCII Row -->
+                            <tr>
+                                <td class="p-3 font-semibold bg-slate-50 border-r border-slate-300">ASCII[span_9](start_span)[span_9](end_span)</td>
+                                <td class="p-2 border-r border-slate-300"><input type="text" id="ascii_lang" required class="w-full p-1.5 border border-slate-300 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Enter script..."></td>
+                                <td class="p-2 border-r border-slate-300"><input type="text" id="ascii_bytes" required class="w-full p-1.5 border border-slate-300 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Enter bytes..."></td>
+                                <td class="p-2 border-r border-slate-300"><input type="text" id="ascii_chars" required class="w-full p-1.5 border border-slate-300 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Enter total..."></td>
+                                <td class="p-3 text-xs bg-slate-50 text-slate-700">Early computing, basic system logs[span_10](start_span)[span_10](end_span)</td>
+                            </tr>
+                            <!-- Big5 Row -->
+                            <tr>
+                                <td class="p-3 font-semibold bg-slate-50 border-r border-slate-300">Big5[span_11](start_span)[span_11](end_span)</td>
+                                <td class="p-2 border-r border-slate-300"><input type="text" id="big5_lang" required class="w-full p-1.5 border border-slate-300 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Enter script..."></td>
+                                <td class="p-2 border-r border-slate-300"><input type="text" id="big5_bytes" required class="w-full p-1.5 border border-slate-300 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Enter bytes..."></td>
+                                <td class="p-2 border-r border-slate-300"><input type="text" id="big5_chars" required class="w-full p-1.5 border border-slate-300 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Enter total..."></td>
+                                <td class="p-3 text-xs bg-slate-50 text-slate-700">Traditional Chinese web/software (Hong Kong, Taiwan)[span_12](start_span)[span_12](end_span)</td>
+                            </tr>
+                            <!-- GB2312 / GBK Row -->
+                            <tr>
+                                <td class="p-3 font-semibold bg-slate-50 border-r border-slate-300">GB2312 / GBK[span_13](start_span)[span_13](end_span)</td>
+                                <td class="p-2 border-r border-slate-300"><input type="text" id="gbk_lang" required class="w-full p-1.5 border border-slate-300 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Enter script..."></td>
+                                <td class="p-2 border-r border-slate-300"><input type="text" id="gbk_bytes" required class="w-full p-1.5 border border-slate-300 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Enter bytes..."></td>
+                                <td class="p-2 border-r border-slate-300"><input type="text" id="gbk_chars" required class="w-full p-1.5 border border-slate-300 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Enter total..."></td>
+                                <td class="p-3 text-xs bg-slate-50 text-slate-700">Mainland China computing standards[span_14](start_span)[span_14](end_span)</td>
+                            </tr>
+                            <!-- Unicode (UTF-8) Row -->
+                            <tr>
+                                <td class="p-3 font-semibold bg-slate-50 border-r border-slate-300">Unicode (UTF-8)[span_15](start_span)[span_15](end_span)</td>
+                                <td class="p-2 border-r border-slate-300"><input type="text" id="utf8_lang" required class="w-full p-1.5 border border-slate-300 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Enter script..."></td>
+                                <td class="p-2 border-r border-slate-300"><input type="text" id="utf8_bytes" required class="w-full p-1.5 border border-slate-300 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Enter bytes..."></td>
+                                <td class="p-2 border-r border-slate-300"><input type="text" id="utf8_chars" required class="w-full p-1.5 border border-slate-300 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Enter total..."></td>
+                                <td class="p-3 text-xs bg-slate-50 text-slate-700">Modern Web standard, iOS/Android, cross-platform apps[span_16](start_span)[span_16](end_span)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Part 2: Case Study Problem -->
+            <section class="mb-8">
+                <h2 class="text-lg font-bold text-slate-900 mb-2">Part 2: Case Study Problem (Mojibake / Garbled Text)[span_17](start_span)[span_17](end_span)</h2>
+                
+                <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-4 rounded-r">
+                    <p class="text-xs font-bold text-blue-900 uppercase tracking-wider">Scenario[span_18](start_span)[span_18](end_span)</p>
+                    <p class="text-sm text-blue-800 mt-1">
+                        A student in Hong Kong receives a plain text file written in Traditional Chinese from a mainland peer, but opening it displays garbled text like <code>Ѧ</code> or <code>``</code>.[span_19](start_span)[span_19](end_span)
+                    </p>
+                </div>
+
+                <label class="block text-sm font-semibold text-slate-800 mb-2" for="caseStudyAnswer">
+                    Question: Using concepts of character encoding tables and byte allocation, explain why this error occurs and how converting the file to UTF-8 resolves the problem.[span_20](start_span)[span_20](end_span)
+                </label>
+                <textarea id="caseStudyAnswer" rows="6" required class="w-full p-3 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm" placeholder="Type your detailed explanation here..."></textarea>
+            </section>
+
+            <!-- Download PDF Action Button -->
+            <div class="flex justify-end">
+                <button type="submit" id="downloadBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-6 rounded-md shadow focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                    Download PDF
+                </button>
+            </div>
+        </form>
+
+    </div>
+
+    <!-- JavaScript to generate simplified teacher-review PDF layout -->
+    <script>
+        function generateTeacherReviewPDF(e) {
+            e.preventDefault();
+
+            // Collect form values
+            const name = document.getElementById('studentName').value.trim();
+            const classNo = document.getElementById('classNo').value.trim();
+            
+            const ascii_lang = document.getElementById('ascii_lang').value.trim();
+            const ascii_bytes = document.getElementById('ascii_bytes').value.trim();
+            const ascii_chars = document.getElementById('ascii_chars').value.trim();
+
+            const big5_lang = document.getElementById('big5_lang').value.trim();
+            const big5_bytes = document.getElementById('big5_bytes').value.trim();
+            const big5_chars = document.getElementById('big5_chars').value.trim();
+
+            const gbk_lang = document.getElementById('gbk_lang').value.trim();
+            const gbk_bytes = document.getElementById('gbk_bytes').value.trim();
+            const gbk_chars = document.getElementById('gbk_chars').value.trim();
+
+            const utf8_lang = document.getElementById('utf8_lang').value.trim();
+            const utf8_bytes = document.getElementById('utf8_bytes').value.trim();
+            const utf8_chars = document.getElementById('utf8_chars').value.trim();
+
+            const caseStudy = document.getElementById('caseStudyAnswer').value.trim();
+
+            // Construct clean, un-nested teacher review sheet layout
+            const report = document.createElement('div');
+            report.style.width = '700px';
+            report.style.padding = '20px';
+            report.style.fontFamily = 'Arial, sans-serif';
+            report.style.color = '#0f172a';
+            report.style.backgroundColor = '#ffffff';
+
+            report.innerHTML = `
+                <div style="border-bottom: 2px solid #2563eb; padding-bottom: 10px; margin-bottom: 16px;">
+                    <h1 style="font-size: 18px; font-weight: bold; margin: 0 0 6px 0;">Post-Task: Beyond ASCII – Global Encodings Answer Sheet</h1>
+                    <p style="font-size: 12px; margin: 0; color: #475569;">
+                        <strong>Student Name:</strong> ${name} &nbsp;&nbsp;|&nbsp;&nbsp; 
+                        <strong>Class & Class No.:</strong> ${classNo}
+                    </p>
+                </div>
+
+                <div style="margin-bottom: 20px;">
+                    <h2 style="font-size: 14px; font-weight: bold; margin: 0 0 8px 0; color: #1e293b;">Part 1: Research Matrix</h2>
+                    <table style="width: 100%; border-collapse: collapse; font-size: 11px; text-align: left;">
+                        <thead>
+                            <tr style="background-color: #f1f5f9; color: #334155;">
+                                <th style="border: 1px solid #cbd5e1; padding: 6px; width: 18%;">System</th>
+                                <th style="border: 1px solid #cbd5e1; padding: 6px; width: 20%;">Target Script</th>
+                                <th style="border: 1px solid #cbd5e1; padding: 6px; width: 18%;">Code Length</th>
+                                <th style="border: 1px solid #cbd5e1; padding: 6px; width: 20%;">Total Characters</th>
+                                <th style="border: 1px solid #cbd5e1; padding: 6px; width: 24%;">Use Case</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td style="border: 1px solid #cbd5e1; padding: 6px; font-weight: bold; background-color: #f8fafc;">ASCII</td>
+                                <td style="border: 1px solid #cbd5e1; padding: 6px;">${ascii_lang}</td>
+                                <td style="border: 1px solid #cbd5e1; padding: 6px;">${ascii_bytes}</td>
+                                <td style="border: 1px solid #cbd5e1; padding: 6px;">${ascii_chars}</td>
+                                <td style="border: 1px solid #cbd5e1; padding: 6px; color: #475569;">Early computing, basic system logs</td>
+                            </tr>
+                            <tr>
+                                <td style="border: 1px solid #cbd5e1; padding: 6px; font-weight: bold; background-color: #f8fafc;">Big5</td>
+                                <td style="border: 1px solid #cbd5e1; padding: 6px;">${big5_lang}</td>
+                                <td style="border: 1px solid #cbd5e1; padding: 6px;">${big5_bytes}</td>
+                                <td style="border: 1px solid #cbd5e1; padding: 6px;">${big5_chars}</td>
+                                <td style="border: 1px solid #cbd5e1; padding: 6px; color: #475569;">Traditional Chinese web/software (HK, Taiwan)</td>
+                            </tr>
+                            <tr>
+                                <td style="border: 1px solid #cbd5e1; padding: 6px; font-weight: bold; background-color: #f8fafc;">GB2312 / GBK</td>
+                                <td style="border: 1px solid #cbd5e1; padding: 6px;">${gbk_lang}</td>
+                                <td style="border: 1px solid #cbd5e1; padding: 6px;">${gbk_bytes}</td>
+                                <td style="border: 1px solid #cbd5e1; padding: 6px;">${gbk_chars}</td>
+                                <td style="border: 1px solid #cbd5e1; padding: 6px; color: #475569;">Mainland China computing standards</td>
+                            </tr>
+                            <tr>
+                                <td style="border: 1px solid #cbd5e1; padding: 6px; font-weight: bold; background-color: #f8fafc;">Unicode (UTF-8)</td>
+                                <td style="border: 1px solid #cbd5e1; padding: 6px;">${utf8_lang}</td>
+                                <td style="border: 1px solid #cbd5e1; padding: 6px;">${utf8_bytes}</td>
+                                <td style="border: 1px solid #cbd5e1; padding: 6px;">${utf8_chars}</td>
+                                <td style="border: 1px solid #cbd5e1; padding: 6px; color: #475569;">Modern Web standard, cross-platform apps</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div>
+                    <h2 style="font-size: 14px; font-weight: bold; margin: 0 0 6px 0; color: #1e293b;">Part 2: Case Study Response (Mojibake / Garbled Text)</h2>
+                    <div style="background-color: #f8fafc; border-left: 3px solid #2563eb; padding: 8px; margin-bottom: 10px; font-size: 11px; color: #334155;">
+                        <strong>Scenario:</strong> Hong Kong student receives Traditional Chinese text file from mainland peer; opening it shows garbled text. Explain why this occurs and how converting to UTF-8 resolves it.
+                    </div>
+                    <div style="border: 1px solid #cbd5e1; padding: 10px; font-size: 11px; line-height: 1.5; white-space: pre-wrap; min-height: 120px; background-color: #ffffff;">${caseStudy}</div>
+                </div>
+            `;
+
+            // Append off-screen temporarily for rendering
+            document.body.appendChild(report);
+
+            // Clean, sanitized filename
+            const cleanFilename = `${name}_${classNo}`.replace(/[^a-z0-9]/gi, '_');
+
+            // html2pdf options tuned for single page answer sheet
+            const opt = {
+                margin:       0.4,
+                filename:     `AnswerSheet_${cleanFilename}.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, scrollX: 0, scrollY: 0 },
+                jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+            };
+
+            // Generate PDF directly, save file, and remove temporary report element
+            html2pdf().set(opt).from(report).save().then(() => {
+                document.body.removeChild(report);
+            });
+        }
+    </script>
+</body>
+</html>
