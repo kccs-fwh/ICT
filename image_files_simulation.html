@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vector vs. Bitmap Image Format Simulator</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --accent: #38bdf8;
+            --text-main: #f8fafc;
+            --text-sub: #94a3b8;
+            --border: #334155;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background: var(--bg-color); color: var(--text-main); padding: 20px; line-height: 1.5; }
+        .container { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 320px 1fr; gap: 20px; }
+        
+        header { grid-column: 1 / -1; margin-bottom: 10px; border-bottom: 1px solid var(--border); padding-bottom: 15px; }
+        h1 { font-size: 1.8rem; color: var(--accent); }
+        p.subtitle { color: var(--text-sub); font-size: 0.95rem; }
+
+        .panel { background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 18px; }
+        .controls { display: flex; flex-direction: column; gap: 16px; }
+        
+        .control-group { display: flex; flex-direction: column; gap: 6px; }
+        label { font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-sub); }
+        select, input[type="range"] { width: 100%; padding: 8px; background: #0f172a; color: #fff; border: 1px solid var(--border); border-radius: 4px; }
+        .range-val { font-size: 0.8rem; color: var(--accent); float: right; }
+
+        .viewport-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .canvas-card { display: flex; flex-direction: column; align-items: center; background: #0f172a; border: 1px solid var(--border); border-radius: 6px; padding: 12px; position: relative; overflow: hidden; }
+        .canvas-card h3 { font-size: 1rem; margin-bottom: 10px; color: var(--accent); }
+        
+        .display-area { width: 100%; height: 320px; border: 1px dashed var(--border); display: flex; align-items: center; justify-content: center; background-image: radial-gradient(#334155 1px, transparent 1px); background-size: 12px 12px; overflow: hidden; position: relative; }
+        
+        .metrics { margin-top: 12px; width: 100%; display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; font-size: 0.8rem; }
+        .metric-box { background: var(--card-bg); padding: 8px; border-radius: 4px; border: 1px solid var(--border); }
+        .metric-title { color: var(--text-sub); font-size: 0.75rem; }
+        .metric-value { font-weight: bold; color: #fff; margin-top: 2px; }
+
+        .format-badge { position: absolute; top: 18px; right: 18px; background: var(--accent); color: #000; font-weight: bold; font-size: 0.75rem; padding: 2px 8px; border-radius: 12px; }
+
+        @media (max-width: 850px) {
+            .container { grid-template-columns: 1fr; }
+            .viewport-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Image Format Interactive Simulator</h1>
+        <p class="subtitle">Simulate rendering dynamics, pixelation, compression behavior, and file size scaling between Vector and Bitmap formats.</p>
+    </header>
+
+    <!-- Control Panel -->
+    <div class="panel controls">
+        <div class="control-group">
+            <label>Subject Scene</label>
+            <select id="sceneSelect" onchange="updateSimulation()">
+                <option value="logo">Geometric Logo (Sharp Edges, Clean Shapes)</option>
+                <option value="photo">Gradient Continuous Tone (Photographic Style)</option>
+            </select>
+        </div>
+
+        <div class="control-group">
+            <label>Bitmap Format Selection</label>
+            <select id="formatSelect" onchange="updateSimulation()">
+                <option value="JPEG">JPEG (Lossy DCT Compression)</option>
+                <option value="PNG24">PNG-24 (Lossless 24-bit + Alpha)</option>
+                <option value="GIF">GIF (Lossless 8-bit / 256 Colors)</option>
+                <option value="WebP">WebP (Modern Lossy/Lossless)</option>
+                <option value="BMP">BMP (Uncompressed Raw Pixels)</option>
+            </select>
+        </div>
+
+        <div class="control-group">
+            <label>Base Grid Resolution: <span id="resVal" class="range-val">200 x 200</span></label>
+            <input type="range" id="resRange" min="50" max="600" step="50" value="200" oninput="updateSimulation()">
+        </div>
+
+        <div class="control-group">
+            <label>Zoom Level: <span id="zoomVal" class="range-val">100%</span></label>
+            <input type="range" id="zoomRange" min="100" max="1000" step="50" value="100" oninput="updateSimulation()">
+        </div>
+
+        <div class="control-group">
+            <label>Bitmap Quality / Compression: <span id="qualityVal" class="range-val">80%</span></label>
+            <input type="range" id="qualityRange" min="5" max="100" value="80" oninput="updateSimulation()">
+        </div>
+    </div>
+
+    <!-- Viewport Comparison Grid -->
+    <div class="viewport-grid">
+        <!-- Vector Display -->
+        <div class="canvas-card">
+            <span class="format-badge">SVG (Vector)</span>
+            <h3>Vector Path Rendering</h3>
+            <div class="display-area" id="vectorContainer"></div>
+            <div class="metrics">
+                <div class="metric-box">
+                    <div class="metric-title">Estimated File Size</div>
+                    <div class="metric-value" id="vectorSize">~1.2 KB</div>
+                </div>
+                <div class="metric-box">
+                    <div class="metric-title">Edge Sharpness</div>
+                    <div class="metric-value" style="color: #4ade80;">Infinite (Mathematical)</div>
+                </div>
+                <div class="metric-box">
+                    <div class="metric-title">Scalability</div>
+                    <div class="metric-value">Resolution Independent</div>
+                </div>
+                <div class="metric-box">
+                    <div class="metric-title">Render Method</div>
+                    <div class="metric-value">Real-time Path Geometry</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bitmap Display -->
+        <div class="canvas-card">
+            <span class="format-badge" id="bitmapBadge">JPEG</span>
+            <h3>Bitmap Pixel Raster</h3>
+            <div class="display-area">
+                <canvas id="bitmapCanvas"></canvas>
+            </div>
+            <div class="metrics">
+                <div class="metric-box">
+                    <div class="metric-title">Estimated File Size</div>
+                    <div class="metric-value" id="bitmapSize">-- KB</div>
+                </div>
+                <div class="metric-box">
+                    <div class="metric-title">Edge Sharpness</div>
+                    <div class="metric-value" id="bitmapSharpness">Fixed Pixel Grid</div>
+                </div>
+                <div class="metric-box">
+                    <div class="metric-title">Color Palette</div>
+                    <div class="metric-value" id="bitmapColors">24-bit TrueColor</div>
+                </div>
+                <div class="metric-box">
+                    <div class="metric-title">Compression Type</div>
+                    <div class="metric-value" id="bitmapCompression">Lossy</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function updateSimulation() {
+        const scene = document.getElementById('sceneSelect').value;
+        const format = document.getElementById('formatSelect').value;
+        const res = parseInt(document.getElementById('resRange').value);
+        const zoom = parseInt(document.getElementById('zoomRange').value) / 100;
+        const quality = parseInt(document.getElementById('qualityRange').value);
+
+        document.getElementById('resVal').innerText = `${res} x ${res}`;
+        document.getElementById('zoomVal').innerText = `${Math.round(zoom * 100)}%`;
+        document.getElementById('qualityVal').innerText = `${quality}%`;
+        document.getElementById('bitmapBadge').innerText = format;
+
+        // 1. Render Vector (SVG)
+        const vectorContainer = document.getElementById('vectorContainer');
+        const svgScale = zoom;
+        if (scene === 'logo') {
+            vectorContainer.innerHTML = `
+                <svg width="200" height="200" viewBox="0 0 200 200" style="transform: scale(${svgScale}); transform-origin: center;">
+                    <circle cx="100" cy="100" r="80" fill="#0284c7" />
+                    <polygon points="100,30 140,150 60,150" fill="#f59e0b" />
+                    <text x="100" y="110" font-family="sans-serif" font-size="22" font-weight="bold" fill="#ffffff" text-anchor="middle">VECTOR</text>
+                </svg>`;
+        } else {
+            vectorContainer.innerHTML = `
+                <svg width="200" height="200" viewBox="0 0 200 200" style="transform: scale(${svgScale}); transform-origin: center;">
+                    <defs>
+                        <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#ec4899;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    <rect width="200" height="200" fill="url(#grad1)" />
+                    <circle cx="100" cy="100" r="60" fill="#ffffff" opacity="0.3" />
+                </svg>`;
+        }
+
+        // Vector File Size is virtually constant regardless of output zoom/resolution
+        const vSize = scene === 'logo' ? 0.8 : 1.4;
+        document.getElementById('vectorSize').innerText = `~${vSize.toFixed(1)} KB`;
+
+        // 2. Render Bitmap Canvas
+        const canvas = document.getElementById('bitmapCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        canvas.width = res;
+        canvas.height = res;
+        
+        // CSS zoom simulation
+        canvas.style.width = `${200 * zoom}px`;
+        canvas.style.height = `${200 * zoom}px`;
+        
+        // Disable smoothing if zoom > 2 to highlight pixelation
+        ctx.imageSmoothingEnabled = zoom < 2;
+
+        // Draw Base Content on Pixel Grid
+        if (scene === 'logo') {
+            ctx.fillStyle = "#0284c7";
+            ctx.beginPath(); ctx.arc(res/2, res/2, res*0.4, 0, Math.PI*2); ctx.fill();
+            
+            ctx.fillStyle = "#f59e0b";
+            ctx.beginPath();
+            ctx.moveTo(res/2, res*0.15);
+            ctx.lineTo(res*0.7, res*0.75);
+            ctx.lineTo(res*0.3, res*0.75);
+            ctx.closePath(); ctx.fill();
+
+            ctx.fillStyle = "#ffffff";
+            ctx.font = `bold ${Math.round(res*0.11)}px sans-serif`;
+            ctx.textAlign = "center";
+            ctx.fillText("BITMAP", res/2, res/2 + res*0.04);
+        } else {
+            let grad = ctx.createLinearGradient(0, 0, res, res);
+            grad.addColorStop(0, "#ec4899");
+            grad.addColorStop(1, "#8b5cf6");
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, res, res);
+
+            ctx.fillStyle = "rgba(255, 255, 255, 0.3)";
+            ctx.beginPath(); ctx.arc(res/2, res/2, res*0.3, 0, Math.PI*2); ctx.fill();
+        }
+
+        // Simulate Compression Artifacts / Palette Limits
+        if (format === 'JPEG' && quality < 60) {
+            // Blockiness simulation for lossy JPEG
+            let blockSize = Math.max(2, Math.floor((100 - quality) / 12));
+            for (let y = 0; y < res; y += blockSize) {
+                for (let x = 0; x < res; x += blockSize) {
+                    let p = ctx.getImageData(x, y, 1, 1).data;
+                    ctx.fillStyle = `rgba(${p[0]},${p[1]},${p[2]},${p[3]/255})`;
+                    ctx.fillRect(x, y, blockSize, blockSize);
+                }
+            }
+        }
+
+        // Calculate Estimated Bitmap File Sizes & Metadata
+        let numPixels = res * res;
+        let estimatedBytes = 0;
+        let colorText = "24-bit TrueColor";
+        let compText = "Lossy";
+        let sharpnessText = zoom > 1.5 ? "Pixelated (Aliased)" : "Sharp (Native)";
+
+        switch(format) {
+            case 'BMP':
+                estimatedBytes = numPixels * 3 + 54;
+                colorText = "24-bit Uncompressed";
+                compText = "None";
+                break;
+            case 'PNG24':
+                estimatedBytes = numPixels * (scene === 'logo' ? 0.6 : 1.8);
+                colorText = "24-bit + 8-bit Alpha";
+                compText = "Lossless (DEFLATE)";
+                break;
+            case 'JPEG':
+                estimatedBytes = numPixels * (quality / 100) * (scene === 'logo' ? 0.3 : 0.8);
+                colorText = "24-bit (No Alpha)";
+                compText = `Lossy DCT (${quality}%)`;
+                break;
+            case 'GIF':
+                estimatedBytes = numPixels * 0.4;
+                colorText = "8-bit Indexed (256 Colors)";
+                compText = "Lossless (LZW)";
+                break;
+            case 'WebP':
+                estimatedBytes = numPixels * (quality / 100) * (scene === 'logo' ? 0.2 : 0.5);
+                colorText = "24-bit + Alpha";
+                compText = `Predictive (${quality}%)`;
+                break;
+        }
+
+        let kbSize = (estimatedBytes / 1024).toFixed(1);
+        document.getElementById('bitmapSize').innerText = `~${kbSize} KB`;
+        document.getElementById('bitmapSharpness').innerText = sharpnessText;
+        document.getElementById('bitmapColors').innerText = colorText;
+        document.getElementById('bitmapCompression').innerText = compText;
+    }
+
+    // Initial run
+    updateSimulation();
+</script>
+</body>
+</html>
