@@ -62,8 +62,9 @@
         <div class="control-group">
             <label>Subject Scene</label>
             <select id="sceneSelect" onchange="updateSimulation()">
-                <option value="logo">Geometric Logo (Sharp Edges, Clean Shapes)</option>
-                <option value="photo">Gradient Continuous Tone (Photographic Style)</option>
+                <option value="logo">Geometric Logo (Sharp Edges, Flat Colors)</option>
+                <option value="photo">Simple Gradient (Abstract Shape)</option>
+                <option value="realphoto" selected>Real Photo (Complex Sunset Landscape)</option>
             </select>
         </div>
 
@@ -104,15 +105,15 @@
             <div class="metrics">
                 <div class="metric-box">
                     <div class="metric-title">Estimated File Size</div>
-                    <div class="metric-value" id="vectorSize">~1.2 KB</div>
+                    <div class="metric-value" id="vectorSize">-- KB</div>
                 </div>
                 <div class="metric-box">
                     <div class="metric-title">Edge Sharpness</div>
                     <div class="metric-value" style="color: #4ade80;">Infinite (Mathematical)</div>
                 </div>
                 <div class="metric-box">
-                    <div class="metric-title">Scalability</div>
-                    <div class="metric-value">Resolution Independent</div>
+                    <div class="metric-title">Efficiency for Scene</div>
+                    <div class="metric-value" id="vectorEfficiency">High</div>
                 </div>
                 <div class="metric-box">
                     <div class="metric-title">Render Method</div>
@@ -163,9 +164,14 @@
         document.getElementById('qualityVal').innerText = `${quality}%`;
         document.getElementById('bitmapBadge').innerText = format;
 
-        // 1. Render Vector (SVG)
+        // -------------------------------------------------------------
+        // 1. RENDER VECTOR (SVG)
+        // -------------------------------------------------------------
         const vectorContainer = document.getElementById('vectorContainer');
         const svgScale = zoom;
+        let vectorKb = 0;
+        let vectorEfficiency = "High";
+
         if (scene === 'logo') {
             vectorContainer.innerHTML = `
                 <svg width="200" height="200" viewBox="0 0 200 200" style="transform: scale(${svgScale}); transform-origin: center;">
@@ -173,7 +179,9 @@
                     <polygon points="100,30 140,150 60,150" fill="#f59e0b" />
                     <text x="100" y="110" font-family="sans-serif" font-size="22" font-weight="bold" fill="#ffffff" text-anchor="middle">VECTOR</text>
                 </svg>`;
-        } else {
+            vectorKb = 0.8;
+            vectorEfficiency = "Ideal (Tiny File)";
+        } else if (scene === 'photo') {
             vectorContainer.innerHTML = `
                 <svg width="200" height="200" viewBox="0 0 200 200" style="transform: scale(${svgScale}); transform-origin: center;">
                     <defs>
@@ -185,13 +193,63 @@
                     <rect width="200" height="200" fill="url(#grad1)" />
                     <circle cx="100" cy="100" r="60" fill="#ffffff" opacity="0.3" />
                 </svg>`;
+            vectorKb = 1.2;
+            vectorEfficiency = "Good";
+        } else if (scene === 'realphoto') {
+            // Simulated "Traced Vector Photo" (Complex SVG with multiple gradient paths & polygons)
+            vectorContainer.innerHTML = `
+                <svg width="200" height="200" viewBox="0 0 200 200" style="transform: scale(${svgScale}); transform-origin: center;">
+                    <defs>
+                        <linearGradient id="skyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#1e1b4b;" />
+                            <stop offset="40%" style="stop-color:#7c2d12;" />
+                            <stop offset="70%" style="stop-color:#c2410c;" />
+                            <stop offset="100%" style="stop-color:#f59e0b;" />
+                        </linearGradient>
+                        <linearGradient id="waterGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#b45309;" />
+                            <stop offset="100%" style="stop-color:#0f172a;" />
+                        </linearGradient>
+                        <radialGradient id="sunGlow" cx="50%" cy="50%" r="50%">
+                            <stop offset="0%" style="stop-color:#fef08a; stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#f97316; stop-opacity:0" />
+                        </radialGradient>
+                    </defs>
+                    <!-- Sky -->
+                    <rect width="200" height="130" fill="url(#skyGrad)" />
+                    <!-- Sun & Glow -->
+                    <circle cx="100" cy="90" r="35" fill="url(#sunGlow)" />
+                    <circle cx="100" cy="90" r="14" fill="#fffef0" />
+                    <!-- Distant Clouds -->
+                    <path d="M 0,60 Q 30,50 60,62 T 120,58 T 180,65 T 200,60 L 200,80 L 0,80 Z" fill="#9a3412" opacity="0.5" />
+                    <path d="M 10,40 Q 50,30 90,42 T 170,38 L 200,45 L 200,55 L 0,55 Z" fill="#431407" opacity="0.6" />
+                    <!-- Distant Mountains -->
+                    <polygon points="0,110 35,80 70,115 120,75 165,110 200,85 200,130 0,130" fill="#311332" />
+                    <!-- Layered Foreground Hills -->
+                    <polygon points="0,125 45,95 90,128 140,100 185,125 200,115 200,130 0,130" fill="#1c0a27" />
+                    <!-- Water Lake -->
+                    <rect y="130" width="200" height="70" fill="url(#waterGrad)" />
+                    <!-- Sun Reflection on Water -->
+                    <ellipse cx="100" cy="150" rx="25" ry="4" fill="#fef08a" opacity="0.6" />
+                    <ellipse cx="100" cy="162" rx="18" ry="3" fill="#fde047" opacity="0.5" />
+                    <ellipse cx="100" cy="173" rx="12" ry="2" fill="#facc15" opacity="0.4" />
+                    <!-- Pine Tree Silhouettes (Vectorized Detail) -->
+                    <polygon points="15,135 20,115 25,135" fill="#090314" />
+                    <polygon points="12,140 20,122 28,140" fill="#090314" />
+                    <polygon points="170,138 177,110 184,138" fill="#090314" />
+                    <polygon points="180,142 186,118 192,142" fill="#090314" />
+                </svg>`;
+            // Vector complex photographic traces grow exponentially in file size (simulated realistic trace ~42KB)
+            vectorKb = 42.5; 
+            vectorEfficiency = "Poor (Complex Paths)";
         }
 
-        // Vector File Size is virtually constant regardless of output zoom/resolution
-        const vSize = scene === 'logo' ? 0.8 : 1.4;
-        document.getElementById('vectorSize').innerText = `~${vSize.toFixed(1)} KB`;
+        document.getElementById('vectorSize').innerText = `~${vectorKb.toFixed(1)} KB`;
+        document.getElementById('vectorEfficiency').innerText = vectorEfficiency;
 
-        // 2. Render Bitmap Canvas
+        // -------------------------------------------------------------
+        // 2. RENDER BITMAP CANVAS
+        // -------------------------------------------------------------
         const canvas = document.getElementById('bitmapCanvas');
         const ctx = canvas.getContext('2d');
         
@@ -202,10 +260,9 @@
         canvas.style.width = `${200 * zoom}px`;
         canvas.style.height = `${200 * zoom}px`;
         
-        // Disable smoothing if zoom > 2 to highlight pixelation
+        // Disable smoothing if zoomed in to highlight pixelation
         ctx.imageSmoothingEnabled = zoom < 2;
 
-        // Draw Base Content on Pixel Grid
         if (scene === 'logo') {
             ctx.fillStyle = "#0284c7";
             ctx.beginPath(); ctx.arc(res/2, res/2, res*0.4, 0, Math.PI*2); ctx.fill();
@@ -221,7 +278,7 @@
             ctx.font = `bold ${Math.round(res*0.11)}px sans-serif`;
             ctx.textAlign = "center";
             ctx.fillText("BITMAP", res/2, res/2 + res*0.04);
-        } else {
+        } else if (scene === 'photo') {
             let grad = ctx.createLinearGradient(0, 0, res, res);
             grad.addColorStop(0, "#ec4899");
             grad.addColorStop(1, "#8b5cf6");
@@ -230,12 +287,75 @@
 
             ctx.fillStyle = "rgba(255, 255, 255, 0.3)";
             ctx.beginPath(); ctx.arc(res/2, res/2, res*0.3, 0, Math.PI*2); ctx.fill();
+        } else if (scene === 'realphoto') {
+            // Draw Detailed Photographic Sunset Landscape
+            // Sky
+            let skyGrad = ctx.createLinearGradient(0, 0, 0, res * 0.65);
+            skyGrad.addColorStop(0, "#1e1b4b");
+            skyGrad.addColorStop(0.4, "#7c2d12");
+            skyGrad.addColorStop(0.7, "#c2410c");
+            skyGrad.addColorStop(1, "#f59e0b");
+            ctx.fillStyle = skyGrad;
+            ctx.fillRect(0, 0, res, res * 0.65);
+
+            // Sun & Glow
+            let sunGlow = ctx.createRadialGradient(res*0.5, res*0.45, 0, res*0.5, res*0.45, res*0.2);
+            sunGlow.addColorStop(0, "#fef08a");
+            sunGlow.addColorStop(0.3, "rgba(249, 115, 22, 0.8)");
+            sunGlow.addColorStop(1, "rgba(249, 115, 22, 0)");
+            ctx.fillStyle = sunGlow;
+            ctx.beginPath(); ctx.arc(res*0.5, res*0.45, res*0.2, 0, Math.PI*2); ctx.fill();
+
+            // Clouds
+            ctx.fillStyle = "rgba(67, 20, 7, 0.5)";
+            ctx.beginPath();
+            ctx.ellipse(res*0.3, res*0.2, res*0.25, res*0.04, 0, 0, Math.PI*2);
+            ctx.ellipse(res*0.7, res*0.28, res*0.3, res*0.05, 0, 0, Math.PI*2);
+            ctx.fill();
+
+            // Distant Mountains
+            ctx.fillStyle = "#311332";
+            ctx.beginPath();
+            ctx.moveTo(0, res*0.55);
+            ctx.lineTo(res*0.18, res*0.4);
+            ctx.lineTo(res*0.35, res*0.58);
+            ctx.lineTo(res*0.6, res*0.38);
+            ctx.lineTo(res*0.83, res*0.55);
+            ctx.lineTo(res, res*0.43);
+            ctx.lineTo(res, res*0.65);
+            ctx.lineTo(0, res*0.65);
+            ctx.closePath(); ctx.fill();
+
+            // Water Lake
+            let waterGrad = ctx.createLinearGradient(0, res*0.65, 0, res);
+            waterGrad.addColorStop(0, "#b45309");
+            waterGrad.addColorStop(1, "#0f172a");
+            ctx.fillStyle = waterGrad;
+            ctx.fillRect(0, res*0.65, res, res*0.35);
+
+            // Water Reflection
+            ctx.fillStyle = "rgba(254, 240, 138, 0.6)";
+            ctx.fillRect(res*0.38, res*0.72, res*0.24, res*0.02);
+            ctx.fillRect(res*0.42, res*0.80, res*0.16, res*0.015);
+            ctx.fillRect(res*0.45, res*0.87, res*0.10, res*0.01);
+
+            // Trees Silhouettes
+            ctx.fillStyle = "#090314";
+            for (let i = 0; i < 5; i++) {
+                let tx = res * (0.05 + i * 0.04);
+                let ty = res * 0.68;
+                let th = res * (0.08 + (i % 2) * 0.04);
+                ctx.beginPath();
+                ctx.moveTo(tx - res*0.02, ty);
+                ctx.lineTo(tx, ty - th);
+                ctx.lineTo(tx + res*0.02, ty);
+                ctx.closePath(); ctx.fill();
+            }
         }
 
         // Simulate Compression Artifacts / Palette Limits
         if (format === 'JPEG' && quality < 60) {
-            // Blockiness simulation for lossy JPEG
-            let blockSize = Math.max(2, Math.floor((100 - quality) / 12));
+            let blockSize = Math.max(2, Math.floor((100 - quality) / 10));
             for (let y = 0; y < res; y += blockSize) {
                 for (let x = 0; x < res; x += blockSize) {
                     let p = ctx.getImageData(x, y, 1, 1).data;
@@ -243,6 +363,17 @@
                     ctx.fillRect(x, y, blockSize, blockSize);
                 }
             }
+        } else if (format === 'GIF') {
+            // Simulate Color Quantization (256 color limit / posterization)
+            let imgData = ctx.getImageData(0, 0, res, res);
+            let d = imgData.data;
+            let factor = 4; // Quantize color channels
+            for (let i = 0; i < d.length; i += 4) {
+                d[i]     = Math.floor(d[i] / 64) * 64;
+                d[i + 1] = Math.floor(d[i + 1] / 64) * 64;
+                d[i + 2] = Math.floor(d[i + 2] / 64) * 64;
+            }
+            ctx.putImageData(imgData, 0, 0);
         }
 
         // Calculate Estimated Bitmap File Sizes & Metadata
@@ -252,6 +383,9 @@
         let compText = "Lossy";
         let sharpnessText = zoom > 1.5 ? "Pixelated (Aliased)" : "Sharp (Native)";
 
+        // Multipliers vary depending on scene complexity
+        let complexityMultiplier = scene === 'logo' ? 0.3 : (scene === 'photo' ? 0.7 : 1.2);
+
         switch(format) {
             case 'BMP':
                 estimatedBytes = numPixels * 3 + 54;
@@ -259,22 +393,22 @@
                 compText = "None";
                 break;
             case 'PNG24':
-                estimatedBytes = numPixels * (scene === 'logo' ? 0.6 : 1.8);
+                estimatedBytes = numPixels * (scene === 'logo' ? 0.6 : (scene === 'photo' ? 1.5 : 2.4));
                 colorText = "24-bit + 8-bit Alpha";
                 compText = "Lossless (DEFLATE)";
                 break;
             case 'JPEG':
-                estimatedBytes = numPixels * (quality / 100) * (scene === 'logo' ? 0.3 : 0.8);
+                estimatedBytes = numPixels * (quality / 100) * complexityMultiplier * 0.6;
                 colorText = "24-bit (No Alpha)";
                 compText = `Lossy DCT (${quality}%)`;
                 break;
             case 'GIF':
-                estimatedBytes = numPixels * 0.4;
+                estimatedBytes = numPixels * (scene === 'logo' ? 0.3 : 0.7);
                 colorText = "8-bit Indexed (256 Colors)";
                 compText = "Lossless (LZW)";
                 break;
             case 'WebP':
-                estimatedBytes = numPixels * (quality / 100) * (scene === 'logo' ? 0.2 : 0.5);
+                estimatedBytes = numPixels * (quality / 100) * complexityMultiplier * 0.35;
                 colorText = "24-bit + Alpha";
                 compText = `Predictive (${quality}%)`;
                 break;
