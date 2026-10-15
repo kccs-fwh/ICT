@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sushiro Ticket Queue - Array Operations Simulation</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        sushiro: {
+                            red: '#E60012',
+                            darkRed: '#9E000C',
+                            gold: '#FFC72C',
+                            bg: '#0D1117',
+                            panel: '#161B22',
+                            card: '#21262D',
+                            border: '#30363D'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Outfit', 'sans-serif'],
+                        mono: ['Space Mono', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #0D1117;
+            color: #F0F6FC;
+            user-select: none;
+        }
+
+        /* Card Drag & Shift Animations */
+        @keyframes insertPulse {
+            0% { transform: scale(0.85); opacity: 0; }
+            50% { transform: scale(1.05); border-color: #E60012; box-shadow: 0 0 20px rgba(230, 0, 18, 0.5); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        @keyframes shiftLeft {
+            0% { transform: translateX(16px); opacity: 0.6; }
+            50% { transform: translateX(-4px); border-color: #38BDF8; }
+            100% { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes shiftRight {
+            0% { transform: translateX(-16px); opacity: 0.6; }
+            50% { transform: translateX(4px); border-color: #FFC72C; }
+            100% { transform: translateX(0); opacity: 1; }
+        }
+
+        .anim-insert { animation: insertPulse 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .anim-shift-left { animation: shiftLeft 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .anim-shift-right { animation: shiftRight 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
+
+        /* Drop Indicator Line */
+        .drop-target-before {
+            border-left: 4px solid #FFC72C !important;
+            box-shadow: -6px 0 15px rgba(255, 199, 44, 0.4);
+        }
+
+        /* Custom Scrollbar for logs */
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: #161B22; }
+        ::-webkit-scrollbar-thumb { background: #30363D; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #484F58; }
+    </style>
+</head>
+<body class="h-screen w-screen flex flex-col justify-between p-3 lg:p-4 font-sans overflow-hidden">
+
+    <!-- Header: Sushiro Branding & Live Array Representation -->
+    <header class="bg-sushiro-panel border border-sushiro-border rounded-2xl p-3 shadow-xl flex flex-wrap items-center justify-between gap-3 flex-none">
+        
+        <!-- Sushiro Logo & Title -->
+        <div class="flex items-center gap-3">
+            <!-- Authentic Sushiro Red Arc Logo -->
+            <div class="relative w-11 h-11 rounded-full bg-sushiro-red flex items-center justify-center p-1 shadow-md shadow-sushiro-red/30 flex-none border border-white/20">
+                <div class="w-full h-full rounded-full border-2 border-white flex flex-col items-center justify-center bg-sushiro-red overflow-hidden">
+                    <span class="text-[8px] font-black tracking-tight text-white leading-none">スシロー</span>
+                    <span class="text-[10px] font-extrabold tracking-tight text-white leading-tight">SUSHIRO</span>
+                </div>
+            </div>
+
+            <div>
+                <div class="flex items-center gap-2">
+                    <h1 class="text-lg font-black text-white tracking-tight leading-none">Sushiro Ticket Queue</h1>
+                    <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md bg-sushiro-bg text-sushiro-gold border border-sushiro-gold/30">
+                        Array Data Structure
+                    </span>
+                </div>
+                <p class="text-xs text-slate-400 mt-0.5">Interactive queue simulation demonstrating array index re-indexing &amp; element shifting</p>
+            </div>
+        </div>
+
+        <!-- Live Array Memory State Representation -->
+        <div class="flex items-center gap-2 bg-sushiro-bg border border-sushiro-border px-3 py-1.5 rounded-xl text-xs font-mono">
+            <span class="text-slate-400 font-bold">Array =</span>
+            <div id="liveArrayCode" class="text-sushiro-gold font-bold tracking-wide">
+                ["#101", "#102", "#103", "#104"]
+            </div>
+            <span id="arrayLengthBadge" class="ml-2 text-[10px] px-2 py-0.5 rounded bg-slate-800 text-emerald-400 font-bold border border-emerald-500/30">
+                Length: 4
+            </span>
+        </div>
+    </header>
+
+    <!-- Main Workspace Container -->
+    <main class="flex-1 flex flex-col gap-3 my-3 min-h-0">
+
+        <!-- Controls Toolbar -->
+        <section class="bg-sushiro-panel border border-sushiro-border rounded-2xl p-3 shadow-lg flex flex-wrap items-center justify-between gap-2.5 flex-none text-xs">
+            
+            <!-- ➕ Add Ticket Button -->
+            <button onclick="addTicket()" class="px-3.5 py-2 rounded-xl bg-sushiro-red hover:bg-red-600 text-white font-bold flex items-center gap-2 shadow-md shadow-sushiro-red/20 transition active:scale-95">
+                <i class="fa-solid fa-plus-circle text-sm"></i>
+                <span>Add Ticket at End <code class="bg-red-950 px-1.5 py-0.5 rounded font-mono text-[10px]">[push]</code></span>
+            </button>
+
+            <div class="w-px h-6 bg-sushiro-border hidden md:block"></div>
+
+            <!-- 🗑️ Delete Specific Ticket Control -->
+            <div class="flex items-center gap-2 bg-sushiro-bg border border-sushiro-border p-1 rounded-xl">
+                <span class="text-slate-400 font-bold px-1.5 flex items-center gap-1">
+                    <i class="fa-solid fa-trash-can text-rose-400"></i> Delete:
+                </span>
+                <select id="deleteSelect" class="bg-sushiro-card text-white font-mono font-bold px-2 py-1 rounded-lg border border-sushiro-border focus:outline-none text-xs">
+                    <!-- Populated dynamically -->
+                </select>
+                <button onclick="deleteSelectedTicket()" class="px-2.5 py-1 rounded-lg bg-rose-950/80 hover:bg-rose-900 border border-rose-800 text-rose-200 font-semibold transition">
+                    Remove
+                </button>
+            </div>
+
+            <div class="w-px h-6 bg-sushiro-border hidden md:block"></div>
+
+            <!-- ⇄ Move Ticket Before Another Control -->
+            <div class="flex items-center gap-2 bg-sushiro-bg border border-sushiro-border p-1 rounded-xl flex-wrap">
+                <span class="text-slate-400 font-bold px-1.5 flex items-center gap-1">
+                    <i class="fa-solid fa-arrow-right-arrow-left text-sushiro-gold"></i> Move Ticket
+                </span>
+                <select id="moveFromSelect" class="bg-sushiro-card text-sushiro-gold font-mono font-bold px-2 py-1 rounded-lg border border-sushiro-border focus:outline-none text-xs">
+                    <!-- Populated dynamically -->
+                </select>
+                <span class="text-slate-400 font-bold">Before</span>
+                <select id="moveToSelect" class="bg-sushiro-card text-sky-400 font-mono font-bold px-2 py-1 rounded-lg border border-sushiro-border focus:outline-none text-xs">
+                    <!-- Populated dynamically -->
+                </select>
+                <button onclick="moveSelectedTicket()" class="px-3 py-1 rounded-lg bg-amber-950/80 hover:bg-amber-900 border border-amber-600/50 text-sushiro-gold font-bold transition">
+                    Move Ticket
+                </button>
+            </div>
+
+            <div class="w-px h-6 bg-sushiro-border hidden md:block"></div>
+
+            <!-- 🔄 Reset Queue Button -->
+            <button onclick="resetQueue()" class="px-3 py-2 rounded-xl bg-sushiro-card hover:bg-slate-800 border border-sushiro-border text-slate-300 font-semibold transition" title="Reset queue to initial 4 tickets">
+                <i class="fa-solid fa-rotate-left mr-1"></i> Reset
+            </button>
+        </section>
+
+        <!-- Visual Array Queue Cards (Interactive Canvas) -->
+        <section class="flex-1 bg-sushiro-panel border border-sushiro-border rounded-2xl p-4 shadow-xl flex flex-col justify-between min-h-0 relative">
+            
+            <div class="flex items-center justify-between text-xs text-slate-400 pb-2 border-b border-sushiro-border flex-none">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-grip-dots-vertical text-sushiro-red"></i>
+                    <span class="font-bold text-white">Ticket Array Canvas:</span>
+                    <span class="text-[11px]">Drag &amp; drop any ticket card onto another to place it <strong>BEFORE</strong> that ticket.</span>
+                </div>
+                <div class="text-[11px] font-mono text-slate-400 hidden sm:block">
+                    Max Capacity: <span class="text-sushiro-gold font-bold">10 Slots</span>
+                </div>
+            </div>
+
+            <!-- 10 Array Slots Container -->
+            <div id="arrayContainer" class="grid grid-cols-2 sm:grid-cols-5 md:grid-cols-10 gap-2.5 my-auto py-2 w-full">
+                <!-- Rendered dynamically by JavaScript -->
+            </div>
+
+            <!-- Array Legend -->
+            <div class="flex items-center justify-between text-[11px] text-slate-400 pt-2 border-t border-sushiro-border flex-none">
+                <div class="flex items-center gap-4">
+                    <span class="flex items-center gap-1.5">
+                        <span class="w-2.5 h-2.5 rounded-full bg-sushiro-red"></span>
+                        Index [0] = Head (Next in line)
+                    </span>
+                    <span class="flex items-center gap-1.5">
+                        <span class="w-2.5 h-2.5 rounded-full bg-sushiro-card border border-sushiro-border"></span>
+                        Index [1..N-1] = Active Queue
+                    </span>
+                    <span class="flex items-center gap-1.5">
+                        <span class="w-2.5 h-2.5 rounded-full border border-dashed border-slate-700"></span>
+                        Empty Slots
+                    </span>
+                </div>
+                <div class="font-mono text-slate-500">
+                    Contiguous Memory Indices: <span class="text-emerald-400 font-bold">[0] ➔ [9]</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Explanation & Array Mechanism Log Box -->
+        <section class="bg-sushiro-panel border border-sushiro-border rounded-2xl p-3 shadow-xl flex flex-col justify-between flex-none h-32">
+            <div class="flex items-center justify-between pb-1.5 border-b border-sushiro-border mb-1.5 flex-none">
+                <h3 class="text-xs font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-brain text-sushiro-gold"></i>
+                    <span>Array Working Mechanism Explanation</span>
+                </h3>
+                <span class="text-[10px] font-mono text-slate-500">Real-time Index Changes</span>
+            </div>
+
+            <div id="explanationBox" class="bg-sushiro-bg border border-sushiro-border/80 rounded-xl p-2.5 h-full overflow-y-auto font-mono text-xs text-slate-300 space-y-1">
+                <div class="text-slate-500 italic">Queue initialized with 4 tickets (#101 to #104). Select an operation above or drag a ticket to observe index shifting.</div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- JavaScript Logic -->
+    <script>
+        const MAX_CAPACITY = 10;
+        let queue = ["#101", "#102", "#103", "#104"];
+        let nextTicketNum = 105;
+        let draggedIndex = null;
+
+        // Initialize App
+        window.onload = function() {
+            render();
+            logExplanation("🚀 System Initialized", "Array populated with 4 tickets. Index 0 is the front of the queue.");
+        };
+
+        // Render Array & UI
+        function render(animationMap = {}) {
+            const container = document.getElementById('arrayContainer');
+            container.innerHTML = '';
+
+            for (let i = 0; i < MAX_CAPACITY; i++) {
+                const ticket = queue[i];
+                const slot = document.createElement('div');
+                const animClass = animationMap[i] || '';
+                const isHead = (i === 0 && ticket);
+
+                if (ticket) {
+                    let cardBg = "bg-sushiro-card border-sushiro-border text-white";
+                    let badgeStyle = "bg-slate-800 text-slate-300 border-sushiro-border";
+
+                    if (isHead) {
+                        cardBg = "bg-red-950/40 border-sushiro-red text-white ring-1 ring-sushiro-red/50 shadow-lg shadow-sushiro-red/10";
+                        badgeStyle = "bg-sushiro-red text-white border-red-400";
+                    }
+
+                    slot.className = `rounded-xl border p-2.5 flex flex-col justify-between items-center transition-all duration-200 relative min-h-[130px] cursor-grab active:cursor-grabbing hover:border-slate-500 ${cardBg} ${animClass}`;
+                    slot.draggable = true;
+
+                    // Drag & Drop Event Listeners
+                    slot.addEventListener('dragstart', (e) => handleDragStart(e, i));
+                    slot.addEventListener('dragover', (e) => handleDragOver(e, i, slot));
+                    slot.addEventListener('dragleave', () => handleDragLeave(slot));
+                    slot.addEventListener('drop', (e) => handleDrop(e, i, slot));
+
+                    slot.innerHTML = `
+                        <!-- Index Badge -->
+                        <div class="w-full flex items-center justify-between">
+                            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold border ${badgeStyle}">
+                                [ Index ${i} ]
+                            </span>
+                            ${isHead ? '<span class="text-[9px] font-bold text-sushiro-red uppercase">HEAD</span>' : ''}
+                        </div>
+
+                        <!-- Ticket Number Display -->
+                        <div class="text-center my-2">
+                            <i class="fa-solid fa-ticket text-sushiro-gold text-xs mb-1"></i>
+                            <div class="text-xl font-black font-mono text-white tracking-tight">${ticket}</div>
+                        </div>
+
+                        <!-- Card Action Toolbar -->
+                        <div class="w-full flex items-center justify-between pt-1.5 border-t border-sushiro-border/60">
+                            <span class="text-[9px] text-slate-500 font-mono"><i class="fa-solid fa-grip-lines mr-1"></i>Drag</span>
+                            <button onclick="deleteTicket(${i})" class="w-5 h-5 rounded bg-rose-950/80 hover:bg-rose-900 border border-rose-800 text-rose-300 text-[10px] flex items-center justify-center transition" title="Delete Ticket ${ticket}">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </div>
+                    `;
+                } else {
+                    // Empty Memory Slot
+                    slot.className = "rounded-xl border border-dashed border-slate-800 bg-sushiro-bg/50 p-2.5 flex flex-col justify-between items-center text-slate-600 min-h-[130px]";
+                    slot.innerHTML = `
+                        <div class="w-full text-left">
+                            <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-slate-900/60 border border-slate-800 text-slate-600">
+                                [ Index ${i} ]
+                            </span>
+                        </div>
+                        <div class="text-center my-auto">
+                            <div class="text-[10px] font-mono text-slate-700 uppercase">Empty</div>
+                        </div>
+                    `;
+                }
+
+                container.appendChild(slot);
+            }
+
+            updateDropdownsAndState();
+        }
+
+        // Update Dropdowns & Live Representation
+        function updateDropdownsAndState() {
+            // Live Code Display
+            const codeStr = queue.length > 0 ? `["${queue.join('", "')}"]` : `[]`;
+            document.getElementById('liveArrayCode').textContent = codeStr;
+            document.getElementById('arrayLengthBadge').textContent = `Length: ${queue.length}`;
+
+            // Populate Delete Select Dropdown
+            const delSelect = document.getElementById('deleteSelect');
+            delSelect.innerHTML = '';
+            
+            // Populate Move Select Dropdowns
+            const moveFromSelect = document.getElementById('moveFromSelect');
+            const moveToSelect = document.getElementById('moveToSelect');
+            moveFromSelect.innerHTML = '';
+            moveToSelect.innerHTML = '';
+
+            if (queue.length === 0) {
+                delSelect.innerHTML = '<option value="">(Queue Empty)</option>';
+                moveFromSelect.innerHTML = '<option value="">(Empty)</option>';
+                moveToSelect.innerHTML = '<option value="">(Empty)</option>';
+                return;
+            }
+
+            queue.forEach((t, idx) => {
+                const opt1 = document.createElement('option');
+                opt1.value = idx;
+                opt1.textContent = `${t} (Idx ${idx})`;
+                delSelect.appendChild(opt1);
+
+                const opt2 = document.createElement('option');
+                opt2.value = idx;
+                opt2.textContent = `${t} (Idx ${idx})`;
+                moveFromSelect.appendChild(opt2);
+
+                const opt3 = document.createElement('option');
+                opt3.value = idx;
+                opt3.textContent = `${t} (Idx ${idx})`;
+                moveToSelect.appendChild(opt3);
+            });
+
+            if (queue.length > 1) {
+                moveToSelect.selectedIndex = 1;
+            }
+        }
+
+        // ➕ Add Ticket at End (Push)
+        function addTicket() {
+            if (queue.length >= MAX_CAPACITY) {
+                logExplanation("⚠️ Array Overflow Error", `Cannot add ticket. Array has reached maximum capacity (${MAX_CAPACITY} slots).`, "rose");
+                return;
+            }
+
+            const newTicket = `#${nextTicketNum++}`;
+            const newIndex = queue.length;
+            queue.push(newTicket);
+
+            const animMap = {};
+            animMap[newIndex] = 'anim-insert';
+            render(animMap);
+
+            logExplanation(
+                `➕ Added ${newTicket} at End`,
+                `Appended <strong>${newTicket}</strong> to tail Index [${newIndex}]. Array length increased from ${newIndex} to ${queue.length}. No existing elements needed to shift ($O(1)$ constant time).`,
+                "emerald"
+            );
+        }
+
+        // 🗑️ Delete Ticket at Index (Shift Left)
+        function deleteTicket(index) {
+            if (index < 0 || index >= queue.length) return;
+
+            const deletedTicket = queue[index];
+            const oldLength = queue.length;
+
+            // Remove item from array
+            queue.splice(index, 1);
+
+            // Calculate shift animation
+            const animMap = {};
+            for (let i = index; i < queue.length; i++) {
+                animMap[i] = 'anim-shift-left';
+            }
+
+            render(animMap);
+
+            const shiftedCount = oldLength - index - 1;
+            if (shiftedCount > 0) {
+                logExplanation(
+                    `🗑️ Deleted ${deletedTicket} from Index [${index}]`,
+                    `Removed <strong>${deletedTicket}</strong> from Index [${index}]. Elements at Index [${index + 1}] to [${oldLength - 1}] shifted <strong>LEFT</strong> by -1 index to close the empty gap ($O(N)$ shift).`,
+                    "rose"
+                );
+            } else {
+                logExplanation(
+                    `🗑️ Deleted ${deletedTicket} from End`,
+                    `Removed <strong>${deletedTicket}</strong> from tail Index [${index}]. No remaining elements needed to shift.`,
+                    "rose"
+                );
+            }
+        }
+
+        function deleteSelectedTicket() {
+            const select = document.getElementById('deleteSelect');
+            if (select.value === "") return;
+            deleteTicket(parseInt(select.value));
+        }
+
+        // ⇄ Move Ticket A Before Ticket B
+        function moveTicketBefore(fromIndex, targetIndex) {
+            if (fromIndex === targetIndex) return;
+
+            const ticketToMove = queue[fromIndex];
+            const targetTicket = queue[targetIndex];
+
+            // Perform array re-indexing
+            const item = queue.splice(fromIndex, 1)[0];
+            let insertAt = targetIndex;
+            if (fromIndex < targetIndex) {
+                insertAt = targetIndex - 1;
+            }
+            queue.splice(insertAt, 0, item);
+
+            // Animate affected elements
+            const animMap = {};
+            animMap[insertAt] = 'anim-insert';
+            render(animMap);
+
+            if (fromIndex > targetIndex) {
+                logExplanation(
+                    `⇄ Moved ${ticketToMove} Before ${targetTicket}`,
+                    `Moved <strong>${ticketToMove}</strong> from Index [${fromIndex}] to Index [${insertAt}] (before <strong>${targetTicket}</strong>). Intermediate elements shifted <strong>RIGHT</strong> by +1 position.`,
+                    "amber"
+                );
+            } else {
+                logExplanation(
+                    `⇄ Moved ${ticketToMove} Before ${targetTicket}`,
+                    `Moved <strong>${ticketToMove}</strong> from Index [${fromIndex}] to Index [${insertAt}] (before <strong>${targetTicket}</strong>). Intermediate elements shifted <strong>LEFT</strong> by -1 position.`,
+                    "amber"
+                );
+            }
+        }
+
+        function moveSelectedTicket() {
+            const fromSelect = document.getElementById('moveFromSelect');
+            const toSelect = document.getElementById('moveToSelect');
+
+            if (fromSelect.value === "" || toSelect.value === "") return;
+
+            const fromIdx = parseInt(fromSelect.value);
+            const toIdx = parseInt(toSelect.value);
+
+            if (fromIdx === toIdx) {
+                logExplanation("⚠️ Move Operation Warning", "Source ticket and target ticket are identical. Choose a different ticket target.", "amber");
+                return;
+            }
+
+            moveTicketBefore(fromIdx, toIdx);
+        }
+
+        // Drag and Drop Event Handlers
+        function handleDragStart(e, index) {
+            draggedIndex = index;
+            e.dataTransfer.setData('text/plain', index);
+            e.dataTransfer.effectAllowed = 'move';
+        }
+
+        function handleDragOver(e, index, element) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            if (index !== draggedIndex) {
+                element.classList.add('drop-target-before');
+            }
+        }
+
+        function handleDragLeave(element) {
+            element.classList.remove('drop-target-before');
+        }
+
+        function handleDrop(e, targetIndex, element) {
+            e.preventDefault();
+            element.classList.remove('drop-target-before');
+
+            if (draggedIndex !== null && draggedIndex !== targetIndex) {
+                moveTicketBefore(draggedIndex, targetIndex);
+            }
+            draggedIndex = null;
+        }
+
+        // Reset Queue
+        function resetQueue() {
+            queue = ["#101", "#102", "#103", "#104"];
+            nextTicketNum = 105;
+            render();
+            logExplanation("🔄 Queue Reset", "Restored initial ticket queue: #101, #102, #103, #104.");
+        }
+
+        // Explanation Log Function
+        function logExplanation(title, message, theme = "emerald") {
+            const box = document.getElementById('explanationBox');
+            const entry = document.createElement('div');
+
+            let titleColor = "text-emerald-400";
+            if (theme === "amber") titleColor = "text-sushiro-gold";
+            if (theme === "rose") titleColor = "text-rose-400";
+
+            entry.className = "pb-2 border-b border-sushiro-border/60 last:border-0 last:pb-0 font-mono text-[11px] leading-relaxed";
+            entry.innerHTML = `
+                <div class="font-bold ${titleColor} flex items-center justify-between">
+                    <span>${title}</span>
+                    <span class="text-[9px] text-slate-500 font-normal">${new Date().toLocaleTimeString()}</span>
+                </div>
+                <div class="text-slate-300 mt-0.5">${message}</div>
+            `;
+
+            box.prepend(entry);
+        }
+    </script>
+</body>
+</html>
