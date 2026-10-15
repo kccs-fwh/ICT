@@ -1,0 +1,1983 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CYBER-HUD // Command Center & Privacy Threat Matrix</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        cyber: {
+                            bg: '#060913',
+                            panel: '#0d1322',
+                            border: '#1e293b',
+                            cyan: '#00f0ff',
+                            neon: '#00ff66',
+                            magenta: '#ff0055',
+                            amber: '#ffaa00',
+                            blue: '#3b82f6'
+                        }
+                    },
+                    fontFamily: {
+                        mono: ['Courier New', 'Monaco', 'monospace'],
+                        sans: ['Inter', 'system-ui', 'sans-serif']
+                    },
+                    boxShadow: {
+                        'neon-cyan': '0 0 15px rgba(0, 240, 255, 0.35)',
+                        'neon-green': '0 0 15px rgba(0, 255, 102, 0.35)',
+                        'neon-magenta': '0 0 15px rgba(255, 0, 85, 0.35)',
+                        'neon-amber': '0 0 15px rgba(255, 170, 0, 0.35)',
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Custom HUD Scanlines and Animations */
+        body {
+            background-color: #060913;
+            color: #e2e8f0;
+            overflow-x: hidden;
+        }
+
+        .hud-grid {
+            background-size: 40px 40px;
+            background-image: 
+                linear-gradient(to right, rgba(0, 240, 255, 0.04) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(0, 240, 255, 0.04) 1px, transparent 1px);
+        }
+
+        .scanlines {
+            position: relative;
+        }
+        .scanlines::before {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+            background-size: 100% 4px;
+            z-index: 20;
+            pointer-events: none;
+            opacity: 0.6;
+        }
+
+        /* Glassmorphism Panels */
+        .glass-panel {
+            background: rgba(13, 19, 34, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(0, 240, 255, 0.15);
+        }
+
+        .glass-panel-magenta {
+            background: rgba(20, 10, 24, 0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 0, 85, 0.2);
+        }
+
+        .glass-panel-amber {
+            background: rgba(24, 18, 10, 0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 170, 0, 0.2);
+        }
+
+        /* SVG Data Animations */
+        @keyframes pulse-ring {
+            0% { transform: scale(0.95); opacity: 0.8; }
+            50% { transform: scale(1.05); opacity: 0.4; }
+            100% { transform: scale(0.95); opacity: 0.8; }
+        }
+        .animate-pulse-ring {
+            animation: pulse-ring 2.5s infinite ease-in-out;
+        }
+
+        @keyframes flow-line {
+            to { stroke-dashoffset: -40; }
+        }
+        .data-flow-line {
+            stroke-dasharray: 8 6;
+            animation: flow-line 1.2s linear infinite;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #060913;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1e293b;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #00f0ff;
+        }
+    </style>
+</head>
+<body class="font-sans antialiased min-h-screen flex flex-col hud-grid scanlines">
+
+    <!-- TOP HUD NAV CONTROL BAR -->
+    <header class="sticky top-0 z-50 glass-panel border-b border-cyber-cyan/30 px-4 py-3">
+        <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
+            
+            <!-- Logo & Title -->
+            <div class="flex items-center space-x-3">
+                <div class="relative flex items-center justify-center w-10 h-10 rounded-lg bg-cyber-cyan/10 border border-cyber-cyan text-cyber-cyan shadow-neon-cyan">
+                    <i class="fa-solid font-mono fa-shield-halved text-xl animate-pulse"></i>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs font-mono tracking-widest text-cyber-cyan uppercase font-semibold">[ CHAPTER 5 SEC-OPS ]</span>
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono bg-cyber-neon/10 text-cyber-neon border border-cyber-neon/40">
+                            <span class="w-1.5 h-1.5 rounded-full bg-cyber-neon mr-1.5 animate-ping"></span> ONLINE
+                        </span>
+                    </div>
+                    <h1 class="text-lg font-bold font-mono tracking-wider text-white uppercase flex items-center gap-2">
+                        CYBER-HUD <span class="text-cyber-cyan">//</span> Threat Command &amp; Privacy Center
+                    </h1>
+                </div>
+            </div>
+
+            <!-- Global Status Bar Metrics -->
+            <div class="hidden xl:flex items-center gap-6 font-mono text-xs border-x border-slate-800 px-6 py-1">
+                <div>
+                    <span class="text-slate-500 block">THREAT LEVEL:</span>
+                    <span class="text-cyber-amber font-bold flex items-center gap-1">
+                        <i class="fa-solid fa-triangle-exclamation"></i> ELEVATED (DEFCON 3)
+                    </span>
+                </div>
+                <div>
+                    <span class="text-slate-500 block">SYSTEM TIME:</span>
+                    <span id="utc-clock" class="text-cyber-cyan font-semibold">00:00:00 UTC</span>
+                </div>
+                <div>
+                    <span class="text-slate-500 block">SECURITY POSTURE:</span>
+                    <span id="global-score-indicator" class="text-cyber-neon font-bold">88% HARDENED</span>
+                </div>
+            </div>
+
+            <!-- Header Controls: Audio & Search -->
+            <div class="flex items-center gap-3">
+                <!-- SFX Toggle -->
+                <button id="sfx-toggle-btn" onclick="toggleSFX()" class="px-3 py-1.5 rounded bg-slate-900 border border-slate-700 text-xs font-mono text-slate-300 hover:text-cyber-cyan hover:border-cyber-cyan transition flex items-center gap-2">
+                    <i id="sfx-icon" class="fa-solid fa-volume-high text-cyber-cyan"></i>
+                    <span id="sfx-label" class="hidden sm:inline">SFX: ON</span>
+                </button>
+
+                <!-- Search Input -->
+                <div class="relative">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-xs text-slate-500"></i>
+                    <input type="text" id="hud-search-input" placeholder="Search vectors, phishing, worms..." onkeyup="handleGlobalSearch()" class="pl-8 pr-3 py-1.5 w-36 sm:w-56 bg-slate-950/80 border border-slate-800 rounded text-xs text-slate-200 focus:outline-none focus:border-cyber-cyan focus:ring-1 focus:ring-cyber-cyan font-mono transition">
+                </div>
+            </div>
+        </div>
+
+        <!-- MAIN HUD NAVIGATION TABS -->
+        <nav class="max-w-7xl mx-auto mt-3 pt-2 border-t border-slate-800/80 flex items-center gap-2 overflow-x-auto no-scrollbar">
+            <button onclick="switchTab('dashboard-pane')" id="tab-dashboard-pane" class="hud-tab active px-4 py-2 rounded-t text-xs font-mono font-bold tracking-wide transition border-b-2 border-cyber-cyan text-cyber-cyan bg-cyber-cyan/10 flex items-center gap-2 whitespace-nowrap">
+                <i class="fa-solid fa-chart-line"></i> 0. OVERVIEW DASHBOARD
+            </button>
+            <button onclick="switchTab('malware-pane')" id="tab-malware-pane" class="hud-tab px-4 py-2 rounded-t text-xs font-mono font-bold tracking-wide transition border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2 whitespace-nowrap">
+                <i class="fa-solid fa-bug text-cyber-magenta"></i> 1. MALWARE ATTACKS
+            </button>
+            <button onclick="switchTab('privacy-threats-pane')" id="tab-privacy-threats-pane" class="hud-tab px-4 py-2 rounded-t text-xs font-mono font-bold tracking-wide transition border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2 whitespace-nowrap relative">
+                <i class="fa-solid fa-user-ninja text-cyber-amber"></i> 2. ONLINE PRIVACY THREATS
+                <span class="px-1.5 py-0.5 text-[9px] rounded bg-cyber-amber text-slate-950 font-bold ml-1 animate-pulse">NEW</span>
+            </button>
+            <button onclick="switchTab('defense-pane')" id="tab-defense-pane" class="hud-tab px-4 py-2 rounded-t text-xs font-mono font-bold tracking-wide transition border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2 whitespace-nowrap">
+                <i class="fa-solid fa-shield-virus text-cyber-neon"></i> 3. DEFENSE &amp; HARDENING
+            </button>
+            <button onclick="switchTab('quiz-pane')" id="tab-quiz-pane" class="hud-tab px-4 py-2 rounded-t text-xs font-mono font-bold tracking-wide transition border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2 whitespace-nowrap">
+                <i class="fa-solid fa-graduation-cap text-cyber-cyan"></i> 4. CHECKPOINT QUIZ
+            </button>
+        </nav>
+    </header>
+
+    <!-- LIVE THREAT TICKER BAR -->
+    <div class="bg-slate-950 border-b border-slate-800 text-xs font-mono py-1.5 px-4 overflow-hidden flex items-center">
+        <span class="text-cyber-magenta font-bold whitespace-nowrap mr-3 flex items-center gap-1">
+            <i class="fa-solid fa-triangle-exclamation animate-bounce"></i> INTEL FEED:
+        </span>
+        <div class="overflow-hidden whitespace-nowrap w-full">
+            <div id="ticker-content" class="inline-block animate-[marquee_25s_linear_infinite] text-slate-400">
+                [ALERT] Worm payload spreading via contact book exploitation // [INFO] Phishing domain "fbank.com" detected targeting credential theft // [DEFENSE] Proxy server shields IP origin 183.178.45.12 // [REASON] Password hygiene audit flagged 8 outdated credentials // [WARNING] Mailbox quota at 94% saturation - risk of droppers elevated!
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT CONTAINER -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 space-y-6">
+
+        <!-- ========================================== -->
+        <!-- PANE 0: OVERVIEW DASHBOARD                 -->
+        <!-- ========================================== -->
+        <section id="dashboard-pane" class="hud-pane space-y-6">
+            <!-- Hero Cyber Banner -->
+            <div class="glass-panel rounded-xl p-6 relative overflow-hidden border border-cyber-cyan/30">
+                <div class="absolute -right-10 -bottom-10 opacity-10 text-cyber-cyan pointer-events-none">
+                    <i class="fa-solid fa-network-wired text-[220px]"></i>
+                </div>
+                <div class="max-w-3xl space-y-3 relative z-10">
+                    <span class="inline-block px-2.5 py-1 rounded text-xs font-mono bg-cyber-cyan/10 text-cyber-cyan border border-cyber-cyan/30 font-semibold">
+                        CHAPTER 5 // NETWORK SECURITY &amp; PRIVACY THREAT MATRIX
+                    </span>
+                    <h2 class="text-2xl md:text-3xl font-mono font-bold text-white tracking-wide">
+                        Integrated Threat Operations &amp; Privacy Defense Terminal
+                    </h2>
+                    <p class="text-slate-300 text-sm leading-relaxed">
+                        Welcome to the interactive Cyber Security Command Center HUD. This platform synthesizes network security fundamentals, vector visualizers, malicious software behaviors, and privacy threat matrices including automated worm propagation, trojan backdoors, eavesdropping, social engineering, mailbox saturation, and network hardening controls.
+                    </p>
+                    <div class="flex flex-wrap gap-3 pt-2">
+                        <button onclick="switchTab('privacy-threats-pane')" class="px-4 py-2 rounded bg-cyber-cyan text-slate-950 text-xs font-mono font-bold hover:bg-cyan-300 transition shadow-neon-cyan flex items-center gap-2">
+                            <i class="fa-solid fa-user-shield"></i> EXPLORE PRIVACY THREATS
+                        </button>
+                        <button onclick="switchTab('malware-pane')" class="px-4 py-2 rounded bg-slate-900 border border-cyber-magenta/40 text-cyber-magenta text-xs font-mono font-bold hover:bg-cyber-magenta hover:text-white transition flex items-center gap-2">
+                            <i class="fa-solid fa-bug"></i> INSPECT MALWARE VECTORS
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Core HUD Metrics Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="glass-panel p-4 rounded-lg border-l-4 border-l-cyber-magenta">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <span class="text-xs font-mono text-slate-400">MALWARE CATEGORIES</span>
+                            <p class="text-xl font-mono font-bold text-white mt-1">6 Core Vectors</p>
+                        </div>
+                        <i class="fa-solid fa-virus text-cyber-magenta text-2xl"></i>
+                    </div>
+                    <p class="text-[11px] text-slate-400 mt-2">Viruses, Worms, Trojans, Spyware, Adware, Ransomware</p>
+                </div>
+
+                <div class="glass-panel-amber p-4 rounded-lg border-l-4 border-l-cyber-amber">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <span class="text-xs font-mono text-slate-400">PRIVACY THREAT SUITE</span>
+                            <p class="text-xl font-mono font-bold text-white mt-1">5 Vector Modules</p>
+                        </div>
+                        <i class="fa-solid fa-user-ninja text-cyber-amber text-2xl"></i>
+                    </div>
+                    <p class="text-[11px] text-slate-400 mt-2">Eavesdropping, Hacking, Social Eng, Quota, Oversharing</p>
+                </div>
+
+                <div class="glass-panel p-4 rounded-lg border-l-4 border-l-cyber-neon">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <span class="text-xs font-mono text-slate-400">HARDENING SUITE</span>
+                            <p class="text-xl font-mono font-bold text-white mt-1">4 Active Controls</p>
+                        </div>
+                        <i class="fa-solid fa-shield-halved text-cyber-neon text-2xl"></i>
+                    </div>
+                    <p class="text-[11px] text-slate-400 mt-2">Proxy, Passwords, Attachments, Wi-Fi Encryption</p>
+                </div>
+
+                <div class="glass-panel p-4 rounded-lg border-l-4 border-l-cyber-cyan">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <span class="text-xs font-mono text-slate-400">TEXTBOOK QUIZ</span>
+                            <p class="text-xl font-mono font-bold text-white mt-1">6 Interactive Qs</p>
+                        </div>
+                        <i class="fa-solid fa-graduation-cap text-cyber-cyan text-2xl"></i>
+                    </div>
+                    <p class="text-[11px] text-slate-400 mt-2">Immediate scoring feedback &amp; explanations</p>
+                </div>
+            </div>
+
+            <!-- Threat Map Radar Simulation -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Interactive Cyber Radar Canvas -->
+                <div class="lg:col-span-2 glass-panel rounded-xl p-5 border border-slate-800 flex flex-col justify-between">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-sm font-mono font-bold text-cyber-cyan uppercase flex items-center gap-2">
+                            <i class="fa-solid fa-radar text-cyber-cyan"></i> LIVE NETWORK RADAR MONITOR
+                        </h3>
+                        <span class="text-xs font-mono text-slate-400">SCAN: <span class="text-cyber-neon animate-pulse">ACTIVE</span></span>
+                    </div>
+                    <div class="relative flex items-center justify-center bg-slate-950/80 rounded-lg p-4 border border-slate-800 min-h-[260px]">
+                        <canvas id="radar-canvas" class="w-full h-56 max-w-md"></canvas>
+                        <div class="absolute bottom-3 left-3 text-[10px] font-mono text-slate-500 bg-slate-900/90 px-2 py-1 rounded border border-slate-800">
+                            SWEEP SPECS: 120 FPS // FREQ: 2.4-5.8 GHz
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live System Terminal Log -->
+                <div class="glass-panel rounded-xl p-5 border border-slate-800 flex flex-col">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-sm font-mono font-bold text-cyber-cyan uppercase flex items-center gap-2">
+                            <i class="fa-solid fa-terminal"></i> EVENT AUDIT LOG
+                        </h3>
+                        <button onclick="clearTerminalLog()" class="text-[10px] font-mono text-slate-400 hover:text-cyber-cyan">CLEAR</button>
+                    </div>
+                    <div id="terminal-console" class="flex-1 bg-slate-950 p-3 rounded font-mono text-[11px] text-emerald-400 overflow-y-auto max-h-[240px] space-y-1.5 border border-slate-900">
+                        <div><span class="text-slate-500">[00:00:01]</span> <span class="text-cyber-cyan">SYSTEM_INIT</span> Terminal online. Monitoring vectors...</div>
+                        <div><span class="text-slate-500">[00:00:04]</span> <span class="text-cyber-neon">NET_SEC</span> Firewalls operational. Rule sets active.</div>
+                        <div><span class="text-slate-500">[00:00:08]</span> <span class="text-cyber-amber font-semibold">PRIVACY_ALERT</span> Social Engineering module initialized.</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ========================================== -->
+        <!-- PANE 1: MALWARE ATTACKS HUD                -->
+        <!-- ========================================== -->
+        <section id="malware-pane" class="hud-pane hidden space-y-6">
+            <div class="flex flex-wrap items-center justify-between gap-4 glass-panel p-4 rounded-xl border border-cyber-magenta/30">
+                <div>
+                    <h2 class="text-xl font-mono font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-bug text-cyber-magenta"></i> MALWARE THREAT INSPECTOR
+                    </h2>
+                    <p class="text-xs text-slate-400 mt-1">
+                        Explore core malicious software vectors defined in Chapter 5 with step-by-step visualizers.
+                    </p>
+                </div>
+                <!-- Malware Selector Buttons -->
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="selectMalware('worm')" id="mbtn-worm" class="m-select-btn px-3 py-1.5 rounded text-xs font-mono font-bold border border-cyber-magenta bg-cyber-magenta text-white">WORM SPREAD</button>
+                    <button onclick="selectMalware('virus')" id="mbtn-virus" class="m-select-btn px-3 py-1.5 rounded text-xs font-mono font-bold border border-slate-700 bg-slate-900 text-slate-300 hover:border-cyber-cyan">VIRUS</button>
+                    <button onclick="selectMalware('trojan')" id="mbtn-trojan" class="m-select-btn px-3 py-1.5 rounded text-xs font-mono font-bold border border-slate-700 bg-slate-900 text-slate-300 hover:border-cyber-cyan">TROJAN</button>
+                    <button onclick="selectMalware('spyware')" id="mbtn-spyware" class="m-select-btn px-3 py-1.5 rounded text-xs font-mono font-bold border border-slate-700 bg-slate-900 text-slate-300 hover:border-cyber-cyan">SPYWARE</button>
+                    <button onclick="selectMalware('adware')" id="mbtn-adware" class="m-select-btn px-3 py-1.5 rounded text-xs font-mono font-bold border border-slate-700 bg-slate-900 text-slate-300 hover:border-cyber-cyan">ADWARE</button>
+                    <button onclick="selectMalware('ransomware')" id="mbtn-ransomware" class="m-select-btn px-3 py-1.5 rounded text-xs font-mono font-bold border border-slate-700 bg-slate-900 text-slate-300 hover:border-cyber-cyan">RANSOMWARE</button>
+                </div>
+            </div>
+
+            <!-- MALWARE DISPLAY CONTAINER -->
+            <div id="malware-content-area" class="glass-panel rounded-xl p-6 border border-slate-800">
+                <!-- WORM MODULE (DEFAULT) -->
+                <div id="mview-worm" class="mview-card space-y-6">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="space-y-3">
+                            <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-cyber-magenta/20 text-cyber-magenta border border-cyber-magenta/40">SELF-REPLICATING NETWORK VECTOR</span>
+                            <h3 class="text-2xl font-mono font-bold text-white">Worm Attack Dynamics</h3>
+                            <p class="text-xs text-slate-300 leading-relaxed">
+                                Unlike a virus, a <strong>Worm</strong> is a standalone program that replicates and spreads <em>automatically</em> across network contacts without requiring human user action to run host attachments.
+                            </p>
+                            <div class="bg-slate-950 p-3 rounded border border-slate-800 text-xs font-mono space-y-1.5">
+                                <div class="text-cyber-cyan font-bold">CONTACT SPREAD PATTERN:</div>
+                                <p class="text-slate-400">1. Patient Zero: <span class="text-white">Ms Wong</span> opens infected file.</p>
+                                <p class="text-slate-400">2. Worm reads local address book and auto-emails contacts <span class="text-cyber-magenta">Amy &amp; Ken</span>.</p>
+                                <p class="text-slate-400">3. Rapid cascading explosion to <span class="text-cyber-amber">Bob, Steve, Apple &amp; Lily</span>!</p>
+                            </div>
+                            <button onclick="triggerWormSpread()" class="w-full py-2.5 rounded bg-cyber-magenta text-white font-mono font-bold text-xs hover:bg-rose-600 transition shadow-neon-magenta flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-play"></i> TRIGGER AUTOMATED ADDRESS BOOK SPREAD
+                            </button>
+                        </div>
+
+                        <!-- Worm SVG Interactive Network Graph -->
+                        <div class="lg:col-span-2 bg-slate-950/90 rounded-lg p-4 border border-slate-800 flex flex-col items-center justify-center relative min-h-[300px]">
+                            <svg id="worm-svg-canvas" viewBox="0 0 600 320" class="w-full h-auto max-h-[320px]">
+                                <!-- Connections -->
+                                <line x1="120" y1="160" x2="280" y2="100" stroke="#334155" stroke-width="2" id="link-mswong-amy"/>
+                                <line x1="120" y1="160" x2="280" y2="220" stroke="#334155" stroke-width="2" id="link-mswong-ken"/>
+                                
+                                <line x1="280" y1="100" x2="480" y2="50" stroke="#334155" stroke-width="2" id="link-amy-bob"/>
+                                <line x1="280" y1="100" x2="480" y2="120" stroke="#334155" stroke-width="2" id="link-amy-steve"/>
+                                
+                                <line x1="280" y1="220" x2="480" y2="200" stroke="#334155" stroke-width="2" id="link-ken-apple"/>
+                                <line x1="280" y1="220" x2="480" y2="270" stroke="#334155" stroke-width="2" id="link-ken-lily"/>
+
+                                <!-- Nodes -->
+                                <!-- Ms Wong -->
+                                <g id="node-mswong" class="cursor-pointer">
+                                    <circle cx="120" cy="160" r="28" fill="#0d1322" stroke="#ff0055" stroke-width="3" />
+                                    <i class="fa-solid fa-user text-white"></i>
+                                    <text x="120" y="165" text-anchor="middle" fill="#ffffff" font-family="monospace" font-size="11" font-weight="bold">Ms Wong</text>
+                                    <text x="120" y="200" text-anchor="middle" fill="#ff0055" font-family="monospace" font-size="9" id="status-mswong">PATIENT ZERO</text>
+                                </g>
+
+                                <!-- Level 1: Amy & Ken -->
+                                <g id="node-amy">
+                                    <circle cx="280" cy="100" r="24" fill="#0d1322" stroke="#475569" stroke-width="2" id="circ-amy"/>
+                                    <text x="280" y="104" text-anchor="middle" fill="#e2e8f0" font-family="monospace" font-size="10">Amy</text>
+                                </g>
+                                <g id="node-ken">
+                                    <circle cx="280" cy="220" r="24" fill="#0d1322" stroke="#475569" stroke-width="2" id="circ-ken"/>
+                                    <text x="280" y="224" text-anchor="middle" fill="#e2e8f0" font-family="monospace" font-size="10">Ken</text>
+                                </g>
+
+                                <!-- Level 2: Bob, Steve, Apple, Lily -->
+                                <g id="node-bob">
+                                    <circle cx="480" cy="50" r="20" fill="#0d1322" stroke="#475569" stroke-width="2" id="circ-bob"/>
+                                    <text x="480" y="54" text-anchor="middle" fill="#94a3b8" font-family="monospace" font-size="9">Bob</text>
+                                </g>
+                                <g id="node-steve">
+                                    <circle cx="480" cy="120" r="20" fill="#0d1322" stroke="#475569" stroke-width="2" id="circ-steve"/>
+                                    <text x="480" y="124" text-anchor="middle" fill="#94a3b8" font-family="monospace" font-size="9">Steve</text>
+                                </g>
+                                <g id="node-apple">
+                                    <circle cx="480" cy="200" r="20" fill="#0d1322" stroke="#475569" stroke-width="2" id="circ-apple"/>
+                                    <text x="480" y="204" text-anchor="middle" fill="#94a3b8" font-family="monospace" font-size="9">Apple</text>
+                                </g>
+                                <g id="node-lily">
+                                    <circle cx="480" cy="270" r="20" fill="#0d1322" stroke="#475569" stroke-width="2" id="circ-lily"/>
+                                    <text x="480" y="274" text-anchor="middle" fill="#94a3b8" font-family="monospace" font-size="9">Lily</text>
+                                </g>
+                            </svg>
+                            <div id="worm-status-banner" class="mt-2 text-xs font-mono text-slate-400">
+                                Click button above to initiate address book payload infection sequence.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- VIRUS MODULE -->
+                <div id="mview-virus" class="mview-card hidden space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-3">
+                            <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-rose-950 text-rose-400 border border-rose-800">FILE ATTACHMENT &amp; REPLICATION</span>
+                            <h3 class="text-xl font-mono font-bold text-white">Computer Virus Mechanics</h3>
+                            <p class="text-xs text-slate-300 leading-relaxed">
+                                A <strong>Virus</strong> attaches its malicious code directly to clean executable files (`.exe`, `.docm`). It requires human execution (e.g. running the infected host program) to replicate and corrupt system files.
+                            </p>
+                            <div class="bg-slate-950 p-3 rounded border border-slate-800 space-y-2 text-xs font-mono">
+                                <div class="text-cyber-cyan">SIMULATED FILES ON DISK:</div>
+                                <div class="flex items-center justify-between p-2 rounded bg-slate-900 border border-slate-800" id="file-1">
+                                    <span><i class="fa-solid fa-file-code text-cyber-cyan mr-2"></i> Report_2026.exe</span>
+                                    <span class="text-emerald-400 text-[10px]" id="status-file-1">CLEAN</span>
+                                </div>
+                                <div class="flex items-center justify-between p-2 rounded bg-slate-900 border border-slate-800" id="file-2">
+                                    <span><i class="fa-solid fa-file-pdf text-rose-400 mr-2"></i> Financials.pdf</span>
+                                    <span class="text-emerald-400 text-[10px]" id="status-file-2">CLEAN</span>
+                                </div>
+                            </div>
+                            <button onclick="infectVirusDemo()" class="px-4 py-2 rounded bg-rose-600 text-white font-mono text-xs font-bold hover:bg-rose-500 transition">
+                                EXECUTE INFECTED HOST FILE
+                            </button>
+                        </div>
+                        <div class="bg-slate-950 p-4 rounded border border-slate-800 flex flex-col justify-center items-center text-center">
+                            <i id="virus-icon-box" class="fa-solid fa-file-shield text-5xl text-emerald-400 mb-3 transition"></i>
+                            <h4 id="virus-box-title" class="text-sm font-mono font-bold text-white">Host Environment Normal</h4>
+                            <p id="virus-box-desc" class="text-xs text-slate-400 mt-2">No file corruption detected. Running host binary triggers payload attachment.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TROJAN MODULE -->
+                <div id="mview-trojan" class="mview-card hidden space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-3">
+                            <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-amber-950 text-amber-400 border border-amber-800">DISGUISED APP &amp; BACKDOOR</span>
+                            <h3 class="text-xl font-mono font-bold text-white">Trojan Horse Payload</h3>
+                            <p class="text-xs text-slate-300 leading-relaxed">
+                                Named after the Greek myth, a <strong>Trojan</strong> disguises itself as legitimate or desirable software (e.g., "Free_Game_Installer.exe" or "PDF_Reader_Crack"). Once launched, it silently opens a stealth <em>Backdoor Port</em> for remote attacker control.
+                            </p>
+                            <button onclick="launchTrojanDemo()" class="px-4 py-2 rounded bg-amber-600 text-slate-950 font-mono text-xs font-bold hover:bg-amber-500 transition">
+                                RUN "Free_Game_Setup.exe"
+                            </button>
+                        </div>
+                        <div id="trojan-sim-terminal" class="bg-slate-950 p-4 rounded border border-slate-800 font-mono text-xs space-y-2">
+                            <div class="text-slate-500">// TROJAN MONITORING CONSOLE</div>
+                            <div id="trojan-step-1" class="text-slate-400">[READY] Waiting for user payload execution...</div>
+                            <div id="trojan-step-2" class="text-slate-600">[INACTIVE] GUI installer shell</div>
+                            <div id="trojan-step-3" class="text-slate-600">[INACTIVE] Stealth backdoor port 4444</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SPYWARE MODULE -->
+                <div id="mview-spyware" class="mview-card hidden space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-3">
+                            <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-purple-950 text-purple-300 border border-purple-800">KEYLOGGER &amp; SURVEILLANCE</span>
+                            <h3 class="text-xl font-mono font-bold text-white">Spyware &amp; Keylogging</h3>
+                            <p class="text-xs text-slate-300 leading-relaxed">
+                                <strong>Spyware</strong> runs silently in the background, harvesting sensitive user keystrokes, passwords, web browsing logs, and unauthorized camera access without user consent.
+                            </p>
+                            <div class="space-y-2">
+                                <label class="text-xs font-mono text-slate-400 block">TYPE SENSITIVE DATA BELOW (SIMULATION):</label>
+                                <input type="text" id="spyware-input" oninput="captureKeylog(this.value)" placeholder="Type a mock password..." class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded text-xs font-mono text-cyber-cyan focus:outline-none focus:border-purple-500">
+                            </div>
+                        </div>
+                        <div class="bg-slate-950 p-4 rounded border border-slate-800 font-mono text-xs space-y-3">
+                            <div class="flex items-center justify-between text-rose-400 font-bold border-b border-slate-800 pb-2">
+                                <span><i class="fa-solid fa-eye animate-pulse"></i> SPYWARE CAPTURE STREAM</span>
+                                <span class="text-[10px] text-slate-500">PORT: 8080 EXFIL</span>
+                            </div>
+                            <div>
+                                <span class="text-slate-500">CAPTURED KEYSTROKES:</span>
+                                <div id="keylog-buffer" class="p-2 rounded bg-slate-900 text-rose-400 font-mono mt-1 min-h-[36px] break-all border border-slate-800">
+                                    [NO DATA CAPTURED YET]
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2 text-[11px] text-amber-400">
+                                <i class="fa-solid fa-video"></i> WEBCAM ACCESS: <span class="text-rose-500 font-bold">UNAUTHORIZED PEERING ACTIVE</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ADWARE MODULE -->
+                <div id="mview-adware" class="mview-card hidden space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-3">
+                            <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-yellow-950 text-yellow-300 border border-yellow-800">UNWANTED POP-UPS &amp; REDIRECTS</span>
+                            <h3 class="text-xl font-mono font-bold text-white">Adware Intrusion</h3>
+                            <p class="text-xs text-slate-300 leading-relaxed">
+                                <strong>Adware</strong> automatically displays or downloads unwanted advertising materials, browser pop-ups, and search engine hijacking bars to monetize victim web traffic.
+                            </p>
+                            <button onclick="triggerAdwarePopups()" class="px-4 py-2 rounded bg-yellow-600 text-slate-950 font-mono text-xs font-bold hover:bg-yellow-500 transition">
+                                SIMULATE ADWARE POP-UP FLOOD
+                            </button>
+                        </div>
+                        <div id="adware-stage" class="bg-slate-950 p-4 rounded border border-slate-800 min-h-[180px] relative overflow-hidden flex items-center justify-center">
+                            <span class="text-xs font-mono text-slate-600">BROWSER VIEWPORT CLEAN</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RANSOMWARE MODULE -->
+                <div id="mview-ransomware" class="mview-card hidden space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-3">
+                            <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-red-950 text-red-400 border border-red-800">FILE ENCRYPTION &amp; EXTORTION</span>
+                            <h3 class="text-xl font-mono font-bold text-white">Ransomware Lockdown</h3>
+                            <p class="text-xs text-slate-300 leading-relaxed">
+                                <strong>Ransomware</strong> encrypts sensitive files using high-grade cryptography (e.g. AES-256) and demands extortion payment (typically in Bitcoin) in exchange for the decryption key.
+                            </p>
+                            <div class="flex gap-2">
+                                <button onclick="triggerRansomware()" class="px-4 py-2 rounded bg-red-600 text-white font-mono text-xs font-bold hover:bg-red-500 transition">
+                                    ENCRYPT FILES (TRIGGER RANSOM)
+                                </button>
+                                <button onclick="restoreBackupRansomware()" class="px-4 py-2 rounded bg-emerald-600 text-white font-mono text-xs font-bold hover:bg-emerald-500 transition">
+                                    RESTORE FROM OFFLINE BACKUP
+                                </button>
+                            </div>
+                        </div>
+                        <div id="ransom-card-display" class="bg-slate-950 p-4 rounded border border-slate-800 font-mono text-xs space-y-3">
+                            <div class="flex justify-between items-center text-slate-400">
+                                <span>DRIVE FILE SYSTEM: /DOCUMENTS/</span>
+                                <span id="ransom-status-tag" class="text-emerald-400">UNENCRYPTED</span>
+                            </div>
+                            <div class="space-y-1 text-slate-300 text-[11px]">
+                                <p id="rfile-1"><i class="fa-solid fa-file-word text-blue-400 mr-2"></i> Tax_Returns_2025.docx</p>
+                                <p id="rfile-2"><i class="fa-solid fa-file-image text-emerald-400 mr-2"></i> Family_Photos.zip</p>
+                                <p id="rfile-3"><i class="fa-solid fa-file-excel text-green-400 mr-2"></i> Business_Plan.xlsx</p>
+                            </div>
+                            <div id="ransom-note-box" class="hidden p-3 rounded bg-red-950/80 border border-red-600 text-red-200 text-[11px] space-y-1">
+                                <p class="font-bold text-red-400"><i class="fa-solid fa-lock"></i> YOUR FILES HAVE BEEN ENCRYPTED!</p>
+                                <p>Send 0.05 BTC to wallet: <span class="underline">1CyberThreat99X...</span></p>
+                                <p class="text-xs text-amber-300">Time remaining: <span id="ransom-timer">48:00:00</span></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ========================================== -->
+        <!-- PANE 2: ONLINE PRIVACY THREATS HUD (NEW)   -->
+        <!-- ========================================== -->
+        <section id="privacy-threats-pane" class="hud-pane hidden space-y-6">
+            <div class="glass-panel-amber p-6 rounded-xl border border-cyber-amber/40">
+                <div class="flex flex-wrap items-center justify-between gap-4">
+                    <div>
+                        <span class="px-2.5 py-1 rounded text-[10px] font-mono bg-cyber-amber/20 text-cyber-amber border border-cyber-amber/40 font-semibold">
+                            CHAPTER 5 SPECIAL SUITE // DEDICATED PRIVACY MODULE
+                        </span>
+                        <h2 class="text-2xl font-mono font-bold text-white mt-2 flex items-center gap-2">
+                            <i class="fa-solid fa-user-ninja text-cyber-amber"></i> Online Privacy Threat Visualizer
+                        </h2>
+                        <p class="text-xs text-slate-300 mt-1 max-w-3xl">
+                            Interactive breakdown of vector risks targeting online personal data, credentials, mailbox storage, and system identity exposure.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Sub-Navigation Bar for Privacy Threat Categories -->
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 mt-6">
+                    <button onclick="selectPrivacyThreat('eavesdropping')" id="pbtn-eavesdropping" class="p-select-btn p-2 rounded text-xs font-mono font-bold border border-cyber-amber bg-cyber-amber text-slate-950 transition">
+                        1. EAVESDROPPING
+                    </button>
+                    <button onclick="selectPrivacyThreat('hacking')" id="pbtn-hacking" class="p-select-btn p-2 rounded text-xs font-mono font-bold border border-slate-700 bg-slate-900 text-slate-300 hover:border-cyber-amber transition">
+                        2. HACKING &amp; DDoS
+                    </button>
+                    <button onclick="selectPrivacyThreat('socialeng')" id="pbtn-socialeng" class="p-select-btn p-2 rounded text-xs font-mono font-bold border border-slate-700 bg-slate-900 text-slate-300 hover:border-cyber-amber transition">
+                        3. SOCIAL ENG. SUITE
+                    </button>
+                    <button onclick="selectPrivacyThreat('spamming')" id="pbtn-spamming" class="p-select-btn p-2 rounded text-xs font-mono font-bold border border-slate-700 bg-slate-900 text-slate-300 hover:border-cyber-amber transition">
+                        4. SPAM &amp; QUOTA METER
+                    </button>
+                    <button onclick="selectPrivacyThreat('overexposure')" id="pbtn-overexposure" class="p-select-btn p-2 rounded text-xs font-mono font-bold border border-slate-700 bg-slate-900 text-slate-300 hover:border-cyber-amber transition">
+                        5. DATA OVER-COLLECTION
+                    </button>
+                </div>
+            </div>
+
+            <!-- PRIVACY THREAT CONTENT CONTAINER -->
+            <div id="privacy-content-area" class="glass-panel rounded-xl p-6 border border-slate-800">
+
+                <!-- 1. EAVESDROPPING THREAT MODULE -->
+                <div id="pview-eavesdropping" class="pview-card space-y-6">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="space-y-3">
+                            <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-amber-950 text-amber-300 border border-amber-800">UNAUTHORIZED INTERCEPTION</span>
+                            <h3 class="text-xl font-mono font-bold text-white">Network Eavesdropping</h3>
+                            <p class="text-xs text-slate-300 leading-relaxed">
+                                Eavesdropping occurs when an unauthorized attacker secretively listens to or intercepts private communications (such as unencrypted HTTP, messaging, or emails) traveling across open networks.
+                            </p>
+                            <div class="bg-slate-950 p-3 rounded border border-slate-800 space-y-2 text-xs font-mono">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-slate-400">SSL/TLS ENCRYPTION:</span>
+                                    <button id="eaves-encrypt-btn" onclick="toggleEavesdroppingEncryption()" class="px-2 py-1 rounded text-[11px] font-bold bg-rose-600 text-white">DISABLED (HTTP)</button>
+                                </div>
+                                <p id="eaves-desc" class="text-[11px] text-rose-400">
+                                    Payload sent in clear plaintext! Eavesdropper Eve can capture passwords in transit.
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Eavesdropping SVG Animation -->
+                        <div class="lg:col-span-2 bg-slate-950/90 rounded-lg p-4 border border-slate-800 flex flex-col items-center justify-center">
+                            <svg viewBox="0 0 500 220" class="w-full h-auto max-h-[240px]">
+                                <!-- Communication Line Alice to Bob -->
+                                <path d="M 80 110 L 420 110" stroke="#334155" stroke-width="3" id="eaves-path"/>
+                                <path d="M 80 110 L 420 110" stroke="#ffaa00" stroke-width="2" class="data-flow-line" id="eaves-flow"/>
+
+                                <!-- Interception Line to Eve -->
+                                <path d="M 250 110 L 250 170" stroke="#ff0055" stroke-width="2" stroke-dasharray="4 4" />
+
+                                <!-- Sender Node Alice -->
+                                <g>
+                                    <circle cx="80" cy="110" r="26" fill="#0d1322" stroke="#00f0ff" stroke-width="2"/>
+                                    <text x="80" y="114" text-anchor="middle" fill="#00f0ff" font-family="monospace" font-size="11" font-weight="bold">Alice</text>
+                                </g>
+
+                                <!-- Eavesdropper Eve Node -->
+                                <g>
+                                    <circle cx="250" cy="170" r="24" fill="#0d1322" stroke="#ff0055" stroke-width="2" class="animate-pulse"/>
+                                    <text x="250" y="174" text-anchor="middle" fill="#ff0055" font-family="monospace" font-size="10" font-weight="bold">Eve (Attacker)</text>
+                                    <text x="250" y="202" text-anchor="middle" fill="#ff0055" font-family="monospace" font-size="9" id="eaves-captured-text">SNIFFER ACTIVE</text>
+                                </g>
+
+                                <!-- Receiver Node Bob -->
+                                <g>
+                                    <circle cx="420" cy="110" r="26" fill="#0d1322" stroke="#00ff66" stroke-width="2"/>
+                                    <text x="420" y="114" text-anchor="middle" fill="#00ff66" font-family="monospace" font-size="11" font-weight="bold">Bob</text>
+                                </g>
+
+                                <!-- Packet Payload Tooltip -->
+                                <g transform="translate(200, 50)">
+                                    <rect width="100" height="30" rx="4" fill="#1e293b" stroke="#ffaa00" stroke-width="1"/>
+                                    <text x="50" y="19" text-anchor="middle" fill="#ffaa00" font-family="monospace" font-size="9" id="eaves-payload-text">"Pass: 123456"</text>
+                                </g>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. HACKING & DDoS MODULE -->
+                <div id="pview-hacking" class="pview-card hidden space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Defacement Threat -->
+                        <div class="space-y-3 bg-slate-950 p-4 rounded border border-slate-800">
+                            <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-rose-950 text-rose-300 border border-rose-800">SYSTEM COMPROMISE &amp; VANDALISM</span>
+                            <h3 class="text-lg font-mono font-bold text-white">Website Defacement Simulation</h3>
+                            <p class="text-xs text-slate-300">
+                                Hackers exploit web application vulnerabilities to replace legitimate website landing pages with unauthorized cyber vandalism messages.
+                            </p>
+                            <div class="flex items-center justify-between pt-2">
+                                <span class="text-xs font-mono text-slate-400">WEBSITE STATE:</span>
+                                <button onclick="toggleDefacement()" id="deface-toggle-btn" class="px-3 py-1 rounded text-xs font-mono font-bold bg-emerald-600 text-white">NORMAL ONLINE</button>
+                            </div>
+                            <div id="website-preview-box" class="p-4 rounded bg-slate-900 border border-slate-800 text-center min-h-[120px] flex flex-col justify-center items-center">
+                                <h4 class="text-sm font-bold text-cyber-cyan font-mono" id="web-title">Welcome to Official Org Portal</h4>
+                                <p class="text-xs text-slate-400 mt-1" id="web-sub">Serving secure public resources and updates.</p>
+                            </div>
+                        </div>
+
+                        <!-- Zombie Botnet & DDoS -->
+                        <div class="space-y-3 bg-slate-950 p-4 rounded border border-slate-800">
+                            <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-purple-950 text-purple-300 border border-purple-800">ZOMBIE ENLISTMENT &amp; DDoS</span>
+                            <h3 class="text-lg font-mono font-bold text-white">Zombie Nodes &amp; Botnet DDoS</h3>
+                            <p class="text-xs text-slate-300">
+                                Compromised machines are enlisted as "Zombies" controlled by a Botnet Master to launch Distributed Denial of Service (DDoS) traffic waves that crash target servers.
+                            </p>
+                            <button onclick="triggerDDoSAttack()" class="w-full py-2 rounded bg-purple-600 text-white font-mono text-xs font-bold hover:bg-purple-500 transition">
+                                FIRE SYNCHRONIZED DDoS BOTNET FLOOD
+                            </button>
+                            <div id="ddos-status-box" class="p-3 rounded bg-slate-900 text-xs font-mono text-slate-400 border border-slate-800">
+                                Server Load: <span id="server-load-percent" class="text-emerald-400 font-bold">12% Normal</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. SOCIAL ENGINEERING SUITE -->
+                <div id="pview-socialeng" class="pview-card hidden space-y-6">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-3 overflow-x-auto gap-2">
+                        <span class="text-xs font-mono text-cyber-amber font-bold whitespace-nowrap">SELECT VECTOR:</span>
+                        <div class="flex gap-2">
+                            <button onclick="selectSocialTab('phishing')" id="sbtn-phishing" class="s-tab-btn px-2.5 py-1 rounded text-xs font-mono bg-cyber-amber text-slate-950 font-bold">PHISHING</button>
+                            <button onclick="selectSocialTab('pretexting')" id="sbtn-pretexting" class="s-tab-btn px-2.5 py-1 rounded text-xs font-mono bg-slate-900 text-slate-300 border border-slate-800">PRETEXTING</button>
+                            <button onclick="selectSocialTab('baiting')" id="sbtn-baiting" class="s-tab-btn px-2.5 py-1 rounded text-xs font-mono bg-slate-900 text-slate-300 border border-slate-800">BAITING</button>
+                            <button onclick="selectSocialTab('catfishing')" id="sbtn-catfishing" class="s-tab-btn px-2.5 py-1 rounded text-xs font-mono bg-slate-900 text-slate-300 border border-slate-800">CATFISHING</button>
+                            <button onclick="selectSocialTab('quidpro')" id="sbtn-quidpro" class="s-tab-btn px-2.5 py-1 rounded text-xs font-mono bg-slate-900 text-slate-300 border border-slate-800">QUID PRO QUO</button>
+                        </div>
+                    </div>
+
+                    <!-- Social Sub Views -->
+                    <!-- Phishing -->
+                    <div id="sview-phishing" class="sview-card space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="space-y-3">
+                                <h3 class="text-lg font-mono font-bold text-white">Phishing &amp; Domain Fraud</h3>
+                                <p class="text-xs text-slate-300">
+                                    Phishing lures victims using fraudulent emails or cloned websites (e.g. <code>http://fbank.com</code> instead of <code>https://www.mybank.com</code>) to steal credentials and banking tokens.
+                                </p>
+                                <div class="p-3 rounded bg-slate-950 border border-slate-800 space-y-2 text-xs font-mono">
+                                    <div class="text-slate-400">INSPECT SUSPICIOUS LINK:</div>
+                                    <div class="p-2 rounded bg-slate-900 border border-rose-900 text-rose-400">
+                                        URL: <span class="underline">http://fbank.com/security-update/login</span>
+                                    </div>
+                                    <p class="text-[11px] text-amber-400">
+                                        <i class="fa-solid fa-triangle-exclamation"></i> RED FLAGS: Unencrypted HTTP protocol, spoofed domain name "fbank.com" imitating legitimate financial institution.
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="bg-slate-950 p-4 rounded border border-slate-800 space-y-3 font-mono text-xs">
+                                <div class="text-cyber-cyan font-bold">CREDENTIAL HARVESTER SIMULATION</div>
+                                <div>
+                                    <label class="text-slate-400 block text-[11px]">Mock Username:</label>
+                                    <input type="text" value="victim_user@corp.com" readonly class="w-full px-2 py-1 bg-slate-900 text-slate-400 rounded border border-slate-800">
+                                </div>
+                                <div>
+                                    <label class="text-slate-400 block text-[11px]">Mock Password Input:</label>
+                                    <input type="password" id="phish-pass-input" placeholder="Type password..." oninput="checkPhishInput(this.value)" class="w-full px-2 py-1 bg-slate-900 text-white rounded border border-slate-800">
+                                </div>
+                                <div id="phish-warning" class="text-rose-400 text-[11px] font-bold hidden">
+                                    [DANGER] Password captured by unverified third-party attacker domain fbank.com!
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pretexting -->
+                    <div id="sview-pretexting" class="sview-card hidden space-y-3">
+                        <h3 class="text-lg font-mono font-bold text-white">Pretexting Scenario</h3>
+                        <p class="text-xs text-slate-300">
+                            Pretexting involves creating a fabricated storyline (pretext) where an attacker poses as an authorized authority figure (e.g. IT Helpdesk manager calling during an urgent system maintenance window) to manipulate victims into divulging sensitive 2FA codes or access tokens.
+                        </p>
+                        <div class="bg-slate-950 p-4 rounded border border-slate-800 font-mono text-xs text-slate-300 space-y-2">
+                            <span class="text-cyber-amber font-bold">[SIMULATED AUDIO CALL SCRIPT]:</span>
+                            <p class="italic text-slate-400">"Hello, this is David from Corporate SecOps. We noticed suspicious login activity from your account. I need you to confirm your 6-digit MFA push code immediately to prevent lockout..."</p>
+                            <span class="text-rose-400 block text-[11px] font-bold">DEFENSE RULE: Always verify identity via official internal callback numbers before sharing access parameters!</span>
+                        </div>
+                    </div>
+
+                    <!-- Baiting -->
+                    <div id="sview-baiting" class="sview-card hidden space-y-3">
+                        <h3 class="text-lg font-mono font-bold text-white">Baiting Tactics</h3>
+                        <p class="text-xs text-slate-300">
+                            Baiting entices victims with physical or digital rewards—such as leaving an infected USB flash drive labeled "Executive Salaries 2026" in a company parking lot, or offering free media downloads loaded with malware.
+                        </p>
+                    </div>
+
+                    <!-- Catfishing -->
+                    <div id="sview-catfishing" class="sview-card hidden space-y-3">
+                        <h3 class="text-lg font-mono font-bold text-white">Catfishing &amp; Persona Fraud</h3>
+                        <p class="text-xs text-slate-300">
+                            Catfishing creates fictional online personas on social media or messaging networks to build deceptive emotional relationships with victims for blackmail, financial extortion, or identity theft.
+                        </p>
+                    </div>
+
+                    <!-- Quid Pro Quo -->
+                    <div id="sview-quidpro" class="sview-card hidden space-y-3">
+                        <h3 class="text-lg font-mono font-bold text-white">Quid Pro Quo (This for That)</h3>
+                        <p class="text-xs text-slate-300">
+                            Quid Pro Quo promises a service or benefit in exchange for sensitive information—for example, pretending to offer free software tech support if the employee disables their local antivirus software.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- 4. SPAM & MAILBOX QUOTA METER -->
+                <div id="pview-spamming" class="pview-card hidden space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-3">
+                            <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-amber-950 text-amber-300 border border-amber-800">STORAGE SATURATION &amp; SECONDARY RISKS</span>
+                            <h3 class="text-xl font-mono font-bold text-white">Spam Bombardment &amp; Mailbox Quota</h3>
+                            <p class="text-xs text-slate-300 leading-relaxed">
+                                Spamming floods mailboxes with unsolicited bulk messages. Beyond wasting storage, high spam volume creates risks of secondary malicious payload invasion (embedded droppers, malicious macro attachments).
+                            </p>
+                            <button onclick="fillMailboxSpam()" class="px-4 py-2 rounded bg-amber-600 text-slate-950 font-mono text-xs font-bold hover:bg-amber-500 transition">
+                                SIMULATE SPAM BOMBARDMENT
+                            </button>
+                            <button onclick="clearMailboxSpam()" class="px-4 py-2 rounded bg-slate-800 text-slate-300 font-mono text-xs font-bold hover:bg-slate-700 transition">
+                                EMPTY SPAM VAULT
+                            </button>
+                        </div>
+
+                        <!-- Mailbox Quota Visual Gauge -->
+                        <div class="bg-slate-950 p-5 rounded border border-slate-800 space-y-4">
+                            <div class="flex justify-between items-center text-xs font-mono">
+                                <span class="text-slate-400">MAILBOX CAPACITY: 10,000 MB</span>
+                                <span id="quota-percentage" class="text-cyber-cyan font-bold">25% USED</span>
+                            </div>
+                            <!-- Progress Bar -->
+                            <div class="w-full bg-slate-900 rounded-full h-4 overflow-hidden border border-slate-800 p-0.5">
+                                <div id="quota-fill-bar" class="bg-cyber-cyan h-full rounded-full transition-all duration-500 w-[25%]"></div>
+                            </div>
+                            <div id="quota-risk-alert" class="p-3 rounded bg-slate-900 border border-slate-800 text-xs font-mono text-slate-400">
+                                Status: Safe storage capacity. Low risk of missed legitimate mail.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 5. OVER-EXPOSURE & DATA OVER-COLLECTION MATRIX -->
+                <div id="pview-overexposure" class="pview-card hidden space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-3">
+                            <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-rose-950 text-rose-300 border border-rose-800">IDENTITY THREAT &amp; DOXING</span>
+                            <h3 class="text-xl font-mono font-bold text-white">Data Over-collection Matrix</h3>
+                            <p class="text-xs text-slate-300 leading-relaxed">
+                                Oversharing personal details or filling out overly invasive form fields exposes individuals to identity theft, cyberbullying, targeted doxing, and 3rd-party data broker leaks.
+                            </p>
+                            <!-- Interactive Form Inspector -->
+                            <div class="bg-slate-950 p-4 rounded border border-slate-800 space-y-3 text-xs font-mono">
+                                <div class="text-cyber-amber font-bold">INVASIVE FORM FIELD CHECK:</div>
+                                <div class="space-y-2 text-slate-300">
+                                    <label class="flex items-center gap-2 cursor-pointer">
+                                        <input type="checkbox" id="field-ssn" onchange="calculateExposureRisk()" class="rounded bg-slate-900 border-slate-700 text-cyber-cyan focus:ring-0">
+                                        <span>Social Security / ID Number</span>
+                                    </label>
+                                    <label class="flex items-center gap-2 cursor-pointer">
+                                        <input type="checkbox" id="field-address" onchange="calculateExposureRisk()" class="rounded bg-slate-900 border-slate-700 text-cyber-cyan focus:ring-0">
+                                        <span>Home Address &amp; Location History</span>
+                                    </label>
+                                    <label class="flex items-center gap-2 cursor-pointer">
+                                        <input type="checkbox" id="field-mother" onchange="calculateExposureRisk()" class="rounded bg-slate-900 border-slate-700 text-cyber-cyan focus:ring-0">
+                                        <span>Mother's Maiden Name (Security Ans)</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Threat Impact Output -->
+                        <div class="bg-slate-950 p-5 rounded border border-slate-800 flex flex-col justify-between">
+                            <div>
+                                <div class="text-xs font-mono text-slate-400 mb-2">CALCULATED EXPOSURE IMPACT:</div>
+                                <div id="exposure-score" class="text-3xl font-mono font-bold text-emerald-400 mb-3">
+                                    LOW RISK (MINIMAL)
+                                </div>
+                                <div id="exposure-threat-list" class="space-y-2 font-mono text-xs text-slate-400">
+                                    <p><i class="fa-solid fa-check text-emerald-400 mr-2"></i> Identity Theft risk controlled.</p>
+                                    <p><i class="fa-solid fa-check text-emerald-400 mr-2"></i> Doxing vector minimal.</p>
+                                </div>
+                            </div>
+                            <div class="p-3 rounded bg-slate-900 border border-slate-800 text-[11px] font-mono text-slate-500 mt-4">
+                                RULE: Only provide mandatory fields necessary for service fulfillment.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+
+        <!-- ========================================== -->
+        <!-- PANE 3: PRIVACY DEFENSE & HARDENING        -->
+        <!-- ========================================== -->
+        <section id="defense-pane" class="hud-pane hidden space-y-6">
+            <div class="glass-panel p-6 rounded-xl border border-cyber-neon/40">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <span class="px-2.5 py-1 rounded text-[10px] font-mono bg-cyber-neon/20 text-cyber-neon border border-cyber-neon/40 font-semibold">
+                            CHAPTER 5 HARDENING CONTROLS
+                        </span>
+                        <h2 class="text-2xl font-mono font-bold text-white mt-2 flex items-center gap-2">
+                            <i class="fa-solid fa-shield-virus text-cyber-neon"></i> Privacy Defense &amp; Protection Suite
+                        </h2>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+                <!-- 1. ANONYMITY & PROXY SERVER SIMULATOR -->
+                <div class="glass-panel p-5 rounded-xl border border-slate-800 space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                        <h3 class="text-sm font-mono font-bold text-cyber-neon flex items-center gap-2">
+                            <i class="fa-solid fa-server"></i> PROXY SERVER &amp; INCOGNITO SHIELD
+                        </h3>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-mono text-slate-400">CONNECTION:</span>
+                            <button id="proxy-toggle-btn" onclick="toggleProxyConnection()" class="px-3 py-1 rounded text-xs font-mono font-bold bg-slate-800 text-slate-300 border border-slate-700">
+                                DIRECT (EXPOSED)
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3 text-xs font-mono">
+                        <div class="p-3 rounded bg-slate-950 border border-slate-800">
+                            <span class="text-slate-500 block text-[10px]">VISUALIZED IP ADDRESS:</span>
+                            <span id="proxy-ip-val" class="text-rose-400 font-bold text-sm">183.178.45.12 (ISP REAL)</span>
+                        </div>
+                        <div class="p-3 rounded bg-slate-950 border border-slate-800">
+                            <span class="text-slate-500 block text-[10px]">COOKIE STORAGE:</span>
+                            <span id="proxy-cookie-val" class="text-rose-400 font-bold text-sm">ACTIVE (PERSISTENT)</span>
+                        </div>
+                        <div class="p-3 rounded bg-slate-950 border border-slate-800">
+                            <span class="text-slate-500 block text-[10px]">BROWSER AUTOFILL:</span>
+                            <span id="proxy-autofill-val" class="text-rose-400 font-bold text-sm">EXPOSED SAVED PASS</span>
+                        </div>
+                        <div class="p-3 rounded bg-slate-950 border border-slate-800">
+                            <span class="text-slate-500 block text-[10px]">WEB CONTENT FILTER:</span>
+                            <span id="proxy-filter-val" class="text-slate-400 font-bold text-sm">DISABLED</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. INTERACTIVE PASSWORD STRENGTH & HYGIENE TERMINAL -->
+                <div class="glass-panel p-5 rounded-xl border border-slate-800 space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                        <h3 class="text-sm font-mono font-bold text-cyber-neon flex items-center gap-2">
+                            <i class="fa-solid fa-key"></i> PASSWORD HYGIENE &amp; RULE TERMINAL
+                        </h3>
+                        <span class="text-[10px] font-mono text-slate-400">3-MONTH ROTATION RULE</span>
+                    </div>
+
+                    <div class="space-y-3 font-mono text-xs">
+                        <div>
+                            <label class="text-slate-400 block mb-1">TEST PASSWORD STRENGTH:</label>
+                            <input type="text" id="pass-tester-input" oninput="auditPasswordRules(this.value)" placeholder="Enter password to test rules..." class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded text-cyber-cyan focus:outline-none focus:border-cyber-neon">
+                        </div>
+
+                        <!-- Rule Checklist -->
+                        <div class="grid grid-cols-2 gap-2 text-[11px]">
+                            <div id="prule-length" class="text-rose-400 flex items-center gap-1.5">
+                                <i class="fa-solid fa-xmark"></i> 8+ Characters
+                            </div>
+                            <div id="prule-upper" class="text-rose-400 flex items-center gap-1.5">
+                                <i class="fa-solid fa-xmark"></i> Uppercase Letter
+                            </div>
+                            <div id="prule-lower" class="text-rose-400 flex items-center gap-1.5">
+                                <i class="fa-solid fa-xmark"></i> Lowercase Letter
+                            </div>
+                            <div id="prule-number" class="text-rose-400 flex items-center gap-1.5">
+                                <i class="fa-solid fa-xmark"></i> Number (0-9)
+                            </div>
+                            <div id="prule-symbol" class="text-rose-400 flex items-center gap-1.5">
+                                <i class="fa-solid fa-xmark"></i> Special Symbol
+                            </div>
+                            <div id="prule-personal" class="text-rose-400 flex items-center gap-1.5">
+                                <i class="fa-solid fa-xmark"></i> No Birthdate / Phone
+                            </div>
+                        </div>
+
+                        <!-- Login Audit Merits -->
+                        <div class="p-2.5 rounded bg-slate-950 border border-slate-800 text-[10px] text-slate-400 space-y-1">
+                            <div>LAST SUCCESSFUL LOGIN: <span class="text-cyber-cyan">2026-10-15 08:30:12 UTC</span></div>
+                            <div>PASSWORD AGE: <span class="text-cyber-neon">42 Days (Change recommended in 48 days)</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. SAFE EMAIL & ATTACHMENT INSPECTOR -->
+                <div class="glass-panel p-5 rounded-xl border border-slate-800 space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                        <h3 class="text-sm font-mono font-bold text-cyber-neon flex items-center gap-2">
+                            <i class="fa-solid fa-paperclip"></i> SAFE EMAIL ATTACHMENT SANDBOX
+                        </h3>
+                        <span class="text-[10px] font-mono text-slate-400">EXT INSPECTOR</span>
+                    </div>
+
+                    <div class="space-y-3 font-mono text-xs">
+                        <p class="text-slate-300">Click a sample attachment to run antivirus sandbox inspection:</p>
+                        <div class="flex flex-wrap gap-2">
+                            <button onclick="scanAttachment('document.pdf')" class="px-3 py-1.5 rounded bg-slate-900 border border-slate-700 hover:border-cyber-cyan text-slate-300">document.pdf</button>
+                            <button onclick="scanAttachment('update_patch.exe')" class="px-3 py-1.5 rounded bg-slate-900 border border-slate-700 hover:border-rose-500 text-rose-400">update_patch.exe</button>
+                            <button onclick="scanAttachment('autorun.vbs')" class="px-3 py-1.5 rounded bg-slate-900 border border-slate-700 hover:border-rose-500 text-rose-400">autorun.vbs</button>
+                            <button onclick="scanAttachment('installer.bat')" class="px-3 py-1.5 rounded bg-slate-900 border border-slate-700 hover:border-rose-500 text-rose-400">installer.bat</button>
+                        </div>
+
+                        <div id="sandbox-result" class="p-3 rounded bg-slate-950 border border-slate-800 text-slate-400">
+                            Select an attachment above to initiate sandbox scan...
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. WI-FI & NETWORK HARDENING CONSOLE -->
+                <div class="glass-panel p-5 rounded-xl border border-slate-800 space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                        <h3 class="text-sm font-mono font-bold text-cyber-neon flex items-center gap-2">
+                            <i class="fa-solid fa-wifi"></i> WI-FI &amp; ROUTER HARDENING
+                        </h3>
+                        <span class="text-[10px] font-mono text-slate-400">WPA2 > WPA > WEP</span>
+                    </div>
+
+                    <div class="space-y-3 font-mono text-xs">
+                        <!-- Encryption Selector -->
+                        <div>
+                            <label class="text-slate-400 block mb-1">ENCRYPTION PROTOCOL:</label>
+                            <select id="wifi-enc-select" onchange="updateWifiHardening()" class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded text-cyber-cyan focus:outline-none">
+                                <option value="WPA2">WPA2 / WPA3 AES (RECOMMENDED STRONG)</option>
+                                <option value="WPA">WPA TKIP (LEGACY MODERATE)</option>
+                                <option value="WEP">WEP (INSECURE / DEPRECATED)</option>
+                            </select>
+                        </div>
+
+                        <!-- SSID Broadcast Toggle & MAC Whitelist -->
+                        <div class="grid grid-cols-2 gap-3 pt-1">
+                            <div class="p-3 rounded bg-slate-950 border border-slate-800 space-y-1">
+                                <span class="text-slate-500 text-[10px]">SSID BROADCAST:</span>
+                                <div class="flex items-center justify-between mt-1">
+                                    <span id="ssid-status-label" class="text-cyber-neon font-bold">HIDDEN</span>
+                                    <button onclick="toggleSSID()" class="px-2 py-0.5 rounded text-[10px] bg-slate-800 text-slate-300">TOGGLE</button>
+                                </div>
+                            </div>
+
+                            <div class="p-3 rounded bg-slate-950 border border-slate-800 space-y-1">
+                                <span class="text-slate-500 text-[10px]">MAC FILTERING:</span>
+                                <div class="flex items-center justify-between mt-1">
+                                    <span id="mac-filter-label" class="text-cyber-neon font-bold">WHITELIST ON</span>
+                                    <button onclick="toggleMACFilter()" class="px-2 py-0.5 rounded text-[10px] bg-slate-800 text-slate-300">TOGGLE</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="wifi-assessment-box" class="p-2.5 rounded bg-emerald-950/60 border border-emerald-600 text-emerald-300 text-[11px]">
+                            [HARDENED] Strong AES encryption active. Network SSID hidden from unauthorized scanning.
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+
+        <!-- ========================================== -->
+        <!-- PANE 4: CHECKPOINT KNOWLEDGE QUIZ          -->
+        <!-- ========================================== -->
+        <section id="quiz-pane" class="hud-pane hidden space-y-6">
+            <div class="glass-panel p-6 rounded-xl border border-cyber-cyan/40">
+                <div class="flex flex-wrap items-center justify-between gap-4">
+                    <div>
+                        <span class="px-2.5 py-1 rounded text-[10px] font-mono bg-cyber-cyan/20 text-cyber-cyan border border-cyber-cyan/40 font-semibold">
+                            TEXTBOOK CHAPTER 5 ASSESSMENT
+                        </span>
+                        <h2 class="text-2xl font-mono font-bold text-white mt-2 flex items-center gap-2">
+                            <i class="fa-solid fa-graduation-cap text-cyber-cyan"></i> Interactive Checkpoint Quiz
+                        </h2>
+                        <p class="text-xs text-slate-300 mt-1">
+                            Test your knowledge on worm features, trojan threat vectors, ransomware response protocol, phishing domains, and password hygiene rules.
+                        </p>
+                    </div>
+                    <div class="bg-slate-950 px-4 py-3 rounded-lg border border-slate-800 text-center font-mono">
+                        <span class="text-xs text-slate-500 block">CURRENT SCORE:</span>
+                        <span id="quiz-score-display" class="text-2xl font-bold text-cyber-neon">0 / 6</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quiz Questions Grid Container -->
+            <div id="quiz-questions-container" class="space-y-4">
+                <!-- Generated dynamically via JS for clean modularity -->
+            </div>
+
+            <!-- Quiz Controls Footer -->
+            <div class="glass-panel p-4 rounded-xl border border-slate-800 flex items-center justify-between font-mono">
+                <button onclick="resetQuiz()" class="px-4 py-2 rounded bg-slate-900 border border-slate-700 text-slate-300 text-xs font-bold hover:border-cyber-cyan transition">
+                    <i class="fa-solid fa-rotate-right mr-2"></i> RESTART QUIZ
+                </button>
+                <span id="quiz-final-status" class="text-xs text-cyber-cyan">
+                    Complete all 6 questions to view complete feedback breakdown.
+                </span>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER CITATION & ATTRIBUTION -->
+    <footer class="border-t border-slate-800 bg-slate-950/80 mt-12 py-6 px-4 font-mono text-xs text-slate-500">
+        <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
+            <div>
+                <p class="text-slate-400 font-bold">CYBER-HUD COMMAND CENTER // CHAPTER 5 NETWORK SECURITY &amp; PRIVACY</p>
+                <p class="text-[11px] text-slate-600 mt-1">Referenced Modules: Viruses, Worms, Trojans, Spyware, Eavesdropping, Phishing, Quotas, Encryption, Wi-Fi Hardening.</p>
+            </div>
+            <div class="flex items-center gap-4 text-[11px]">
+                <span class="hover:text-cyber-cyan cursor-pointer"><i class="fa-solid fa-book-open mr-1"></i> Chapter 5 Spec</span>
+                <span class="hover:text-cyber-neon cursor-pointer"><i class="fa-solid fa-lock mr-1"></i> ISO/IEC 27001 Aligned</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- INTERACTIVE JAVASCRIPT ENGINE -->
+    <script>
+        /* =======================================================
+           1. GLOBAL STATE & WEB AUDIO SYNTHESIZER (NO EXTERNAL SFX)
+           ======================================================= */
+        let sfxEnabled = true;
+        let audioCtx = null;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playSound(type) {
+            if (!sfxEnabled) return;
+            try {
+                initAudio();
+                if (!audioCtx) return;
+
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                const now = audioCtx.currentTime;
+
+                if (type === 'click') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(800, now);
+                    osc.frequency.exponentialRampToValueAtTime(400, now + 0.05);
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
+                    osc.start(now);
+                    osc.stop(now + 0.05);
+                } else if (type === 'alert') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(300, now);
+                    osc.frequency.linearRampToValueAtTime(600, now + 0.15);
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+                    osc.start(now);
+                    osc.stop(now + 0.15);
+                } else if (type === 'success') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(523.25, now); // C5
+                    osc.frequency.setValueAtTime(659.25, now + 0.08); // E5
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+                    osc.start(now);
+                    osc.stop(now + 0.2);
+                } else if (type === 'scan') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(1200, now);
+                    osc.frequency.linearRampToValueAtTime(300, now + 0.1);
+                    gain.gain.setValueAtTime(0.1, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                    osc.start(now);
+                    osc.stop(now + 0.1);
+                }
+            } catch (e) {
+                console.log("Audio play error", e);
+            }
+        }
+
+        function toggleSFX() {
+            sfxEnabled = !sfxEnabled;
+            const icon = document.getElementById('sfx-icon');
+            const label = document.getElementById('sfx-label');
+            if (sfxEnabled) {
+                icon.className = 'fa-solid fa-volume-high text-cyber-cyan';
+                label.innerText = 'SFX: ON';
+                playSound('success');
+            } else {
+                icon.className = 'fa-solid fa-volume-xmark text-slate-500';
+                label.innerText = 'SFX: OFF';
+            }
+        }
+
+        /* =======================================================
+           2. NAVIGATION & TAB SWITCHING
+           ======================================================= */
+        function switchTab(paneId) {
+            playSound('click');
+            // Hide all panes
+            document.querySelectorAll('.hud-pane').forEach(p => p.classList.add('hidden'));
+            // Remove active classes on nav tabs
+            document.querySelectorAll('.hud-tab').forEach(t => {
+                t.classList.remove('border-cyber-cyan', 'text-cyber-cyan', 'bg-cyber-cyan/10');
+                t.classList.add('border-transparent', 'text-slate-400');
+            });
+
+            // Show selected pane
+            const targetPane = document.getElementById(paneId);
+            if (targetPane) targetPane.classList.remove('hidden');
+
+            // Highlight active tab
+            const targetTab = document.getElementById('tab-' + paneId);
+            if (targetTab) {
+                targetTab.classList.remove('border-transparent', 'text-slate-400');
+                targetTab.classList.add('border-cyber-cyan', 'text-cyber-cyan', 'bg-cyber-cyan/10');
+            }
+
+            logTerminalEvent('NAV_SWITCH', `User navigated to pane: ${paneId.toUpperCase()}`);
+        }
+
+        /* =======================================================
+           3. TERMINAL LOGGING & LIVE RADAR CANVAS
+           ======================================================= */
+        function logTerminalEvent(category, message) {
+            const consoleBox = document.getElementById('terminal-console');
+            if (!consoleBox) return;
+
+            const timeStr = new Date().toTimeString().split(' ')[0];
+            const div = document.createElement('div');
+            div.innerHTML = `<span class="text-slate-500">[${timeStr}]</span> <span class="text-cyber-cyan font-semibold">${category}</span> ${message}`;
+            consoleBox.appendChild(div);
+            consoleBox.scrollTop = consoleBox.scrollHeight;
+        }
+
+        function clearTerminalLog() {
+            playSound('click');
+            const consoleBox = document.getElementById('terminal-console');
+            if (consoleBox) consoleBox.innerHTML = '';
+        }
+
+        // Radar Canvas Loop
+        function initRadarCanvas() {
+            const canvas = document.getElementById('radar-canvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            
+            // Set canvas dynamic width
+            canvas.width = canvas.parentElement.clientWidth || 300;
+            canvas.height = 220;
+
+            let angle = 0;
+
+            function drawRadar() {
+                const width = canvas.width;
+                const height = canvas.height;
+                const cX = width / 2;
+                const cY = height / 2;
+                const radius = Math.min(width, height) / 2 - 15;
+
+                ctx.clearRect(0, 0, width, height);
+
+                // Background circles
+                ctx.strokeStyle = 'rgba(0, 240, 255, 0.2)';
+                ctx.lineWidth = 1;
+                for (let r = 0.25; r <= 1.0; r += 0.25) {
+                    ctx.beginPath();
+                    ctx.arc(cX, cY, radius * r, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+
+                // Crosshairs
+                ctx.beginPath();
+                ctx.moveTo(cX - radius, cY); ctx.lineTo(cX + radius, cY);
+                ctx.moveTo(cX, cY - radius); ctx.lineTo(cX, cY + radius);
+                ctx.stroke();
+
+                // Sweep line
+                angle += 0.025;
+                ctx.save();
+                ctx.translate(cX, cY);
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.arc(0, 0, radius, angle, angle + 0.35);
+                ctx.lineTo(0, 0);
+                const grad = ctx.createRadialGradient(0, 0, 5, 0, 0, radius);
+                grad.addColorStop(0, 'rgba(0, 240, 255, 0.4)');
+                grad.addColorStop(1, 'rgba(0, 240, 255, 0.0)');
+                ctx.fillStyle = grad;
+                ctx.fill();
+                ctx.restore();
+
+                // Blip dots
+                ctx.fillStyle = '#ff0055';
+                ctx.beginPath();
+                ctx.arc(cX + radius * 0.5 * Math.cos(1.2), cY + radius * 0.5 * Math.sin(1.2), 4, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.fillStyle = '#00ff66';
+                ctx.beginPath();
+                ctx.arc(cX + radius * 0.7 * Math.cos(3.8), cY + radius * 0.7 * Math.sin(3.8), 4, 0, Math.PI * 2);
+                ctx.fill();
+
+                requestAnimationFrame(drawRadar);
+            }
+
+            drawRadar();
+        }
+
+        /* =======================================================
+           4. PANE 1: MALWARE ATTACK SIMULATORS
+           ======================================================= */
+        function selectMalware(type) {
+            playSound('click');
+            // Hide all sub views
+            document.querySelectorAll('.mview-card').forEach(v => v.classList.add('hidden'));
+            document.querySelectorAll('.m-select-btn').forEach(b => {
+                b.classList.remove('border-cyber-magenta', 'bg-cyber-magenta', 'text-white');
+                b.classList.add('border-slate-700', 'bg-slate-900', 'text-slate-300');
+            });
+
+            // Show target view
+            const target = document.getElementById('mview-' + type);
+            if (target) target.classList.remove('hidden');
+
+            const btn = document.getElementById('mbtn-' + type);
+            if (btn) {
+                btn.classList.remove('border-slate-700', 'bg-slate-900', 'text-slate-300');
+                btn.classList.add('border-cyber-magenta', 'bg-cyber-magenta', 'text-white');
+            }
+
+            logTerminalEvent('MALWARE_INSPECT', `Inspecting malware type: ${type.toUpperCase()}`);
+        }
+
+        // Worm Spread Automation
+        function triggerWormSpread() {
+            playSound('alert');
+            const banner = document.getElementById('worm-status-banner');
+            banner.innerHTML = `<span class="text-cyber-magenta font-bold animate-pulse">[SPREAD IN PROGRESS] Auto-harvesting address book &amp; blasting SMTP payloads...</span>`;
+
+            // Step 1: Infect Amy & Ken
+            setTimeout(() => {
+                playSound('scan');
+                document.getElementById('circ-amy').setAttribute('stroke', '#ff0055');
+                document.getElementById('circ-amy').setAttribute('fill', '#881337');
+                document.getElementById('circ-ken').setAttribute('stroke', '#ff0055');
+                document.getElementById('circ-ken').setAttribute('fill', '#881337');
+                document.getElementById('link-mswong-amy').setAttribute('stroke', '#ff0055');
+                document.getElementById('link-mswong-ken').setAttribute('stroke', '#ff0055');
+                logTerminalEvent('WORM_REPLICATE', 'Ms Wong -> Auto-sent infected payload to contacts Amy & Ken');
+            }, 800);
+
+            // Step 2: Cascade to Bob, Steve, Apple, Lily
+            setTimeout(() => {
+                playSound('alert');
+                ['bob', 'steve', 'apple', 'lily'].forEach(id => {
+                    const c = document.getElementById('circ-' + id);
+                    if (c) {
+                        c.setAttribute('stroke', '#ffaa00');
+                        c.setAttribute('fill', '#78350f');
+                    }
+                });
+                ['amy-bob', 'amy-steve', 'ken-apple', 'ken-lily'].forEach(lid => {
+                    const l = document.getElementById('link-' + lid);
+                    if (l) l.setAttribute('stroke', '#ffaa00');
+                });
+                banner.innerHTML = `<span class="text-cyber-amber font-bold">[EXPONENTIAL NETWORK CRASH] Worm auto-propagated to Bob, Steve, Apple &amp; Lily without user interaction!</span>`;
+                logTerminalEvent('WORM_CRITICAL', 'Address book cascade complete! 6 downstream hosts compromised.');
+            }, 2000);
+        }
+
+        // Virus Infection Simulation
+        function infectVirusDemo() {
+            playSound('alert');
+            document.getElementById('status-file-1').innerText = 'INFECTED (.exe CORRUPTED)';
+            document.getElementById('status-file-1').className = 'text-rose-400 font-bold text-[10px] animate-pulse';
+            
+            document.getElementById('status-file-2').innerText = 'CORRUPTED PAYLOAD ATTACHED';
+            document.getElementById('status-file-2').className = 'text-rose-400 font-bold text-[10px]';
+
+            const boxIcon = document.getElementById('virus-icon-box');
+            boxIcon.className = 'fa-solid fa-bug text-5xl text-rose-500 mb-3 animate-bounce';
+            document.getElementById('virus-box-title').innerText = 'Host Files Infected!';
+            document.getElementById('virus-box-desc').innerText = 'Virus attached code to executable. Replication initiated on local file system.';
+            
+            logTerminalEvent('VIRUS_EXEC', 'User executed infected binary. Code injected into local files.');
+        }
+
+        // Trojan Disguised App Simulation
+        function launchTrojanDemo() {
+            playSound('alert');
+            const s1 = document.getElementById('trojan-step-1');
+            const s2 = document.getElementById('trojan-step-2');
+            const s3 = document.getElementById('trojan-step-3');
+
+            s1.className = 'text-emerald-400 font-bold';
+            s1.innerText = '[EXECUTE] Game installer window launched...';
+
+            setTimeout(() => {
+                playSound('scan');
+                s2.className = 'text-amber-400 font-bold';
+                s2.innerText = '[BACKGROUND] Unpacking stealth backdoor service...';
+            }, 1000);
+
+            setTimeout(() => {
+                playSound('alert');
+                s3.className = 'text-rose-400 font-bold animate-pulse';
+                s3.innerText = '[COMPROMISED] Port 4444 open! Remote attacker connected to shell!';
+                logTerminalEvent('TROJAN_BACKDOOR', 'Stealth backdoor unlocked on port 4444 by disguised installer.');
+            }, 2200);
+        }
+
+        // Spyware Keylogger Simulation
+        function captureKeylog(val) {
+            playSound('scan');
+            const buffer = document.getElementById('keylog-buffer');
+            if (val.trim() === '') {
+                buffer.innerText = '[NO DATA CAPTURED YET]';
+            } else {
+                buffer.innerText = val.split('').map(c => `[KEY: '${c}']`).join(' ');
+            }
+        }
+
+        // Adware Pop-ups
+        function triggerAdwarePopups() {
+            playSound('alert');
+            const stage = document.getElementById('adware-stage');
+            stage.innerHTML = ''; // clear
+
+            for (let i = 0; i < 4; i++) {
+                const pop = document.createElement('div');
+                pop.className = 'absolute bg-yellow-400 text-slate-950 p-2 rounded shadow-lg border border-yellow-600 font-mono text-[10px] font-bold animate-bounce';
+                pop.style.top = (10 + i * 25) + 'px';
+                pop.style.left = (15 + i * 20) + 'px';
+                pop.innerHTML = `<i class="fa-solid fa-rectangle-ad"></i> CONGRATS! You won $10,000! Click HERE!`;
+                stage.appendChild(pop);
+            }
+            logTerminalEvent('ADWARE_POPUP', 'Browser viewport flooded with unauthorized pop-ups.');
+        }
+
+        // Ransomware Simulator
+        function triggerRansomware() {
+            playSound('alert');
+            document.getElementById('ransom-status-tag').innerText = 'ENCRYPTED (.LOCKED)';
+            document.getElementById('ransom-status-tag').className = 'text-rose-400 font-bold';
+
+            ['rfile-1', 'rfile-2', 'rfile-3'].forEach(id => {
+                const el = document.getElementById(id);
+                el.className = 'text-rose-400 text-[11px] font-bold line-through';
+            });
+
+            document.getElementById('ransom-note-box').classList.remove('hidden');
+            logTerminalEvent('RANSOMWARE_LOCK', 'AES-256 Encryption applied to /DOCUMENTS/. Extortion demand note displayed.');
+        }
+
+        function restoreBackupRansomware() {
+            playSound('success');
+            document.getElementById('ransom-status-tag').innerText = 'UNENCRYPTED (RESTORED)';
+            document.getElementById('ransom-status-tag').className = 'text-emerald-400 font-bold';
+
+            ['rfile-1', 'rfile-2', 'rfile-3'].forEach(id => {
+                const el = document.getElementById(id);
+                el.className = 'text-slate-300 text-[11px]';
+            });
+
+            document.getElementById('ransom-note-box').classList.add('hidden');
+            logTerminalEvent('RECOVERY_SUCCESS', 'Drive state restored from offline clean backup vault.');
+        }
+
+
+        /* =======================================================
+           5. PANE 2: ONLINE PRIVACY THREATS (NEW)
+           ======================================================= */
+        function selectPrivacyThreat(type) {
+            playSound('click');
+            document.querySelectorAll('.pview-card').forEach(v => v.classList.add('hidden'));
+            document.querySelectorAll('.p-select-btn').forEach(b => {
+                b.classList.remove('border-cyber-amber', 'bg-cyber-amber', 'text-slate-950');
+                b.classList.add('border-slate-700', 'bg-slate-900', 'text-slate-300');
+            });
+
+            const target = document.getElementById('pview-' + type);
+            if (target) target.classList.remove('hidden');
+
+            const btn = document.getElementById('pbtn-' + type);
+            if (btn) {
+                btn.classList.remove('border-slate-700', 'bg-slate-900', 'text-slate-300');
+                btn.classList.add('border-cyber-amber', 'bg-cyber-amber', 'text-slate-950');
+            }
+
+            logTerminalEvent('PRIVACY_INSPECT', `Inspecting privacy threat module: ${type.toUpperCase()}`);
+        }
+
+        // Eavesdropping SSL toggle
+        let eavesEncrypted = false;
+        function toggleEavesdroppingEncryption() {
+            playSound('click');
+            eavesEncrypted = !eavesEncrypted;
+            const btn = document.getElementById('eaves-encrypt-btn');
+            const desc = document.getElementById('eaves-desc');
+            const payload = document.getElementById('eaves-payload-text');
+            const cap = document.getElementById('eaves-captured-text');
+            const flow = document.getElementById('eaves-flow');
+
+            if (eavesEncrypted) {
+                btn.innerText = 'ENABLED (HTTPS / TLS)';
+                btn.className = 'px-2 py-1 rounded text-[11px] font-bold bg-emerald-600 text-white';
+                desc.innerText = 'TLS Cryptographic Tunnel active! Attacker Eve sees only scrambled ciphertext garble.';
+                desc.className = 'text-[11px] text-emerald-400 font-bold';
+                payload.textContent = '🔒 a8f9#x&!92 (ENCRYPTED)';
+                cap.textContent = 'GARBLED PAYLOAD';
+                cap.setAttribute('fill', '#94a3b8');
+                flow.setAttribute('stroke', '#00ff66');
+            } else {
+                btn.innerText = 'DISABLED (HTTP)';
+                btn.className = 'px-2 py-1 rounded text-[11px] font-bold bg-rose-600 text-white';
+                desc.innerText = 'Payload sent in clear plaintext! Eavesdropper Eve can capture passwords in transit.';
+                desc.className = 'text-[11px] text-rose-400';
+                payload.textContent = '"Pass: 123456"';
+                cap.textContent = 'SNIFFER ACTIVE';
+                cap.setAttribute('fill', '#ff0055');
+                flow.setAttribute('stroke', '#ffaa00');
+            }
+        }
+
+        // Defacement Toggle
+        let isDefaced = false;
+        function toggleDefacement() {
+            playSound('alert');
+            isDefaced = !isDefaced;
+            const btn = document.getElementById('deface-toggle-btn');
+            const title = document.getElementById('web-title');
+            const sub = document.getElementById('web-sub');
+            const box = document.getElementById('website-preview-box');
+
+            if (isDefaced) {
+                btn.innerText = 'DEFACED (VANDALIZED)';
+                btn.className = 'px-3 py-1 rounded text-xs font-mono font-bold bg-rose-600 text-white';
+                title.innerText = 'HAX0R2026 WAS HERE // SITE DEFACED!';
+                title.className = 'text-sm font-bold text-rose-500 font-mono animate-pulse';
+                sub.innerText = 'Your security controls were bypassed. All public pages replaced.';
+                box.className = 'p-4 rounded bg-rose-950/40 border border-rose-600 text-center min-h-[120px] flex flex-col justify-center items-center';
+                logTerminalEvent('DEFACEMENT_ALERT', 'Website landing page defaced by remote vulnerability exploit.');
+            } else {
+                btn.innerText = 'NORMAL ONLINE';
+                btn.className = 'px-3 py-1 rounded text-xs font-mono font-bold bg-emerald-600 text-white';
+                title.innerText = 'Welcome to Official Org Portal';
+                title.className = 'text-sm font-bold text-cyber-cyan font-mono';
+                sub.innerText = 'Serving secure public resources and updates.';
+                box.className = 'p-4 rounded bg-slate-900 border border-slate-800 text-center min-h-[120px] flex flex-col justify-center items-center';
+            }
+        }
+
+        // DDoS Attack Simulation
+        function triggerDDoSAttack() {
+            playSound('alert');
+            const loadText = document.getElementById('server-load-percent');
+            loadText.innerText = '99% CRITICAL OVERLOAD (500 SERVER ERROR)';
+            loadText.className = 'text-rose-500 font-bold animate-pulse';
+
+            setTimeout(() => {
+                loadText.innerText = '12% Normal (DDoS Scrubbing Active)';
+                loadText.className = 'text-emerald-400 font-bold';
+            }, 3000);
+
+            logTerminalEvent('DDOS_ATTACK', 'Botnet zombie nodes launched 50,000 HTTP requests/sec. Server overloaded.');
+        }
+
+        // Social Eng Sub Tabs
+        function selectSocialTab(subType) {
+            playSound('click');
+            document.querySelectorAll('.sview-card').forEach(v => v.classList.add('hidden'));
+            document.querySelectorAll('.s-tab-btn').forEach(b => {
+                b.className = 's-tab-btn px-2.5 py-1 rounded text-xs font-mono bg-slate-900 text-slate-300 border border-slate-800';
+            });
+
+            const target = document.getElementById('sview-' + subType);
+            if (target) target.classList.remove('hidden');
+
+            const btn = document.getElementById('sbtn-' + subType);
+            if (btn) btn.className = 's-tab-btn px-2.5 py-1 rounded text-xs font-mono bg-cyber-amber text-slate-950 font-bold';
+        }
+
+        function checkPhishInput(val) {
+            const warn = document.getElementById('phish-warning');
+            if (val.length > 2) {
+                warn.classList.remove('hidden');
+                playSound('scan');
+            } else {
+                warn.classList.add('hidden');
+            }
+        }
+
+        // Mailbox Quota Simulator
+        let currentMailQuota = 25;
+        function fillMailboxSpam() {
+            playSound('alert');
+            currentMailQuota = Math.min(100, currentMailQuota + 35);
+            updateQuotaUI();
+            logTerminalEvent('SPAM_FLOOD', `Mailbox quota saturated to ${currentMailQuota}%`);
+        }
+
+        function clearMailboxSpam() {
+            playSound('success');
+            currentMailQuota = 15;
+            updateQuotaUI();
+            logTerminalEvent('SPAM_CLEARED', 'Junk mail purged. Storage quota restored to 15%.');
+        }
+
+        function updateQuotaUI() {
+            const bar = document.getElementById('quota-fill-bar');
+            const pct = document.getElementById('quota-percentage');
+            const alert = document.getElementById('quota-risk-alert');
+
+            bar.style.width = currentMailQuota + '%';
+            pct.innerText = currentMailQuota + '% USED';
+
+            if (currentMailQuota >= 90) {
+                bar.className = 'bg-rose-500 h-full rounded-full transition-all duration-500';
+                alert.innerHTML = `<span class="text-rose-400 font-bold"><i class="fa-solid fa-triangle-exclamation"></i> CRITICAL SATURATION RISK:</span> Mailbox almost full! Secondary malware attachments risk automatic execution.`;
+            } else if (currentMailQuota >= 60) {
+                bar.className = 'bg-amber-400 h-full rounded-full transition-all duration-500';
+                alert.innerHTML = `<span class="text-amber-400 font-bold">WARNING:</span> Heavy spam accumulation detected. Filter rules advised.`;
+            } else {
+                bar.className = 'bg-cyber-cyan h-full rounded-full transition-all duration-500';
+                alert.innerText = 'Status: Safe storage capacity. Low risk of missed legitimate mail.';
+            }
+        }
+
+        // Data Exposure Risk Calculator
+        function calculateExposureRisk() {
+            playSound('scan');
+            const ssn = document.getElementById('field-ssn').checked;
+            const addr = document.getElementById('field-address').checked;
+            const mother = document.getElementById('field-mother').checked;
+
+            const scoreDisplay = document.getElementById('exposure-score');
+            const listDisplay = document.getElementById('exposure-threat-list');
+
+            let checkedCount = (ssn ? 1 : 0) + (addr ? 1 : 0) + (mother ? 1 : 0);
+
+            if (checkedCount === 3) {
+                scoreDisplay.innerText = 'HIGH EXPOSURE (SEVERE)';
+                scoreDisplay.className = 'text-3xl font-mono font-bold text-rose-500 mb-3 animate-pulse';
+                listDisplay.innerHTML = `
+                    <p class="text-rose-400"><i class="fa-solid fa-xmark mr-2"></i> High Identity Theft Vulnerability!</p>
+                    <p class="text-rose-400"><i class="fa-solid fa-xmark mr-2"></i> Exposed to doxing &amp; cyberbullying!</p>
+                    <p class="text-rose-400"><i class="fa-solid fa-xmark mr-2"></i> Security questions compromised by mother's maiden name!</p>
+                `;
+            } else if (checkedCount > 0) {
+                scoreDisplay.innerText = 'MODERATE EXPOSURE';
+                scoreDisplay.className = 'text-3xl font-mono font-bold text-amber-400 mb-3';
+                listDisplay.innerHTML = `
+                    <p class="text-amber-400"><i class="fa-solid fa-triangle-exclamation mr-2"></i> Partial identity data exposed to data brokers.</p>
+                `;
+            } else {
+                scoreDisplay.innerText = 'LOW RISK (MINIMAL)';
+                scoreDisplay.className = 'text-3xl font-mono font-bold text-emerald-400 mb-3';
+                listDisplay.innerHTML = `
+                    <p><i class="fa-solid fa-check text-emerald-400 mr-2"></i> Identity Theft risk controlled.</p>
+                    <p><i class="fa-solid fa-check text-emerald-400 mr-2"></i> Doxing vector minimal.</p>
+                `;
+            }
+        }
+
+
+        /* =======================================================
+           6. PANE 3: DEFENSE CONTROLS SIMULATORS
+           ======================================================= */
+        let proxyActive = false;
+        function toggleProxyConnection() {
+            playSound('click');
+            proxyActive = !proxyActive;
+            const btn = document.getElementById('proxy-toggle-btn');
+            const ip = document.getElementById('proxy-ip-val');
+            const cookie = document.getElementById('proxy-cookie-val');
+            const autofill = document.getElementById('proxy-autofill-val');
+            const filter = document.getElementById('proxy-filter-val');
+
+            if (proxyActive) {
+                btn.innerText = 'PROXY / INCOGNITO SHIELD';
+                btn.className = 'px-3 py-1 rounded text-xs font-mono font-bold bg-cyber-neon text-slate-950';
+                ip.innerText = '104.28.19.88 (MASKED PROXY IP)';
+                ip.className = 'text-cyber-neon font-bold text-sm';
+                cookie.innerText = 'BLOCKED / DELETED ON EXIT';
+                cookie.className = 'text-cyber-neon font-bold text-sm';
+                autofill.innerText = 'DISABLED (PROTECTED)';
+                autofill.className = 'text-cyber-neon font-bold text-sm';
+                filter.innerText = 'MALWARE & AD BLOCK ACTIVE';
+                filter.className = 'text-cyber-neon font-bold text-sm';
+                logTerminalEvent('PROXY_SHIELD', 'Proxy shield active. Direct IP 183.178.45.12 hidden.');
+            } else {
+                btn.innerText = 'DIRECT (EXPOSED)';
+                btn.className = 'px-3 py-1 rounded text-xs font-mono font-bold bg-slate-800 text-slate-300 border border-slate-700';
+                ip.innerText = '183.178.45.12 (ISP REAL)';
+                ip.className = 'text-rose-400 font-bold text-sm';
+                cookie.innerText = 'ACTIVE (PERSISTENT)';
+                cookie.className = 'text-rose-400 font-bold text-sm';
+                autofill.innerText = 'EXPOSED SAVED PASS';
+                autofill.className = 'text-rose-400 font-bold text-sm';
+                filter.innerText = 'DISABLED';
+                filter.className = 'text-slate-400 font-bold text-sm';
+            }
+        }
+
+        // Password Hygiene Rule Audit
+        function auditPasswordRules(pwd) {
+            playSound('scan');
+            const setRule = (id, valid) => {
+                const el = document.getElementById(id);
+                if (valid) {
+                    el.className = 'text-emerald-400 flex items-center gap-1.5 font-bold';
+                    el.innerHTML = `<i class="fa-solid fa-check text-emerald-400"></i> ${el.innerText.replace('✓', '').replace('✗', '')}`;
+                } else {
+                    el.className = 'text-rose-400 flex items-center gap-1.5';
+                    el.innerHTML = `<i class="fa-solid fa-xmark text-rose-400"></i> ${el.innerText.replace('✓', '').replace('✗', '')}`;
+                }
+            };
+
+            setRule('prule-length', pwd.length >= 8);
+            setRule('prule-upper', /[A-Z]/.test(pwd));
+            setRule('prule-lower', /[a-z]/.test(pwd));
+            setRule('prule-number', /[0-9]/.test(pwd));
+            setRule('prule-symbol', /[@!#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(pwd));
+            setRule('prule-personal', !/199\d|200\d|201\d|202\d|123456/.test(pwd));
+        }
+
+        // Safe Attachment Scanner Sandbox
+        function scanAttachment(fileName) {
+            playSound('scan');
+            const res = document.getElementById('sandbox-result');
+            res.innerHTML = `<span class="text-cyber-cyan animate-pulse"><i class="fa-solid fa-magnifying-glass"></i> Scanning file signature for ${fileName}...</span>`;
+
+            setTimeout(() => {
+                if (fileName.endsWith('.pdf')) {
+                    playSound('success');
+                    res.innerHTML = `<span class="text-emerald-400 font-bold"><i class="fa-solid fa-shield-check"></i> CLEAN ATTACHMENT:</span> "${fileName}" has no executable payload signatures. Safe to view.`;
+                } else {
+                    playSound('alert');
+                    res.innerHTML = `<span class="text-rose-400 font-bold"><i class="fa-solid fa-ban"></i> QUARANTINED EXECUTABLE:</span> "${fileName}" contains potential dropper script code. Execution blocked by Sandbox AV.`;
+                }
+            }, 1000);
+        }
+
+        // Wi-Fi Hardening
+        let ssidHidden = true;
+        let macWhitelistActive = true;
+
+        function updateWifiHardening() {
+            playSound('click');
+            const sel = document.getElementById('wifi-enc-select').value;
+            const box = document.getElementById('wifi-assessment-box');
+
+            if (sel === 'WPA2') {
+                box.className = 'p-2.5 rounded bg-emerald-950/60 border border-emerald-600 text-emerald-300 text-[11px]';
+                box.innerText = '[HARDENED] Strong WPA2/WPA3 AES encryption active. Highly resistant to password cracking.';
+            } else if (sel === 'WPA') {
+                box.className = 'p-2.5 rounded bg-amber-950/60 border border-amber-600 text-amber-300 text-[11px]';
+                box.innerText = '[MODERATE] WPA TKIP legacy mode active. Vulnerable to specialized packet decryption attacks.';
+            } else {
+                box.className = 'p-2.5 rounded bg-rose-950/60 border border-rose-600 text-rose-300 text-[11px]';
+                box.innerText = '[CRITICAL VULNERABILITY] WEP encryption deprecated! Can be cracked in under 60 seconds.';
+            }
+        }
+
+        function toggleSSID() {
+            playSound('click');
+            ssidHidden = !ssidHidden;
+            const lbl = document.getElementById('ssid-status-label');
+            lbl.innerText = ssidHidden ? 'HIDDEN' : 'BROADCASTING';
+            lbl.className = ssidHidden ? 'text-cyber-neon font-bold' : 'text-rose-400 font-bold';
+        }
+
+        function toggleMACFilter() {
+            playSound('click');
+            macWhitelistActive = !macWhitelistActive;
+            const lbl = document.getElementById('mac-filter-label');
+            lbl.innerText = macWhitelistActive ? 'WHITELIST ON' : 'DISABLED';
+            lbl.className = macWhitelistActive ? 'text-cyber-neon font-bold' : 'text-slate-400 font-bold';
+        }
+
+
+        /* =======================================================
+           7. PANE 4: CHECKPOINT KNOWLEDGE QUIZ DATA & ENGINE
+           ======================================================= */
+        const quizQuestions = [
+            {
+                id: 1,
+                question: "Which feature distinguishes a Worm from a standard Computer Virus?",
+                options: [
+                    "Worms require human action to click host attachments.",
+                    "Worms automatically replicate and spread across network contact books without user action.",
+                    "Worms only infect image files like .jpg.",
+                    "Worms do not consume network bandwidth."
+                ],
+                correct: 1,
+                explanation: "Textbook Chap 5: Unlike viruses which require user action to run host files, worms spread automatically across network address books."
+            },
+            {
+                id: 2,
+                question: "A user downloads 'Free_Game_Crack.exe' which silently opens a stealth backdoor on port 4444. What type of malware is this?",
+                options: [
+                    "Adware",
+                    "Ransomware",
+                    "Trojan Horse",
+                    "Eavesdropping Sniffer"
+                ],
+                correct: 2,
+                explanation: "Trojans disguise themselves as legitimate software while stealthily embedding backdoor access for remote attackers."
+            },
+            {
+                id: 3,
+                question: "What is the immediate response protocol if ransomware encrypts user files on a computer?",
+                options: [
+                    "Immediately pay the Bitcoin ransom demand.",
+                    "Isolate the machine from network and restore files from an uninfected offline backup.",
+                    "Delete the web browser history.",
+                    "Disable the computer firewall."
+                ],
+                correct: 1,
+                explanation: "Isolating infected nodes prevents ransomware spread, and offline backups allow recovery without funding cyber extortion."
+            },
+            {
+                id: 4,
+                question: "Which domain URL represents a classic Phishing red flag for a bank login?",
+                options: [
+                    "https://www.mybank.com/login",
+                    "http://fbank.com/credential-update",
+                    "https://secure.mybank.com/portal",
+                    "https://www.mybank.com/help"
+                ],
+                correct: 1,
+                explanation: "'http://fbank.com' uses unencrypted HTTP protocol and a fake/spoofed domain name imitating the legitimate bank."
+            },
+            {
+                id: 5,
+                question: "According to password hygiene guidelines, how frequently should passwords be changed?",
+                options: [
+                    "Every 3 years",
+                    "Every 3 months (quarterly) with no reuse of the last 3 passwords",
+                    "Never, as long as it contains a number",
+                    "Every single day"
+                ],
+                correct: 1,
+                explanation: "Standard password rotation policy mandates quarterly updates (every 3 months) without recycling recent passwords."
+            },
+            {
+                id: 6,
+                question: "Which Wi-Fi encryption protocol offers the strongest defense against network packet eavesdropping?",
+                options: [
+                    "WEP",
+                    "WPA TKIP",
+                    "WPA2 / WPA3 AES",
+                    "Open Unencrypted Wi-Fi"
+                ],
+                correct: 2,
+                explanation: "WPA2/WPA3 AES encryption provides strong cryptographic protection superior to broken legacy WEP protocols."
+            }
+        ];
+
+        let userAnswers = {};
+
+        function renderQuiz() {
+            const container = document.getElementById('quiz-questions-container');
+            if (!container) return;
+            container.innerHTML = '';
+
+            quizQuestions.forEach((q, idx) => {
+                const card = document.createElement('div');
+                card.className = 'glass-panel p-5 rounded-xl border border-slate-800 space-y-3';
+                
+                let optionsHTML = q.options.map((opt, oIdx) => `
+                    <label class="flex items-start gap-3 p-2.5 rounded bg-slate-950 border border-slate-800 cursor-pointer hover:border-cyber-cyan transition">
+                        <input type="radio" name="q-${q.id}" value="${oIdx}" onchange="selectAnswer(${q.id}, ${oIdx})" class="mt-0.5 text-cyber-cyan focus:ring-0">
+                        <span class="text-xs font-mono text-slate-300">${opt}</span>
+                    </label>
+                `).join('');
+
+                card.innerHTML = `
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                        <span class="text-xs font-mono text-cyber-cyan font-bold">QUESTION ${idx + 1} OF ${quizQuestions.length}</span>
+                        <span id="q-feedback-tag-${q.id}" class="text-[10px] font-mono text-slate-500">UNANSWERED</span>
+                    </div>
+                    <p class="text-sm font-mono font-bold text-white">${q.question}</p>
+                    <div class="space-y-2 pt-1">${optionsHTML}</div>
+                    <div id="q-explanation-${q.id}" class="hidden p-3 rounded bg-slate-900 border text-xs font-mono mt-2"></div>
+                `;
+
+                container.appendChild(card);
+            });
+        }
+
+        function selectAnswer(qId, optionIdx) {
+            userAnswers[qId] = optionIdx;
+            const q = quizQuestions.find(item => item.id === qId);
+            const tag = document.getElementById(`q-feedback-tag-${qId}`);
+            const exp = document.getElementById(`q-explanation-${qId}`);
+
+            if (optionIdx === q.correct) {
+                playSound('success');
+                tag.innerText = 'CORRECT ✓';
+                tag.className = 'text-[10px] font-mono text-emerald-400 font-bold';
+                exp.className = 'p-3 rounded bg-emerald-950/60 border border-emerald-600 text-emerald-300 text-xs font-mono mt-2';
+                exp.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-400 mr-2"></i> ${q.explanation}`;
+            } else {
+                playSound('alert');
+                tag.innerText = 'INCORRECT ✗';
+                tag.className = 'text-[10px] font-mono text-rose-400 font-bold';
+                exp.className = 'p-3 rounded bg-rose-950/60 border border-rose-600 text-rose-300 text-xs font-mono mt-2';
+                exp.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-rose-400 mr-2"></i> ${q.explanation}`;
+            }
+            exp.classList.remove('hidden');
+
+            updateQuizScore();
+        }
+
+        function updateQuizScore() {
+            let correctCount = 0;
+            quizQuestions.forEach(q => {
+                if (userAnswers[q.id] === q.correct) correctCount++;
+            });
+
+            document.getElementById('quiz-score-display').innerText = `${correctCount} / ${quizQuestions.length}`;
+            const statusLabel = document.getElementById('quiz-final-status');
+            
+            if (Object.keys(userAnswers).length === quizQuestions.length) {
+                const pct = Math.round((correctCount / quizQuestions.length) * 100);
+                statusLabel.innerText = `Quiz Complete! Accuracy: ${pct}%. ${pct >= 80 ? 'DEFCON Status Hardened!' : 'Review vectors & retry.'}`;
+            }
+        }
+
+        function resetQuiz() {
+            playSound('click');
+            userAnswers = {};
+            document.getElementById('quiz-score-display').innerText = `0 / ${quizQuestions.length}`;
+            renderQuiz();
+        }
+
+
+        /* =======================================================
+           8. GLOBAL SEARCH & UTILITY CLOCK
+           ======================================================= */
+        function handleGlobalSearch() {
+            const query = document.getElementById('hud-search-input').value.toLowerCase().trim();
+            if (query === '') return;
+
+            // Simple tab recommendation based on query
+            if (query.includes('worm') || query.includes('virus') || query.includes('trojan') || query.includes('malware')) {
+                switchTab('malware-pane');
+            } else if (query.includes('eaves') || query.includes('phish') || query.includes('spam') || query.includes('privacy') || query.includes('hack')) {
+                switchTab('privacy-threats-pane');
+            } else if (query.includes('pass') || query.includes('proxy') || query.includes('wifi') || query.includes('defense')) {
+                switchTab('defense-pane');
+            } else if (query.includes('quiz') || query.includes('test')) {
+                switchTab('quiz-pane');
+            }
+        }
+
+        function startUTCClock() {
+            setInterval(() => {
+                const now = new Date();
+                const clock = document.getElementById('utc-clock');
+                if (clock) clock.innerText = now.toISOString().substring(11, 19) + ' UTC';
+            }, 1000);
+        }
+
+
+        /* =======================================================
+           9. INITIALIZATION ON WINDOW LOAD
+           ======================================================= */
+        window.onload = function () {
+            startUTCClock();
+            initRadarCanvas();
+            renderQuiz();
+            logTerminalEvent('CYBER_HUD', 'Command Center HUD initialized successfully. Systems nominal.');
+        };
+    </script>
+</body>
+</html>
