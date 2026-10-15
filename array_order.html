@@ -1,0 +1,1172 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Array Order Checker - Procedural Python</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['Fira Code', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Strict single screen viewport constraints */
+        html, body {
+            height: 100vh;
+            max-height: 100vh;
+            overflow: hidden;
+            box-sizing: border-box;
+        }
+
+        .tile-grab {
+            cursor: grab;
+        }
+        .tile-grab:active {
+            cursor: grabbing;
+        }
+
+        /* Line highlighting styles for Python execution step trace */
+        .py-line {
+            transition: all 0.15s ease-in-out;
+            border-left: 3px solid transparent;
+        }
+        
+        .py-line-active {
+            background-color: rgba(234, 179, 8, 0.2) !important;
+            border-left-color: #eab308 !important;
+            color: #fef08a !important;
+        }
+
+        .py-line-false {
+            background-color: rgba(239, 68, 68, 0.25) !important;
+            border-left-color: #ef4444 !important;
+            color: #fca5a5 !important;
+        }
+
+        .py-line-break {
+            background-color: rgba(168, 85, 247, 0.3) !important;
+            border-left-color: #a855f7 !important;
+            color: #e9d5ff !important;
+            font-weight: bold;
+        }
+
+        .py-line-true {
+            background-color: rgba(34, 197, 94, 0.25) !important;
+            border-left-color: #22c55e !important;
+            color: #86efac !important;
+        }
+
+        /* Tile pulse comparison animations */
+        @keyframes tilePulse {
+            0%, 100% { transform: translateY(-3px) scale(1.02); }
+            50% { transform: translateY(-6px) scale(1.04); }
+        }
+
+        @keyframes breakFlash {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.06); }
+        }
+
+        .tile-comparing {
+            animation: tilePulse 0.8s infinite ease-in-out;
+            box-shadow: 0 0 15px rgba(234, 179, 8, 0.5);
+            border-color: #eab308 !important;
+        }
+
+        .tile-valid {
+            border-color: #22c55e !important;
+            box-shadow: 0 0 12px rgba(34, 197, 94, 0.4);
+        }
+
+        .tile-invalid {
+            border-color: #ef4444 !important;
+            box-shadow: 0 0 12px rgba(239, 68, 68, 0.4);
+        }
+
+        .tile-break {
+            animation: breakFlash 0.5s ease-in-out infinite;
+            border-color: #a855f7 !important;
+            box-shadow: 0 0 16px rgba(168, 85, 247, 0.6);
+        }
+
+        .drag-over {
+            border-color: #3b82f6 !important;
+            background-color: #1e3a8a !important;
+            transform: scale(0.98);
+        }
+
+        ::-webkit-scrollbar {
+            width: 4px;
+            height: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 2px;
+        }
+    </style>
+</head>
+<body class="h-screen w-screen bg-slate-950 text-slate-100 font-sans antialiased select-none p-3 box-border flex flex-col gap-2.5">
+
+    <!-- Header Section -->
+    <header class="flex-none bg-slate-900 border border-slate-800 rounded-xl px-4 py-2 flex items-center justify-between shadow-md">
+        <div class="flex items-center gap-3">
+            <div class="bg-amber-500/20 text-amber-400 p-2 rounded-lg border border-amber-500/30">
+                <i class="fa-brands fa-python text-lg"></i>
+            </div>
+            <div>
+                <h1 class="text-sm font-bold text-white flex items-center gap-2">
+                    Python Array Order Visualizer
+                    <span class="text-[10px] font-mono font-medium px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700">Procedural (No Functions)</span>
+                </h1>
+                <p class="text-[11px] text-slate-400">Rearrange 8 numbers and compare full loop vs early exit algorithms</p>
+            </div>
+        </div>
+
+        <!-- Mode Toggle Switch & Metrics -->
+        <div class="flex items-center gap-4">
+            <!-- Early Exit Flag Switch -->
+            <div class="flex items-center bg-slate-950 border border-slate-800 p-1 rounded-xl">
+                <button id="modeWithoutFlag" onclick="setEarlyExitMode(false)" class="px-3 py-1 rounded-lg text-xs font-semibold transition-all duration-200 bg-blue-600 text-white shadow">
+                    Without Flag <span class="text-[10px] opacity-75 font-normal">(Full Pass)</span>
+                </button>
+                <button id="modeWithFlag" onclick="setEarlyExitMode(true)" class="px-3 py-1 rounded-lg text-xs font-semibold transition-all duration-200 text-slate-400 hover:text-white">
+                    <i class="fa-solid fa-bolt text-amber-400 mr-1"></i> With Flag <span class="text-[10px] opacity-75 font-normal">(Early Exit)</span>
+                </button>
+            </div>
+
+            <!-- Comparisons Badge -->
+            <div class="px-3 py-1 rounded-lg bg-slate-800 border border-slate-700 text-xs font-mono flex items-center gap-2">
+                <span class="text-slate-400">Comparisons:</span>
+                <span id="compCounter" class="text-amber-400 font-bold">0 / 7</span>
+            </div>
+
+            <!-- Live Result Status Badge -->
+            <div id="liveStatusBadge" class="px-3 py-1 rounded-lg bg-slate-800 border border-slate-700 text-xs font-semibold flex items-center gap-2">
+                <span id="liveStatusIcon" class="w-2 h-2 rounded-full bg-slate-400"></span>
+                <span id="liveStatusText" class="text-slate-300">Checking...</span>
+            </div>
+
+            <!-- Audio Toggle -->
+            <button onclick="toggleSound()" id="soundBtn" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs text-slate-300 transition">
+                <i id="soundIcon" class="fa-solid fa-volume-high text-blue-400"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Workspace (Grid split 7 : 5) -->
+    <main class="flex-1 min-h-0 grid grid-cols-12 gap-3 overflow-hidden">
+        
+        <!-- Left Side: Interactive Array Cards & Execution Control (7 cols) -->
+        <section class="col-span-7 flex flex-col gap-2.5 min-h-0 overflow-hidden">
+            
+            <!-- Quick Presets Toolbar -->
+            <div class="flex-none bg-slate-900 border border-slate-800 rounded-xl p-2 flex items-center justify-between gap-2">
+                <div class="flex items-center gap-1.5 text-xs">
+                    <span class="text-slate-400 font-medium text-[11px] uppercase tracking-wider mr-1">Presets:</span>
+                    <button onclick="applyPreset('ascending')" class="px-2.5 py-1 rounded-lg bg-emerald-950/60 hover:bg-emerald-900/60 text-emerald-300 border border-emerald-500/30 text-xs font-medium transition">
+                        <i class="fa-solid fa-arrow-trend-up mr-1"></i> Ascending
+                    </button>
+                    <button onclick="applyPreset('descending')" class="px-2.5 py-1 rounded-lg bg-blue-950/60 hover:bg-blue-900/60 text-blue-300 border border-blue-500/30 text-xs font-medium transition">
+                        <i class="fa-solid fa-arrow-trend-down mr-1"></i> Descending
+                    </button>
+                    <button onclick="applyPreset('nearSorted')" class="px-2.5 py-1 rounded-lg bg-amber-950/60 hover:bg-amber-900/60 text-amber-300 border border-amber-500/30 text-xs font-medium transition" title="Peak in element 1 breaks both asc and desc quickly!">
+                        <i class="fa-solid fa-bolt text-amber-400 mr-1"></i> Near Sorted
+                    </button>
+                    <button onclick="shuffleArray()" class="px-2.5 py-1 rounded-lg bg-purple-950/60 hover:bg-purple-900/60 text-purple-300 border border-purple-500/30 text-xs font-medium transition">
+                        <i class="fa-solid fa-shuffle mr-1"></i> Shuffle
+                    </button>
+                    <button onclick="randomizeNumbers()" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-xs font-medium transition">
+                        <i class="fa-solid fa-dice mr-1"></i> Random
+                    </button>
+                </div>
+
+                <button onclick="openEditModal()" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-xs font-medium transition">
+                    <i class="fa-solid fa-pen-to-square text-blue-400 mr-1"></i> Edit Values
+                </button>
+            </div>
+
+            <!-- 8 Interactive Array Cards Workspace -->
+            <div class="flex-1 bg-slate-900/90 border border-slate-800 rounded-xl p-3 flex flex-col justify-between min-h-0 relative">
+                
+                <div class="flex items-center justify-between text-xs text-slate-400 flex-none pb-1 border-b border-slate-800/80">
+                    <span class="font-medium flex items-center gap-1.5 text-slate-300">
+                        <i class="fa-solid fa-hand-pointer text-blue-400"></i> Array Elements <code class="text-amber-400 font-mono">arr[0]</code> to <code class="text-amber-400 font-mono">arr[7]</code>:
+                    </span>
+                    <span class="text-[11px] text-slate-500 italic">Drag cards or tap arrows to swap positions</span>
+                </div>
+
+                <!-- 8 Array Cards Grid -->
+                <div id="tilesGrid" class="grid grid-cols-8 gap-1.5 w-full my-auto py-2">
+                    <!-- Cards populated via JS -->
+                </div>
+
+                <!-- Live Variable Watcher Panel -->
+                <div class="flex-none bg-slate-950 border border-slate-800 rounded-lg p-2 flex items-center justify-around text-xs font-mono">
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-slate-400">is_asc =</span>
+                        <span id="varIsAsc" class="px-2 py-0.5 rounded font-bold bg-slate-800 text-emerald-400 border border-emerald-500/30">True</span>
+                    </div>
+                    <div class="w-px h-4 bg-slate-800"></div>
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-slate-400">is_desc =</span>
+                        <span id="varIsDesc" class="px-2 py-0.5 rounded font-bold bg-slate-800 text-emerald-400 border border-emerald-500/30">True</span>
+                    </div>
+                    <div class="w-px h-4 bg-slate-800"></div>
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-slate-400">Index i =</span>
+                        <span id="varLoopI" class="px-2 py-0.5 rounded font-bold bg-slate-800 text-amber-400 border border-amber-500/30">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Execution Controls & Step Log Output -->
+            <div class="flex-none bg-slate-900 border border-slate-800 rounded-xl p-3 flex flex-col gap-2">
+                <div class="flex items-center justify-between gap-3">
+                    <!-- Action Buttons -->
+                    <div class="flex items-center gap-2">
+                        <button id="animateBtn" onclick="toggleAnimation()" class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs shadow-lg shadow-blue-600/20 transition flex items-center gap-2">
+                            <i id="animateIcon" class="fa-solid fa-play"></i>
+                            <span id="animateBtnText">Animate Loop</span>
+                        </button>
+
+                        <button id="stepBtn" onclick="stepForward()" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium border border-slate-700 transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-forward-step"></i> Step
+                        </button>
+
+                        <button onclick="resetState()" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium border border-slate-700 transition">
+                            <i class="fa-solid fa-rotate-left"></i> Reset
+                        </button>
+                    </div>
+
+                    <!-- Speed Slider -->
+                    <div class="flex items-center gap-2 text-xs text-slate-400">
+                        <span>Speed:</span>
+                        <input id="speedSlider" type="range" min="100" max="1200" step="100" value="500" onchange="updateSpeed(this.value)" class="w-20 accent-blue-500 cursor-pointer">
+                        <span id="speedVal" class="font-mono w-10 text-slate-200 text-[11px]">500ms</span>
+                    </div>
+                </div>
+
+                <!-- Trace Log Message Box -->
+                <div id="stepLog" class="bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs font-mono text-slate-300 flex items-center gap-2 h-9 overflow-hidden">
+                    <span class="text-blue-400 font-bold">&gt;</span>
+                    <span id="stepLogText" class="truncate">Ready. Click "Animate Loop" or "Step" to visualize execution line-by-line.</span>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- Right Side: Python Code Display & Flag Efficiency Info (5 cols) -->
+        <section class="col-span-5 bg-slate-900 border border-slate-800 rounded-xl flex flex-col min-h-0 overflow-hidden shadow-xl">
+            
+            <!-- Code Panel Header -->
+            <div class="px-4 py-2 bg-slate-950 border-b border-slate-800 flex items-center justify-between text-xs font-mono flex-none">
+                <div class="flex items-center gap-2 text-slate-300 font-semibold">
+                    <i class="fa-brands fa-python text-amber-400 text-sm"></i>
+                    <span id="codeTitleText">Python Code (Without Flag)</span>
+                </div>
+                <button onclick="copyPythonCode()" class="text-[11px] text-slate-400 hover:text-white flex items-center gap-1 px-2 py-0.5 rounded bg-slate-800 border border-slate-700 transition">
+                    <i class="fa-regular fa-copy"></i> Copy
+                </button>
+            </div>
+
+            <!-- Procedural Python Code Lines Container -->
+            <div id="codeContainer" class="p-3 font-mono text-[11px] overflow-auto flex-1 bg-slate-950/90 leading-relaxed">
+                <!-- Dynamically populated based on mode -->
+            </div>
+
+            <!-- Algorithm Efficiency & Mode Explanation Footer -->
+            <div class="p-2.5 bg-slate-950 border-t border-slate-800 text-[11px] text-slate-400 flex flex-col gap-1 flex-none">
+                <div class="font-semibold text-slate-200 flex items-center justify-between">
+                    <span class="flex items-center gap-1.5">
+                        <i class="fa-solid fa-microchip text-amber-400"></i> Mode Concept:
+                    </span>
+                    <span id="modeBadgeText" class="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-950 text-blue-300 border border-blue-500/30">Standard O(N) Pass</span>
+                </div>
+                <p id="modeDescText" class="text-slate-400 text-[10px] leading-tight">
+                    Always runs all 7 comparison iterations even if the array is proven unsorted on the very first pair.
+                </p>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Modal for Custom Array Inputs -->
+    <div id="editModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-slate-900 border border-slate-700 rounded-xl max-w-md w-full p-5 shadow-2xl space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-2.5">
+                <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-pen-to-square text-blue-400"></i> Edit Array Numbers
+                </h3>
+                <button onclick="closeEditModal()" class="text-slate-400 hover:text-white text-base">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            
+            <p class="text-xs text-slate-400">Enter exactly 8 comma-separated integers:</p>
+            
+            <input id="customInput" type="text" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs font-mono text-white focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="10, 20, 30, 40, 50, 60, 70, 80">
+            
+            <div id="modalError" class="text-xs text-rose-400 hidden flex items-center gap-1">
+                <i class="fa-solid fa-circle-exclamation"></i> Please enter exactly 8 valid numbers separated by commas.
+            </div>
+
+            <div class="flex items-center justify-end gap-2 pt-2">
+                <button onclick="closeEditModal()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium transition">
+                    Cancel
+                </button>
+                <button onclick="saveCustomNumbers()" class="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold transition">
+                    Save Array
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Execution Engine -->
+    <script>
+        // State Variables
+        let numbers = [12, 28, 35, 42, 59, 64, 78, 91];
+        let useEarlyExit = false; // Flag mode toggle
+        let draggedIndex = null;
+        let soundEnabled = true;
+
+        // Animation state
+        let steps = [];
+        let currentStep = -1;
+        let isAnimating = false;
+        let isPaused = false;
+        let animationTimer = null;
+        let stepSpeed = 500;
+
+        // Sound System
+        let audioCtx = null;
+        function getAudioContext() {
+            if (!audioCtx) {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (AudioContext) audioCtx = new AudioContext();
+            }
+            if (audioCtx && audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            return audioCtx;
+        }
+
+        function playSound(type) {
+            if (!soundEnabled) return;
+            try {
+                const ctx = getAudioContext();
+                if (!ctx) return;
+
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                const now = ctx.currentTime;
+
+                if (type === 'compare') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(380, now);
+                    gain.gain.setValueAtTime(0.04, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+                    osc.start(now);
+                    osc.stop(now + 0.1);
+                } else if (type === 'change') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(220, now);
+                    gain.gain.setValueAtTime(0.06, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+                    osc.start(now);
+                    osc.stop(now + 0.15);
+                } else if (type === 'break') {
+                    osc.type = 'square';
+                    osc.frequency.setValueAtTime(300, now);
+                    osc.frequency.exponentialRampToValueAtTime(150, now + 0.25);
+                    gain.gain.setValueAtTime(0.08, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+                    osc.start(now);
+                    osc.stop(now + 0.25);
+                } else if (type === 'success') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(523.25, now);
+                    osc.frequency.setValueAtTime(659.25, now + 0.1);
+                    osc.frequency.setValueAtTime(783.99, now + 0.2);
+                    gain.gain.setValueAtTime(0.08, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+                    osc.start(now);
+                    osc.stop(now + 0.35);
+                }
+            } catch(e) {}
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            const icon = document.getElementById('soundIcon');
+            icon.className = soundEnabled ? 'fa-solid fa-volume-high text-blue-400' : 'fa-solid fa-volume-xmark text-slate-500';
+        }
+
+        // On Window Load
+        window.onload = function() {
+            renderCode();
+            renderTiles();
+            updateLiveStatus();
+        };
+
+        // Switch Early Exit Mode
+        function setEarlyExitMode(enabled) {
+            useEarlyExit = enabled;
+            const btnWithout = document.getElementById('modeWithoutFlag');
+            const btnWith = document.getElementById('modeWithFlag');
+
+            if (enabled) {
+                btnWith.className = "px-3 py-1 rounded-lg text-xs font-semibold transition-all duration-200 bg-amber-600 text-white shadow";
+                btnWithout.className = "px-3 py-1 rounded-lg text-xs font-semibold transition-all duration-200 text-slate-400 hover:text-white";
+                document.getElementById('codeTitleText').textContent = "Python Code (With Early Exit Flag)";
+                document.getElementById('modeBadgeText').textContent = "Early Break Optimization";
+                document.getElementById('modeBadgeText').className = "text-[10px] font-mono px-2 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-500/30";
+                document.getElementById('modeDescText').textContent = "Monitors flags inside loop. Exits immediately via 'break' when both is_asc and is_desc become False.";
+            } else {
+                btnWithout.className = "px-3 py-1 rounded-lg text-xs font-semibold transition-all duration-200 bg-blue-600 text-white shadow";
+                btnWith.className = "px-3 py-1 rounded-lg text-xs font-semibold transition-all duration-200 text-slate-400 hover:text-white";
+                document.getElementById('codeTitleText').textContent = "Python Code (Without Flag - Full Loop Pass)";
+                document.getElementById('modeBadgeText').textContent = "Standard Full Pass";
+                document.getElementById('modeBadgeText').className = "text-[10px] font-mono px-2 py-0.5 rounded bg-blue-950 text-blue-300 border border-blue-500/30";
+                document.getElementById('modeDescText').textContent = "Always runs all 7 comparison iterations even if the array is proven unsorted on the very first pair.";
+            }
+
+            renderCode();
+            resetState();
+        }
+
+        // Render Code according to Mode
+        function renderCode() {
+            const container = document.getElementById('codeContainer');
+            if (!useEarlyExit) {
+                // Without Flag Code
+                container.innerHTML = `
+                    <div id="py-1" class="py-line rounded px-2 py-0.5 flex"><span class="text-slate-600 select-none w-6 text-right mr-3">1</span>arr = [${numbers.join(', ')}]</div>
+                    <div id="py-2" class="py-line rounded px-2 py-0.5 flex"><span class="text-slate-600 select-none w-6 text-right mr-3">2</span>is_asc = <span class="text-indigo-400 font-semibold">True</span></div>
+                    <div id="py-3" class="py-line rounded px-2 py-0.5 flex"><span class="text-slate-600 select-none w-6 text-right mr-3">3</span>is_desc = <span class="text-indigo-400 font-semibold">True</span></div>
+                    <div id="py-4" class="py-line rounded px-2 py-0.5 flex"><span class="text-slate-600 select-none w-6 text-right mr-3">4</span></div>
+                    <div id="py-5" class="py-line rounded px-2 py-0.5 flex"><span class="text-slate-600 select-none w-6 text-right mr-3">5</span><span class="text-blue-400 font-semibold">for</span> i <span class="text-blue-400 font-semibold">in</span> <span class="text-amber-300">range</span>(<span class="text-amber-300">len</span>(arr) - <span class="text-emerald-400">1</span>):</div>
+                    <div id="py-6" class="py-line rounded px-2 py-0.5 flex"><span class="text-slate-600 select-none w-6 text-right mr-3">6</span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-blue-400 font-semibold">if</span> arr[i] &gt; arr[i + <span class="text-emerald-400">1</span>]:</div>
+                    <div id="py-7" class="py-line rounded px-2 py-0.5 flex"><span class="text-slate-600 select-none w-6 text-right mr-3">7</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;is_asc = <span class="text-rose-400 font-semibold">False</span></div>
+                    <div id="py-8" class="py-line rounded px-2 py-0.5 flex"><span class="text-slate-600 select-none w-6 text-right mr-3">8</span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-blue-400 font-semibold">if</span> arr[i] &lt; arr[i + <span class="text-emerald-400">1</span>]:</div>
+                    <div id="py-9" class="py-line rounded px-2 py-0.5 flex"><span class="text-slate-600 select-none w-6 text-right mr-3">9</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;is_desc = <span class="text-rose-400 font-semibold">False</span></div>
+                    <div id="py-10" class="py-line rounded px-2 py-0.5 flex"><span class="text-slate-600 select-none w-6 text-right mr-3">10</span></div>
+                    <div id="py-11" class="py-line rounded px-2 py-0.5 flex"><span class="text-slate-600 select-none w-6 text-right mr-3">11</span><span class="text-blue-400 font-semibold">if</span> is_asc:</div>
+                    <div id="py-12" class="py-line rounded px-2 py-0.5 flex"><span class="text-slate-600 select-none w-6 text-right mr-3">12</span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-amber-300">print</span>(<span class="text-emerald-300">"Ascending"</span>)</div>
+                    <div id="py-13" class="py-line rounded px-2 py-0.5 flex"><span class="text-slate-600 select-none w-6 text-right mr-3">13</span><span class="text-blue-400 font-semibold">elif</span> is_desc:</div>
+                    <div id="py-14" class="py-line rounded px-2 py-0.5 flex"><span class="text-slate-600 select-none w-6 text-right mr-3">14</span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-amber-300">print</span>(<span class="text-emerald-300">"Descending"</span>)</div>
+                    <div id="py-15" class="py-line rounded px-2 py-0.5 flex"><span class="text-slate-600 select-none w-6 text-right mr-3">15</span><span class="text-blue-400 font-semibold">else</span>:</div>
+                    <div id="py-16" class="py-line rounded px-2 py-0.5 flex"><span class="text-slate-600 select-none w-6 text-right mr-3">16</span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-amber-300">print</span>(<span class="text-amber-300">"Unsorted"</span>)</div>
+                `;
+            } else {
+                // With Flag Code
+                container.innerHTML = `
+                    <div id="py-1" class="py-line rounded px-2 py-0.5 flex"><span class="text-slate-600 select-none w-6 text-right mr-3">1</span>arr = [${numbers.join(', ')}]</div>
+                    <div id="py-2" class="py-line rounded px-2 py-0.5 flex"><span class="text-slate-600 select-none w-6 text-right mr-3">2</span>is_asc = <span class="text-indigo-400 font-semibold">True</span></div>
+                    <div id="py-3" class="py-line rounded px-2 py-0.5 flex"><span class="text-slate-600 select-none w-6 text-right mr-3">3</span>is_desc = <span class="text-indigo-400 font-semibold">True</span></div>
+                    <div id="py-4" class="py-line rounded px-2 py-0.5 flex"><span class="text-slate-600 select-none w-6 text-right mr-3">4</span></div>
+                    <div id="py-5" class="py-line rounded px-2 py-0.5 flex"><span class="text-slate-600 select-none w-6 text-right mr-3">5</span><span class="text-blue-400 font-semibold">for</span> i <span class="text-blue-400 font-semibold">in</span> <span class="text-amber-300">range</span>(<span class="text-amber-300">len</span>(arr) - <span class="text-emerald-400">1</span>):</div>
+                    <div id="py-6" class="py-line rounded px-2 py-0.5 flex"><span class="text-slate-600 select-none w-6 text-right mr-3">6</span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-blue-400 font-semibold">if</span> arr[i] &gt; arr[i + <span class="text-emerald-400">1</span>]:</div>
+                    <div id="py-7" class="py-line rounded px-2 py-0.5 flex"><span class="text-slate-600 select-none w-6 text-right mr-3">7</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;is_asc = <span class="text-rose-400 font-semibold">False</span></div>
+                    <div id="py-8" class="py-line rounded px-2 py-0.5 flex"><span class="text-slate-600 select-none w-6 text-right mr-3">8</span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-blue-400 font-semibold">if</span> arr[i] &lt; arr[i + <span class="text-emerald-400">1</span>]:</div>
+                    <div id="py-9" class="py-line rounded px-2 py-0.5 flex"><span class="text-slate-600 select-none w-6 text-right mr-3">9</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;is_desc = <span class="text-rose-400 font-semibold">False</span></div>
+                    <div id="py-10" class="py-line rounded px-2 py-0.5 flex"><span class="text-slate-600 select-none w-6 text-right mr-3">10</span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-blue-400 font-semibold">if</span> <span class="text-blue-400 font-semibold">not</span> is_asc <span class="text-blue-400 font-semibold">and</span> <span class="text-blue-400 font-semibold">not</span> is_desc:</div>
+                    <div id="py-11" class="py-line rounded px-2 py-0.5 flex"><span class="text-slate-600 select-none w-6 text-right mr-3">11</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-purple-400 font-semibold">break</span>  <span class="text-slate-500 italic"># Early exit</span></div>
+                    <div id="py-12" class="py-line rounded px-2 py-0.5 flex"><span class="text-slate-600 select-none w-6 text-right mr-3">12</span></div>
+                    <div id="py-13" class="py-line rounded px-2 py-0.5 flex"><span class="text-slate-600 select-none w-6 text-right mr-3">13</span><span class="text-blue-400 font-semibold">if</span> is_asc:</div>
+                    <div id="py-14" class="py-line rounded px-2 py-0.5 flex"><span class="text-slate-600 select-none w-6 text-right mr-3">14</span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-amber-300">print</span>(<span class="text-emerald-300">"Ascending"</span>)</div>
+                    <div id="py-15" class="py-line rounded px-2 py-0.5 flex"><span class="text-slate-600 select-none w-6 text-right mr-3">15</span><span class="text-blue-400 font-semibold">elif</span> is_desc:</div>
+                    <div id="py-16" class="py-line rounded px-2 py-0.5 flex"><span class="text-slate-600 select-none w-6 text-right mr-3">16</span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-amber-300">print</span>(<span class="text-emerald-300">"Descending"</span>)</div>
+                    <div id="py-17" class="py-line rounded px-2 py-0.5 flex"><span class="text-slate-600 select-none w-6 text-right mr-3">17</span><span class="text-blue-400 font-semibold">else</span>:</div>
+                    <div id="py-18" class="py-line rounded px-2 py-0.5 flex"><span class="text-slate-600 select-none w-6 text-right mr-3">18</span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-amber-300">print</span>(<span class="text-amber-300">"Unsorted"</span>)</div>
+                `;
+            }
+        }
+
+        // Render Tiles
+        function renderTiles(highlightIndices = [], tileState = 'default') {
+            const grid = document.getElementById('tilesGrid');
+            grid.innerHTML = '';
+
+            numbers.forEach((val, idx) => {
+                const card = document.createElement('div');
+                const isHighlighted = highlightIndices.includes(idx);
+
+                let cardStyle = "border-slate-700/80 bg-slate-800/90 text-white";
+                let badgeStyle = "bg-slate-900 text-slate-400 border-slate-700";
+
+                if (isHighlighted) {
+                    if (tileState === 'comparing') {
+                        cardStyle = "tile-comparing bg-amber-950/80 text-amber-200 z-10";
+                        badgeStyle = "bg-amber-500/20 text-amber-300 border-amber-500/40";
+                    } else if (tileState === 'valid') {
+                        cardStyle = "tile-valid bg-emerald-950/80 text-emerald-200 z-10";
+                        badgeStyle = "bg-emerald-500/20 text-emerald-300 border-emerald-500/40";
+                    } else if (tileState === 'invalid') {
+                        cardStyle = "tile-invalid bg-rose-950/80 text-rose-200 z-10";
+                        badgeStyle = "bg-rose-500/20 text-rose-300 border-rose-500/40";
+                    } else if (tileState === 'break') {
+                        cardStyle = "tile-break bg-purple-950/80 text-purple-200 z-10";
+                        badgeStyle = "bg-purple-500/20 text-purple-300 border-purple-500/40";
+                    }
+                }
+
+                card.className = `rounded-xl border p-2 flex flex-col justify-between items-center transition-all duration-150 relative h-28 shadow-md ${cardStyle} tile-grab`;
+                card.draggable = !isAnimating;
+                card.dataset.index = idx;
+
+                card.addEventListener('dragstart', handleDragStart);
+                card.addEventListener('dragover', handleDragOver);
+                card.addEventListener('dragenter', handleDragEnter);
+                card.addEventListener('dragleave', handleDragLeave);
+                card.addEventListener('drop', handleDrop);
+                card.addEventListener('dragend', handleDragEnd);
+
+                card.innerHTML = `
+                    <div class="w-full flex items-center justify-between text-[10px] font-mono">
+                        <span class="px-1.5 py-0.5 rounded border ${badgeStyle}">arr[${idx}]</span>
+                        <i class="fa-solid fa-grip-dots-vertical text-slate-600 text-[10px]"></i>
+                    </div>
+
+                    <div class="text-xl font-bold font-mono tracking-tight my-auto" title="Double click to edit">
+                        ${val}
+                    </div>
+
+                    <div class="w-full flex items-center justify-between pt-1 border-t border-slate-800">
+                        <button onclick="swapTile(${idx}, -1)" ${idx === 0 || isAnimating ? 'disabled' : ''} class="w-5 h-5 rounded bg-slate-900 hover:bg-slate-700 disabled:opacity-20 text-slate-300 text-[10px] flex items-center justify-center">
+                            <i class="fa-solid fa-chevron-left"></i>
+                        </button>
+                        <span class="text-[9px] text-slate-500 font-mono">swap</span>
+                        <button onclick="swapTile(${idx}, 1)" ${idx === numbers.length - 1 || isAnimating ? 'disabled' : ''} class="w-5 h-5 rounded bg-slate-900 hover:bg-slate-700 disabled:opacity-20 text-slate-300 text-[10px] flex items-center justify-center">
+                            <i class="fa-solid fa-chevron-right"></i>
+                        </button>
+                    </div>
+                `;
+
+                grid.appendChild(card);
+            });
+        }
+
+        // Drag & Drop Handlers
+        function handleDragStart(e) {
+            if (isAnimating) return;
+            draggedIndex = parseInt(this.dataset.index);
+            e.dataTransfer.effectAllowed = 'move';
+            this.classList.add('opacity-40');
+        }
+        function handleDragOver(e) { if (e.preventDefault) e.preventDefault(); }
+        function handleDragEnter() { this.classList.add('drag-over'); }
+        function handleDragLeave() { this.classList.remove('drag-over'); }
+        function handleDrop(e) {
+            if (e.stopPropagation) e.stopPropagation();
+            this.classList.remove('drag-over');
+            const targetIndex = parseInt(this.dataset.index);
+            if (draggedIndex !== null && draggedIndex !== targetIndex) {
+                [numbers[draggedIndex], numbers[targetIndex]] = [numbers[targetIndex], numbers[draggedIndex]];
+                resetState();
+                playSound('compare');
+            }
+            return false;
+        }
+        function handleDragEnd() {
+            this.classList.remove('opacity-40');
+            document.querySelectorAll('#tilesGrid > div').forEach(el => el.classList.remove('drag-over'));
+        }
+
+        function swapTile(idx, direction) {
+            if (isAnimating) return;
+            const target = idx + direction;
+            if (target < 0 || target >= numbers.length) return;
+            [numbers[idx], numbers[target]] = [numbers[target], numbers[idx]];
+            resetState();
+            playSound('compare');
+        }
+
+        // Instant Evaluate for Status Badge
+        function evaluateInstant(arr) {
+            let is_asc = true;
+            let is_desc = true;
+            for (let i = 0; i < arr.length - 1; i++) {
+                if (arr[i] > arr[i + 1]) is_asc = false;
+                if (arr[i] < arr[i + 1]) is_desc = false;
+            }
+            if (is_asc) return "Ascending";
+            if (is_desc) return "Descending";
+            return "Unsorted";
+        }
+
+        function updateLiveStatus() {
+            const res = evaluateInstant(numbers);
+            const textEl = document.getElementById('liveStatusText');
+            const iconEl = document.getElementById('liveStatusIcon');
+            const badgeEl = document.getElementById('liveStatusBadge');
+
+            textEl.textContent = res;
+            if (res === "Ascending") {
+                badgeEl.className = "px-3 py-1 rounded-lg bg-emerald-950/80 border border-emerald-500/50 text-emerald-300 text-xs font-semibold flex items-center gap-2";
+                iconEl.className = "w-2 h-2 rounded-full bg-emerald-400 animate-pulse";
+            } else if (res === "Descending") {
+                badgeEl.className = "px-3 py-1 rounded-lg bg-blue-950/80 border border-blue-500/50 text-blue-300 text-xs font-semibold flex items-center gap-2";
+                iconEl.className = "w-2 h-2 rounded-full bg-blue-400 animate-pulse";
+            } else {
+                badgeEl.className = "px-3 py-1 rounded-lg bg-amber-950/80 border border-amber-500/50 text-amber-300 text-xs font-semibold flex items-center gap-2";
+                iconEl.className = "w-2 h-2 rounded-full bg-amber-400";
+            }
+        }
+
+        // Build Animation Step Timeline dynamically
+        function generateSteps() {
+            const timeline = [];
+            let is_asc = true;
+            let is_desc = true;
+            let comps = 0;
+
+            // Initial setup lines
+            timeline.push({
+                lines: [1, 2, 3],
+                indices: [],
+                isAsc: true,
+                isDesc: true,
+                loopI: "-",
+                tileState: 'default',
+                comps: 0,
+                log: `Initialized arr. set is_asc = True, is_desc = True.`,
+                sound: 'compare'
+            });
+
+            let brokeEarly = false;
+
+            for (let i = 0; i < numbers.length - 1; i++) {
+                comps++;
+                const val1 = numbers[i];
+                const val2 = numbers[i + 1];
+
+                // Loop Head line 5
+                timeline.push({
+                    lines: [5],
+                    indices: [i, i + 1],
+                    isAsc: is_asc,
+                    isDesc: is_desc,
+                    loopI: i,
+                    tileState: 'comparing',
+                    comps: comps,
+                    log: `Loop iteration i = ${i}. Comparing arr[${i}] (${val1}) & arr[${i+1}] (${val2}).`,
+                    sound: 'compare'
+                });
+
+                // Check arr[i] > arr[i+1] (Line 6)
+                const isGreater = val1 > val2;
+                timeline.push({
+                    lines: [6],
+                    indices: [i, i + 1],
+                    isAsc: is_asc,
+                    isDesc: is_desc,
+                    loopI: i,
+                    tileState: 'comparing',
+                    comps: comps,
+                    log: `Check arr[${i}] (${val1}) > arr[${i+1}] (${val2}) -> ${isGreater ? 'True' : 'False'}`,
+                    sound: 'compare'
+                });
+
+                if (isGreater) {
+                    is_asc = false;
+                    timeline.push({
+                        lines: [7],
+                        indices: [i, i + 1],
+                        isAsc: false,
+                        isDesc: is_desc,
+                        loopI: i,
+                        tileState: 'invalid',
+                        comps: comps,
+                        log: `arr[${i}] > arr[${i+1}] is True! Setting is_asc = False.`,
+                        sound: 'change'
+                    });
+                }
+
+                // Check arr[i] < arr[i+1] (Line 8)
+                const isSmaller = val1 < val2;
+                timeline.push({
+                    lines: [8],
+                    indices: [i, i + 1],
+                    isAsc: is_asc,
+                    isDesc: is_desc,
+                    loopI: i,
+                    tileState: 'comparing',
+                    comps: comps,
+                    log: `Check arr[${i}] (${val1}) < arr[${i+1}] (${val2}) -> ${isSmaller ? 'True' : 'False'}`,
+                    sound: 'compare'
+                });
+
+                if (isSmaller) {
+                    is_desc = false;
+                    timeline.push({
+                        lines: [9],
+                        indices: [i, i + 1],
+                        isAsc: is_asc,
+                        isDesc: false,
+                        loopI: i,
+                        tileState: 'invalid',
+                        comps: comps,
+                        log: `arr[${i}] < arr[${i+1}] is True! Setting is_desc = False.`,
+                        sound: 'change'
+                    });
+                }
+
+                // Early Exit Flag Check (Mode Dependent)
+                if (useEarlyExit) {
+                    const shouldBreak = !is_asc && !is_desc;
+                    timeline.push({
+                        lines: [10],
+                        indices: [i, i + 1],
+                        isAsc: is_asc,
+                        isDesc: is_desc,
+                        loopI: i,
+                        tileState: 'comparing',
+                        comps: comps,
+                        log: `Check if not is_asc and not is_desc: (${!is_asc} and ${!is_desc}) -> ${shouldBreak ? 'True' : 'False'}`,
+                        sound: 'compare'
+                    });
+
+                    if (shouldBreak) {
+                        brokeEarly = true;
+                        timeline.push({
+                            lines: [11],
+                            indices: [i, i + 1],
+                            isAsc: false,
+                            isDesc: false,
+                            loopI: i,
+                            tileState: 'break',
+                            comps: comps,
+                            log: `⚡ EARLY EXIT TRIGGERED! Executed 'break' at i = ${i}. Saved ${7 - comps} comparison(s)!`,
+                            sound: 'break'
+                        });
+                        break; // Exit generation loop!
+                    }
+                }
+            }
+
+            // Print Check Statements
+            if (!useEarlyExit) {
+                // Lines 11, 13, 15
+                timeline.push({
+                    lines: [11],
+                    indices: [],
+                    isAsc: is_asc,
+                    isDesc: is_desc,
+                    loopI: "Finished",
+                    tileState: 'default',
+                    comps: comps,
+                    log: `Loop complete (7 comparisons). Evaluating 'if is_asc:' (${is_asc})`,
+                    sound: 'compare'
+                });
+
+                if (is_asc) {
+                    timeline.push({
+                        lines: [12],
+                        indices: [0,1,2,3,4,5,6,7],
+                        isAsc: true,
+                        isDesc: is_desc,
+                        loopI: "Finished",
+                        tileState: 'valid',
+                        comps: comps,
+                        log: 'print("Ascending") -> Array is in Ascending order!',
+                        sound: 'success'
+                    });
+                } else {
+                    timeline.push({
+                        lines: [13],
+                        indices: [],
+                        isAsc: is_asc,
+                        isDesc: is_desc,
+                        loopI: "Finished",
+                        tileState: 'default',
+                        comps: comps,
+                        log: `Evaluating 'elif is_desc:' (${is_desc})`,
+                        sound: 'compare'
+                    });
+
+                    if (is_desc) {
+                        timeline.push({
+                            lines: [14],
+                            indices: [0,1,2,3,4,5,6,7],
+                            isAsc: is_asc,
+                            isDesc: true,
+                            loopI: "Finished",
+                            tileState: 'valid',
+                            comps: comps,
+                            log: 'print("Descending") -> Array is in Descending order!',
+                            sound: 'success'
+                        });
+                    } else {
+                        timeline.push({
+                            lines: [15, 16],
+                            indices: [0,1,2,3,4,5,6,7],
+                            isAsc: false,
+                            isDesc: false,
+                            loopI: "Finished",
+                            tileState: 'invalid',
+                            comps: comps,
+                            log: 'print("Unsorted") -> Array is Unsorted.',
+                            sound: 'change'
+                        });
+                    }
+                }
+            } else {
+                // Lines 13, 15, 17 with Flag code
+                timeline.push({
+                    lines: [13],
+                    indices: [],
+                    isAsc: is_asc,
+                    isDesc: is_desc,
+                    loopI: brokeEarly ? "Exited Early" : "Finished",
+                    tileState: 'default',
+                    comps: comps,
+                    log: `Evaluating 'if is_asc:' (${is_asc})`,
+                    sound: 'compare'
+                });
+
+                if (is_asc) {
+                    timeline.push({
+                        lines: [14],
+                        indices: [0,1,2,3,4,5,6,7],
+                        isAsc: true,
+                        isDesc: is_desc,
+                        loopI: "Finished",
+                        tileState: 'valid',
+                        comps: comps,
+                        log: 'print("Ascending") -> Array is in Ascending order!',
+                        sound: 'success'
+                    });
+                } else {
+                    timeline.push({
+                        lines: [15],
+                        indices: [],
+                        isAsc: is_asc,
+                        isDesc: is_desc,
+                        loopI: brokeEarly ? "Exited Early" : "Finished",
+                        tileState: 'default',
+                        comps: comps,
+                        log: `Evaluating 'elif is_desc:' (${is_desc})`,
+                        sound: 'compare'
+                    });
+
+                    if (is_desc) {
+                        timeline.push({
+                            lines: [16],
+                            indices: [0,1,2,3,4,5,6,7],
+                            isAsc: is_asc,
+                            isDesc: true,
+                            loopI: "Finished",
+                            tileState: 'valid',
+                            comps: comps,
+                            log: 'print("Descending") -> Array is in Descending order!',
+                            sound: 'success'
+                        });
+                    } else {
+                        timeline.push({
+                            lines: [17, 18],
+                            indices: [0,1,2,3,4,5,6,7],
+                            isAsc: false,
+                            isDesc: false,
+                            loopI: brokeEarly ? "Exited Early" : "Finished",
+                            tileState: 'invalid',
+                            comps: comps,
+                            log: `print("Unsorted") -> Output: Unsorted. (${comps}/7 comparisons needed)`,
+                            sound: 'change'
+                        });
+                    }
+                }
+            }
+
+            return timeline;
+        }
+
+        // Animation Player Engine
+        function toggleAnimation() {
+            if (isAnimating) {
+                pauseAnimation();
+            } else {
+                startAnimation();
+            }
+        }
+
+        function startAnimation() {
+            if (isPaused) {
+                isPaused = false;
+                isAnimating = true;
+                updateAnimateBtnUI(true);
+                runNextStep();
+                return;
+            }
+
+            steps = generateSteps();
+            currentStep = -1;
+            isAnimating = true;
+            isPaused = false;
+            updateAnimateBtnUI(true);
+            runNextStep();
+        }
+
+        function pauseAnimation() {
+            isPaused = true;
+            isAnimating = false;
+            if (animationTimer) clearTimeout(animationTimer);
+            updateAnimateBtnUI(false);
+        }
+
+        function runNextStep() {
+            if (!isAnimating || isPaused) return;
+            currentStep++;
+            if (currentStep >= steps.length) {
+                finishAnimation();
+                return;
+            }
+            applyStep(steps[currentStep]);
+            animationTimer = setTimeout(runNextStep, stepSpeed);
+        }
+
+        function stepForward() {
+            if (!isAnimating && !isPaused) {
+                steps = generateSteps();
+                currentStep = -1;
+                isAnimating = true;
+                isPaused = true;
+            }
+            currentStep++;
+            if (currentStep < steps.length) {
+                applyStep(steps[currentStep]);
+            } else {
+                finishAnimation();
+            }
+        }
+
+        function applyStep(step) {
+            // Line Highlighting
+            clearCodeHighlights();
+            step.lines.forEach(lineNum => {
+                const el = document.getElementById(`py-${lineNum}`);
+                if (el) {
+                    if (step.tileState === 'break' || lineNum === 11 && useEarlyExit) {
+                        el.classList.add('py-line-break');
+                    } else if (step.tileState === 'invalid' && (lineNum === 7 || lineNum === 9 || lineNum === 16 || lineNum === 18)) {
+                        el.classList.add('py-line-false');
+                    } else if (step.tileState === 'valid' && (lineNum === 12 || lineNum === 14 || lineNum === 16)) {
+                        el.classList.add('py-line-true');
+                    } else {
+                        el.classList.add('py-line-active');
+                    }
+                }
+            });
+
+            // Update Variable Watchers
+            const isAscEl = document.getElementById('varIsAsc');
+            const isDescEl = document.getElementById('varIsDesc');
+            document.getElementById('varLoopI').textContent = step.loopI;
+
+            isAscEl.textContent = step.isAsc ? "True" : "False";
+            isAscEl.className = step.isAsc ? "px-2 py-0.5 rounded font-bold bg-slate-800 text-emerald-400 border border-emerald-500/30" : "px-2 py-0.5 rounded font-bold bg-slate-800 text-rose-400 border border-rose-500/30";
+
+            isDescEl.textContent = step.isDesc ? "True" : "False";
+            isDescEl.className = step.isDesc ? "px-2 py-0.5 rounded font-bold bg-slate-800 text-emerald-400 border border-emerald-500/30" : "px-2 py-0.5 rounded font-bold bg-slate-800 text-rose-400 border border-rose-500/30";
+
+            // Update Comparison Counter
+            const counter = document.getElementById('compCounter');
+            counter.textContent = `${step.comps} / 7`;
+            if (useEarlyExit && step.comps < 7 && (step.tileState === 'break' || step.loopI === 'Exited Early')) {
+                counter.className = "text-purple-400 font-bold font-mono animate-pulse";
+            } else {
+                counter.className = "text-amber-400 font-bold font-mono";
+            }
+
+            // Render Tiles Highlight
+            renderTiles(step.indices, step.tileState);
+
+            // Output Trace Log
+            document.getElementById('stepLogText').textContent = step.log;
+
+            if (step.sound) playSound(step.sound);
+        }
+
+        function finishAnimation() {
+            isAnimating = false;
+            isPaused = false;
+            if (animationTimer) clearTimeout(animationTimer);
+            updateAnimateBtnUI(false);
+            updateLiveStatus();
+        }
+
+        function resetState() {
+            finishAnimation();
+            clearCodeHighlights();
+            renderTiles();
+            updateLiveStatus();
+            document.getElementById('varIsAsc').textContent = "True";
+            document.getElementById('varIsAsc').className = "px-2 py-0.5 rounded font-bold bg-slate-800 text-emerald-400 border border-emerald-500/30";
+            document.getElementById('varIsDesc').textContent = "True";
+            document.getElementById('varIsDesc').className = "px-2 py-0.5 rounded font-bold bg-slate-800 text-emerald-400 border border-emerald-500/30";
+            document.getElementById('varLoopI').textContent = "-";
+            document.getElementById('compCounter').textContent = "0 / 7";
+            document.getElementById('compCounter').className = "text-amber-400 font-bold font-mono";
+            document.getElementById('stepLogText').textContent = 'Ready. Click "Animate Loop" or "Step" to visualize execution line-by-line.';
+        }
+
+        function clearCodeHighlights() {
+            document.querySelectorAll('.py-line').forEach(el => {
+                el.classList.remove('py-line-active', 'py-line-false', 'py-line-true', 'py-line-break');
+            });
+        }
+
+        function updateAnimateBtnUI(running) {
+            const btnText = document.getElementById('animateBtnText');
+            const icon = document.getElementById('animateIcon');
+            const btn = document.getElementById('animateBtn');
+
+            if (running) {
+                btnText.textContent = "Pause";
+                icon.className = "fa-solid fa-pause";
+                btn.className = "px-4 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-white font-semibold text-xs shadow-lg shadow-amber-600/20 transition flex items-center gap-2";
+            } else {
+                btnText.textContent = currentStep >= 0 ? "Resume" : "Animate Loop";
+                icon.className = "fa-solid fa-play";
+                btn.className = "px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs shadow-lg shadow-blue-600/20 transition flex items-center gap-2";
+            }
+        }
+
+        function updateSpeed(val) {
+            stepSpeed = parseInt(val);
+            document.getElementById('speedVal').textContent = `${val}ms`;
+        }
+
+        // Presets
+        function applyPreset(type) {
+            if (type === 'ascending') {
+                numbers = [10, 20, 30, 40, 50, 60, 70, 80];
+            } else if (type === 'descending') {
+                numbers = [80, 70, 60, 50, 40, 30, 20, 10];
+            } else if (type === 'nearSorted') {
+                // Peak at index 1 breaks both asc and desc within 2 iterations!
+                numbers = [15, 8, 25, 30, 40, 50, 60, 70];
+            }
+            renderCode();
+            resetState();
+            playSound('compare');
+        }
+
+        function shuffleArray() {
+            for (let i = numbers.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [numbers[i], numbers[j]] = [numbers[j], numbers[i]];
+            }
+            renderCode();
+            resetState();
+            playSound('compare');
+        }
+
+        function randomizeNumbers() {
+            numbers = Array.from({length: 8}, () => Math.floor(Math.random() * 85) + 10);
+            renderCode();
+            resetState();
+            playSound('compare');
+        }
+
+        // Manual Input Modal
+        function openEditModal() {
+            if (isAnimating) resetState();
+            document.getElementById('customInput').value = numbers.join(', ');
+            document.getElementById('modalError').classList.add('hidden');
+            document.getElementById('editModal').classList.remove('hidden');
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').classList.add('hidden');
+        }
+
+        function saveCustomNumbers() {
+            const raw = document.getElementById('customInput').value;
+            const parsed = raw.split(',').map(s => parseInt(s.trim())).filter(n => !isNaN(n));
+
+            if (parsed.length !== 8) {
+                document.getElementById('modalError').classList.remove('hidden');
+                return;
+            }
+
+            numbers = parsed;
+            closeEditModal();
+            renderCode();
+            resetState();
+            playSound('compare');
+        }
+
+        function copyPythonCode() {
+            let code = "";
+            if (!useEarlyExit) {
+                code = `arr = [${numbers.join(', ')}]
+is_asc = True
+is_desc = True
+
+for i in range(len(arr) - 1):
+    if arr[i] > arr[i + 1]:
+        is_asc = False
+    if arr[i] < arr[i + 1]:
+        is_desc = False
+
+if is_asc:
+    print("Ascending")
+elif is_desc:
+    print("Descending")
+else:
+    print("Unsorted")`;
+            } else {
+                code = `arr = [${numbers.join(', ')}]
+is_asc = True
+is_desc = True
+
+for i in range(len(arr) - 1):
+    if arr[i] > arr[i + 1]:
+        is_asc = False
+    if arr[i] < arr[i + 1]:
+        is_desc = False
+    if not is_asc and not is_desc:
+        break  # Early exit
+
+if is_asc:
+    print("Ascending")
+elif is_desc:
+    print("Descending")
+else:
+    print("Unsorted")`;
+            }
+
+            const el = document.createElement('textarea');
+            el.value = code;
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+            alert("Python code copied to clipboard!");
+        }
+    </script>
+</body>
+</html>
