@@ -1,0 +1,1798 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Form 2 Computer Memory Master Lab</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              dark: '#080c14',
+              card: '#0f172a',
+              accent: '#38bdf8',
+            },
+            cache: {
+              glow: '#06b6d4',
+              border: '#22d3ee',
+              bg: 'rgba(6, 182, 212, 0.1)',
+            },
+            ram: {
+              glow: '#a855f7',
+              border: '#c084fc',
+              bg: 'rgba(168, 85, 247, 0.1)',
+            },
+            rom: {
+              glow: '#f59e0b',
+              border: '#fbbf24',
+              bg: 'rgba(245, 158, 11, 0.1)',
+            },
+            flash: {
+              glow: '#10b981',
+              border: '#34d399',
+              bg: 'rgba(16, 185, 129, 0.1)',
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          animation: {
+            'pulse-glow': 'pulseGlow 2s infinite alternate',
+            'float': 'float 4s ease-in-out infinite',
+            'matrix-scan': 'scanLine 3s linear infinite',
+          },
+          keyframes: {
+            pulseGlow: {
+              '0%': { boxShadow: '0 0 10px rgba(56, 189, 248, 0.2)' },
+              '100%': { boxShadow: '0 0 25px rgba(56, 189, 248, 0.6)' },
+            },
+            float: {
+              '0%, 100%': { transform: 'translateY(0px)' },
+              '50%': { transform: 'translateY(-6px)' },
+            },
+            scanLine: {
+              '0%': { transform: 'translateY(-100%)' },
+              '100%': { transform: 'translateY(1000%)' }
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style type="text/css">
+    /* Custom Neon Glassmorphism CSS */
+    body {
+      background-color: #060911;
+      color: #e2e8f0;
+      font-family: 'Inter', sans-serif;
+      overflow-x: hidden;
+    }
+    
+    .glass-card {
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    }
+
+    .glass-card-hover {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .glass-card-hover:hover {
+      transform: translateY(-4px);
+      border-color: rgba(56, 189, 248, 0.4);
+      box-shadow: 0 12px 30px -10px rgba(56, 189, 248, 0.3);
+    }
+
+    .neon-text-cyan {
+      text-shadow: 0 0 10px rgba(6, 182, 212, 0.6);
+    }
+    .neon-text-purple {
+      text-shadow: 0 0 10px rgba(168, 85, 247, 0.6);
+    }
+    .neon-text-amber {
+      text-shadow: 0 0 10px rgba(245, 158, 11, 0.6);
+    }
+    .neon-text-green {
+      text-shadow: 0 0 10px rgba(16, 185, 129, 0.6);
+    }
+
+    .circuit-bg {
+      background-image: radial-gradient(rgba(56, 189, 248, 0.1) 1px, transparent 0);
+      background-size: 24px 24px;
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #080c14;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #1e293b;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #38bdf8;
+    }
+
+    /* Dissolve effect for RAM simulation */
+    .dissolving {
+      animation: dissolveAnim 1.2s forwards;
+    }
+
+    @keyframes dissolveAnim {
+      0% { opacity: 1; filter: blur(0px) hue-rotate(0deg); transform: scale(1); }
+      50% { opacity: 0.5; filter: blur(4px) hue-rotate(90deg); transform: scale(0.95); }
+      100% { opacity: 0; filter: blur(10px) hue-rotate(180deg); transform: scale(0.9); display: none; }
+    }
+
+    /* Particle pulse */
+    .data-particle {
+      position: absolute;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #38bdf8;
+      box-shadow: 0 0 12px #38bdf8, 0 0 20px #38bdf8;
+      pointer-events: none;
+      z-index: 30;
+      transition: all 0.6s ease-in-out;
+    }
+
+    /* Certificate print custom styling */
+    @media print {
+      body * {
+        visibility: hidden;
+      }
+      #certificateContainer, #certificateContainer * {
+        visibility: visible;
+      }
+      #certificateContainer {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        background: #ffffff !important;
+        color: #000000 !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+    }
+  </style>
+</head>
+<body class="circuit-bg min-h-screen flex flex-col justify-between text-slate-100">
+
+  <!-- TOP HEADER / NAVIGATION BAR -->
+  <header class="sticky top-0 z-50 glass-card border-b border-slate-800/80 px-4 py-3">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+      
+      <!-- Brand & Title -->
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 via-purple-500 to-amber-500 p-[2px] animate-pulse">
+          <div class="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center">
+            <i class="fa-solid fa-microchip text-cyan-400 text-xl"></i>
+          </div>
+        </div>
+        <div>
+          <h1 class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-purple-300 to-amber-400 font-mono tracking-tight">
+            MEMORY LAB <span class="text-xs px-2 py-0.5 rounded-full bg-cyan-950 text-cyan-400 border border-cyan-800">FORM 2 ICT</span>
+          </h1>
+          <p class="text-xs text-slate-400">Interactive Computer Memory & Storage Learning Suite</p>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="flex flex-wrap items-center justify-center gap-1.5 text-xs font-semibold">
+        <button onclick="switchTab('overview')" id="tab-overview" class="tab-btn px-3 py-2 rounded-lg transition-all bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">
+          <i class="fa-solid fa-book-open mr-1"></i> Core Concepts
+        </button>
+        <button onclick="switchTab('hierarchy')" id="tab-hierarchy" class="tab-btn px-3 py-2 rounded-lg transition-all text-slate-300 hover:bg-slate-800/80">
+          <i class="fa-solid fa-layer-group mr-1"></i> Hierarchy
+        </button>
+        <button onclick="switchTab('pipeline')" id="tab-pipeline" class="tab-btn px-3 py-2 rounded-lg transition-all text-slate-300 hover:bg-slate-800/80">
+          <i class="fa-solid fa-bolt mr-1"></i> Fetch Pipeline
+        </button>
+        <button onclick="switchTab('volatility')" id="tab-volatility" class="tab-btn px-3 py-2 rounded-lg transition-all text-slate-300 hover:bg-slate-800/80">
+          <i class="fa-solid fa-power-off mr-1"></i> Power Outage
+        </button>
+        <button onclick="switchTab('rwlab')" id="tab-rwlab" class="tab-btn px-3 py-2 rounded-lg transition-all text-slate-300 hover:bg-slate-800/80">
+          <i class="fa-solid fa-lock mr-1"></i> Read/Write Lab
+        </button>
+        <button onclick="switchTab('game')" id="tab-game" class="tab-btn px-3 py-2 rounded-lg transition-all text-slate-300 hover:bg-slate-800/80">
+          <i class="fa-solid fa-gamepad mr-1"></i> Game
+        </button>
+        <button onclick="switchTab('quiz')" id="tab-quiz" class="tab-btn px-3 py-2 rounded-lg transition-all text-slate-300 hover:bg-slate-800/80">
+          <i class="fa-solid fa-circle-question mr-1"></i> Quiz
+        </button>
+        <button onclick="switchTab('certificate')" id="tab-certificate" class="tab-btn px-3 py-2 rounded-lg transition-all text-slate-300 hover:bg-slate-800/80">
+          <i class="fa-solid fa-certificate mr-1"></i> Certificate
+        </button>
+      </nav>
+
+      <!-- Audio Mute Control -->
+      <button onclick="toggleAudio()" id="audioToggleBtn" class="flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:text-cyan-400 text-xs font-mono">
+        <i id="audioIcon" class="fa-solid fa-volume-high text-cyan-400"></i>
+        <span id="audioText">SOUND ON</span>
+      </button>
+
+    </div>
+  </header>
+
+  <!-- MAIN APP CONTAINER -->
+  <main class="max-w-7xl mx-auto px-4 py-6 flex-grow w-full">
+
+    <!-- ========================================== -->
+    <!-- TAB 1: CORE CONCEPTS & ILLUSTRATION CARDS -->
+    <!-- ========================================== -->
+    <section id="section-overview" class="tab-content space-y-8">
+      
+      <!-- Banner -->
+      <div class="glass-card rounded-2xl p-6 border-l-4 border-l-cyan-400 bg-gradient-to-r from-slate-900 via-slate-900/90 to-cyan-950/30">
+        <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+          <div class="space-y-2 max-w-2xl">
+            <span class="text-xs font-mono font-bold tracking-widest text-cyan-400 uppercase">Form 2 Syllabus Guide</span>
+            <h2 class="text-2xl md:text-3xl font-extrabold text-white">Understanding Computer Memory & Storage</h2>
+            <p class="text-sm text-slate-300 leading-relaxed">
+              Computers use different types of memory to store data, instructions, and files. Explore the four core memory types below, examine their physical components, and learn how they work together!
+            </p>
+          </div>
+          <div class="flex items-center space-x-3 bg-slate-950/60 p-3 rounded-xl border border-slate-800">
+            <div class="text-center px-3 border-r border-slate-800">
+              <span class="block text-xl font-bold font-mono text-cyan-400">0.5 - 2ns</span>
+              <span class="text-[10px] text-slate-400 uppercase">Cache Speed</span>
+            </div>
+            <div class="text-center px-3 border-r border-slate-800">
+              <span class="block text-xl font-bold font-mono text-purple-400">Volatile</span>
+              <span class="text-[10px] text-slate-400 uppercase">RAM Type</span>
+            </div>
+            <div class="text-center px-3">
+              <span class="block text-xl font-bold font-mono text-amber-400">Bootstrap</span>
+              <span class="text-[10px] text-slate-400 uppercase">ROM Loader</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4 Core Component Cards Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+
+        <!-- 1. CACHE MEMORY -->
+        <div class="glass-card glass-card-hover rounded-2xl p-5 border-t-2 border-t-cyan-400 flex flex-col justify-between space-y-4">
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-xs font-mono font-bold px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">ULTRA-FAST</span>
+              <span class="text-xs text-slate-400"><i class="fa-solid fa-bolt text-cyan-400"></i> ~1 ns</span>
+            </div>
+            <h3 class="text-xl font-bold text-white mb-1 flex items-center gap-2">
+              <i class="fa-solid fa-microchip text-cyan-400"></i> Cache Memory
+            </h3>
+            <p class="text-xs text-slate-400 mb-4">Embedded directly inside or right beside the CPU die.</p>
+            
+            <!-- SVG SVG Illustration: Cache CPU Die -->
+            <div class="w-full h-36 bg-slate-950/80 rounded-xl border border-cyan-500/30 p-2 flex items-center justify-center relative overflow-hidden">
+              <svg viewBox="0 0 200 140" class="w-full h-full">
+                <!-- CPU Package Outer Pins -->
+                <rect x="15" y="15" width="170" height="110" rx="8" fill="#0f172a" stroke="#06b6d4" stroke-width="2"/>
+                <circle cx="28" cy="28" r="4" fill="#22d3ee"/>
+                <!-- Silicon Die -->
+                <rect x="40" y="30" width="120" height="80" rx="4" fill="#0284c7" fill-opacity="0.2" stroke="#38bdf8" stroke-dasharray="3 3"/>
+                <!-- CPU Core -->
+                <rect x="50" y="40" width="45" height="60" rx="3" fill="#0369a1" stroke="#0284c7"/>
+                <text x="72" y="73" fill="#ffffff" font-size="9" font-family="sans-serif" font-weight="bold" text-anchor="middle">ALU / CPU</text>
+                <!-- Cache Block L1/L2 -->
+                <rect x="105" y="40" width="45" height="28" rx="3" fill="#0891b2" stroke="#22d3ee" class="animate-pulse"/>
+                <text x="127" y="58" fill="#ecfeff" font-size="8" font-family="sans-serif" font-weight="bold" text-anchor="middle">L1 CACHE</text>
+                <rect x="105" y="72" width="45" height="28" rx="3" fill="#0e7490" stroke="#06b6d4"/>
+                <text x="127" y="90" fill="#ecfeff" font-size="8" font-family="sans-serif" font-weight="bold" text-anchor="middle">L2 CACHE</text>
+                <!-- Bus Traces -->
+                <path d="M95 70 L105 70" stroke="#22d3ee" stroke-width="2" stroke-dasharray="2 2"/>
+              </svg>
+            </div>
+
+            <!-- Content Bullet Points -->
+            <ul class="text-xs text-slate-300 space-y-2 mt-4">
+              <li class="flex items-start gap-2">
+                <i class="fa-solid fa-circle-check text-cyan-400 mt-0.5"></i>
+                <span><strong>Location:</strong> Directly inside CPU chip.</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <i class="fa-solid fa-circle-check text-cyan-400 mt-0.5"></i>
+                <span><strong>Purpose:</strong> Holds immediate data for rapid CPU calculations.</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <i class="fa-solid fa-circle-check text-cyan-400 mt-0.5"></i>
+                <span><strong>Volatility:</strong> <span class="text-red-400 font-semibold">Volatile</span> (lost on power-off).</span>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Analogy Box -->
+          <div class="p-2.5 rounded-lg bg-cyan-950/40 border border-cyan-800/50 text-[11px] text-cyan-200">
+            <span class="font-bold uppercase tracking-wider block text-[10px] text-cyan-400 mb-1"><i class="fa-solid fa-lightbulb"></i> Form 2 Analogy</span>
+            Like a <strong>sticky note in your shirt pocket</strong> for ultra-quick access.
+          </div>
+        </div>
+
+        <!-- 2. RAM (RANDOM ACCESS MEMORY) -->
+        <div class="glass-card glass-card-hover rounded-2xl p-5 border-t-2 border-t-purple-400 flex flex-col justify-between space-y-4">
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-xs font-mono font-bold px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30">MAIN WORKSPACE</span>
+              <span class="text-xs text-slate-400"><i class="fa-solid fa-bolt text-purple-400"></i> ~15 ns</span>
+            </div>
+            <h3 class="text-xl font-bold text-white mb-1 flex items-center gap-2">
+              <i class="fa-solid fa-memory text-purple-400"></i> RAM Memory
+            </h3>
+            <p class="text-xs text-slate-400 mb-4">Random Access Memory stick inserted into motherboard.</p>
+            
+            <!-- SVG Illustration: RAM Stick -->
+            <div class="w-full h-36 bg-slate-950/80 rounded-xl border border-purple-500/30 p-2 flex items-center justify-center relative overflow-hidden">
+              <svg viewBox="0 0 200 140" class="w-full h-full">
+                <!-- Green/Dark Circuit PCB Stick -->
+                <rect x="10" y="30" width="180" height="70" rx="4" fill="#064e3b" stroke="#10b981" stroke-width="1.5"/>
+                <!-- Memory IC Chips -->
+                <rect x="25" y="42" width="22" height="32" rx="2" fill="#1e293b" stroke="#a855f7" stroke-width="1.5"/>
+                <rect x="55" y="42" width="22" height="32" rx="2" fill="#1e293b" stroke="#a855f7" stroke-width="1.5"/>
+                <rect x="85" y="42" width="22" height="32" rx="2" fill="#1e293b" stroke="#a855f7" stroke-width="1.5"/>
+                <rect x="115" y="42" width="22" height="32" rx="2" fill="#1e293b" stroke="#a855f7" stroke-width="1.5"/>
+                <rect x="145" y="42" width="22" height="32" rx="2" fill="#1e293b" stroke="#a855f7" stroke-width="1.5"/>
+                <!-- Status LEDs -->
+                <circle cx="178" cy="40" r="3" fill="#c084fc" class="animate-pulse"/>
+                <circle cx="178" cy="50" r="3" fill="#34d399"/>
+                <!-- RAM Label -->
+                <text x="100" y="86" fill="#e9d5ff" font-size="8" font-family="monospace" font-weight="bold" text-anchor="middle">8GB DDR RAM MODULE</text>
+                <!-- Gold Contact Pins -->
+                <g fill="#fbbf24">
+                  <rect x="15" y="100" width="4" height="12"/>
+                  <rect x="23" y="100" width="4" height="12"/>
+                  <rect x="31" y="100" width="4" height="12"/>
+                  <rect x="39" y="100" width="4" height="12"/>
+                  <rect x="47" y="100" width="4" height="12"/>
+                  <rect x="55" y="100" width="4" height="12"/>
+                  <!-- Notch -->
+                  <rect x="95" y="98" width="10" height="15" fill="#0f172a"/>
+                  <rect x="115" y="100" width="4" height="12"/>
+                  <rect x="123" y="100" width="4" height="12"/>
+                  <rect x="131" y="100" width="4" height="12"/>
+                  <rect x="139" y="100" width="4" height="12"/>
+                  <rect x="147" y="100" width="4" height="12"/>
+                  <rect x="155" y="100" width="4" height="12"/>
+                  <rect x="163" y="100" width="4" height="12"/>
+                </g>
+              </svg>
+            </div>
+
+            <!-- Content Bullet Points -->
+            <ul class="text-xs text-slate-300 space-y-2 mt-4">
+              <li class="flex items-start gap-2">
+                <i class="fa-solid fa-circle-check text-purple-400 mt-0.5"></i>
+                <span><strong>Function:</strong> Main working workspace for running software & games.</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <i class="fa-solid fa-circle-check text-purple-400 mt-0.5"></i>
+                <span><strong>Type:</strong> Read and Write enabled.</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <i class="fa-solid fa-circle-check text-purple-400 mt-0.5"></i>
+                <span><strong>Volatility:</strong> <span class="text-red-400 font-semibold">VOLATILE</span> (wiped clean when turned off).</span>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Analogy Box -->
+          <div class="p-2.5 rounded-lg bg-purple-950/40 border border-purple-800/50 text-[11px] text-purple-200">
+            <span class="font-bold uppercase tracking-wider block text-[10px] text-purple-400 mb-1"><i class="fa-solid fa-lightbulb"></i> Form 2 Analogy</span>
+            Like a <strong>student's study desk</strong>. Cleared off every time you finish work.
+          </div>
+        </div>
+
+        <!-- 3. ROM (READ-ONLY MEMORY) -->
+        <div class="glass-card glass-card-hover rounded-2xl p-5 border-t-2 border-t-amber-400 flex flex-col justify-between space-y-4">
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-xs font-mono font-bold px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">BOOT LOADER</span>
+              <span class="text-xs text-slate-400"><i class="fa-solid fa-lock text-amber-400"></i> Read Only</span>
+            </div>
+            <h3 class="text-xl font-bold text-white mb-1 flex items-center gap-2">
+              <i class="fa-solid fa-compact-disc text-amber-400"></i> ROM Memory
+            </h3>
+            <p class="text-xs text-slate-400 mb-4">Read-Only Memory chip storing startup instructions.</p>
+            
+            <!-- SVG Illustration: ROM Chip -->
+            <div class="w-full h-36 bg-slate-950/80 rounded-xl border border-amber-500/30 p-2 flex items-center justify-center relative overflow-hidden">
+              <svg viewBox="0 0 200 140" class="w-full h-full">
+                <!-- DIP IC Package Body -->
+                <rect x="40" y="30" width="120" height="80" rx="6" fill="#1e293b" stroke="#f59e0b" stroke-width="2"/>
+                <!-- Notch at Left -->
+                <path d="M40 60 A10 10 0 0 0 40 80 Z" fill="#0f172a"/>
+                <!-- Silver IC Pins Left/Right -->
+                <g fill="#94a3b8">
+                  <!-- Top Pins -->
+                  <rect x="55" y="18" width="8" height="12" rx="1"/>
+                  <rect x="75" y="18" width="8" height="12" rx="1"/>
+                  <rect x="95" y="18" width="8" height="12" rx="1"/>
+                  <rect x="115" y="18" width="8" height="12" rx="1"/>
+                  <rect x="135" y="18" width="8" height="12" rx="1"/>
+                  <!-- Bottom Pins -->
+                  <rect x="55" y="110" width="8" height="12" rx="1"/>
+                  <rect x="75" y="110" width="8" height="12" rx="1"/>
+                  <rect x="95" y="110" width="8" height="12" rx="1"/>
+                  <rect x="115" y="110" width="8" height="12" rx="1"/>
+                  <rect x="135" y="110" width="8" height="12" rx="1"/>
+                </g>
+                <!-- Glowing Label -->
+                <rect x="50" y="45" width="100" height="50" rx="4" fill="#451a03" stroke="#fbbf24"/>
+                <text x="100" y="65" fill="#fef08a" font-size="9" font-family="monospace" font-weight="bold" text-anchor="middle">BOOTSTRAP LOADER</text>
+                <text x="100" y="80" fill="#f59e0b" font-size="8" font-family="sans-serif" text-anchor="middle">ROM v2.4 - READ ONLY</text>
+              </svg>
+            </div>
+
+            <!-- Content Bullet Points -->
+            <ul class="text-xs text-slate-300 space-y-2 mt-4">
+              <li class="flex items-start gap-2">
+                <i class="fa-solid fa-circle-check text-amber-400 mt-0.5"></i>
+                <span><strong>Key Content:</strong> Contains the <strong>Bootstrap Loader</strong> program.</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <i class="fa-solid fa-circle-check text-amber-400 mt-0.5"></i>
+                <span><strong>Role:</strong> Bootstraps / boots up computer when turned on.</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <i class="fa-solid fa-circle-check text-amber-400 mt-0.5"></i>
+                <span><strong>Volatility:</strong> <span class="text-emerald-400 font-semibold">NON-VOLATILE</span> (Permanent).</span>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Analogy Box -->
+          <div class="p-2.5 rounded-lg bg-amber-950/40 border border-amber-800/50 text-[11px] text-amber-200">
+            <span class="font-bold uppercase tracking-wider block text-[10px] text-amber-400 mb-1"><i class="fa-solid fa-lightbulb"></i> Form 2 Analogy</span>
+            Like a <strong>factory instruction manual</strong> printed permanently on stainless steel.
+          </div>
+        </div>
+
+        <!-- 4. FLASH MEMORY -->
+        <div class="glass-card glass-card-hover rounded-2xl p-5 border-t-2 border-t-emerald-400 flex flex-col justify-between space-y-4">
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-xs font-mono font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">REWRITABLE SOLID STATE</span>
+              <span class="text-xs text-slate-400"><i class="fa-solid fa-floppy-disk text-emerald-400"></i> Permanent</span>
+            </div>
+            <h3 class="text-xl font-bold text-white mb-1 flex items-center gap-2">
+              <i class="fa-solid fa-hard-drive text-emerald-400"></i> Flash Memory
+            </h3>
+            <p class="text-xs text-slate-400 mb-4">Non-volatile storage with zero moving parts (SSD, USB, SD Card).</p>
+            
+            <!-- SVG Illustration: Flash Storage Devices -->
+            <div class="w-full h-36 bg-slate-950/80 rounded-xl border border-emerald-500/30 p-2 flex items-center justify-center relative overflow-hidden">
+              <svg viewBox="0 0 200 140" class="w-full h-full">
+                <!-- USB Drive -->
+                <g transform="translate(15, 30)">
+                  <rect x="0" y="20" width="30" height="50" rx="4" fill="#0f172a" stroke="#10b981" stroke-width="1.5"/>
+                  <rect x="8" y="0" width="14" height="20" fill="#cbd5e1" stroke="#64748b"/>
+                  <rect x="11" y="5" width="3" height="5" fill="#334155"/>
+                  <rect x="16" y="5" width="3" height="5" fill="#334155"/>
+                  <circle cx="15" cy="55" r="3" fill="#34d399"/>
+                  <text x="15" y="80" fill="#a7f3d0" font-size="7" font-family="sans-serif" text-anchor="middle">USB DRIVE</text>
+                </g>
+
+                <!-- SD Card -->
+                <g transform="translate(75, 25)">
+                  <path d="M0 10 L10 0 L50 0 L50 65 L0 65 Z" fill="#1e293b" stroke="#34d399" stroke-width="1.5"/>
+                  <rect x="5" y="5" width="8" height="15" fill="#f59e0b" rx="1"/>
+                  <text x="25" y="35" fill="#34d399" font-size="8" font-family="sans-serif" font-weight="bold" text-anchor="middle">SD CARD</text>
+                  <text x="25" y="48" fill="#a7f3d0" font-size="7" font-family="sans-serif" text-anchor="middle">128 GB</text>
+                  <text x="25" y="78" fill="#a7f3d0" font-size="7" font-family="sans-serif" text-anchor="middle">SD CARD</text>
+                </g>
+
+                <!-- NVMe SSD -->
+                <g transform="translate(140, 20)">
+                  <rect x="0" y="0" width="45" height="85" rx="3" fill="#022c22" stroke="#10b981" stroke-width="1.5"/>
+                  <rect x="8" y="10" width="29" height="25" rx="2" fill="#064e3b" stroke="#34d399"/>
+                  <rect x="8" y="40" width="29" height="25" rx="2" fill="#064e3b" stroke="#34d399"/>
+                  <rect x="10" y="75" width="25" height="10" fill="#fbbf24"/>
+                  <text x="22" y="98" fill="#a7f3d0" font-size="7" font-family="sans-serif" text-anchor="middle">M.2 SSD</text>
+                </g>
+              </svg>
+            </div>
+
+            <!-- Content Bullet Points -->
+            <ul class="text-xs text-slate-300 space-y-2 mt-4">
+              <li class="flex items-start gap-2">
+                <i class="fa-solid fa-circle-check text-emerald-400 mt-0.5"></i>
+                <span><strong>Examples:</strong> SSDs, USB flash drives, camera SD cards.</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <i class="fa-solid fa-circle-check text-emerald-400 mt-0.5"></i>
+                <span><strong>Feature:</strong> Solid-State (no moving mechanical parts).</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <i class="fa-solid fa-circle-check text-emerald-400 mt-0.5"></i>
+                <span><strong>Volatility:</strong> <span class="text-emerald-400 font-semibold">NON-VOLATILE</span> (Saves photos & files).</span>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Analogy Box -->
+          <div class="p-2.5 rounded-lg bg-emerald-950/40 border border-emerald-800/50 text-[11px] text-emerald-200">
+            <span class="font-bold uppercase tracking-wider block text-[10px] text-emerald-400 mb-1"><i class="fa-solid fa-lightbulb"></i> Form 2 Analogy</span>
+            Like a <strong>digital photo album notebook</strong>. You can erase and rewrite pages anytime.
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Quick Summary Matrix Table -->
+      <div class="glass-card rounded-2xl p-6 overflow-x-auto border border-slate-800">
+        <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+          <i class="fa-solid fa-table text-cyan-400"></i> Form 2 Memory Comparison Matrix
+        </h3>
+        <table class="w-full text-left border-collapse text-xs">
+          <thead>
+            <tr class="border-b border-slate-800 text-slate-400 font-mono">
+              <th class="p-3">Memory Type</th>
+              <th class="p-3">Relative Speed</th>
+              <th class="p-3">Capacity Range</th>
+              <th class="p-3">Volatility</th>
+              <th class="p-3">Read / Write Mode</th>
+              <th class="p-3">Primary Form 2 Role</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-800/60 font-sans">
+            <tr class="hover:bg-slate-800/30">
+              <td class="p-3 font-bold text-cyan-400 flex items-center gap-2">
+                <i class="fa-solid fa-microchip"></i> Cache Memory
+              </td>
+              <td class="p-3 font-mono text-cyan-300">Fastest (~1 ns)</td>
+              <td class="p-3">Tiny (MBs)</td>
+              <td class="p-3"><span class="px-2 py-0.5 rounded bg-red-950 text-red-400 border border-red-800">Volatile</span></td>
+              <td class="p-3">Read & Write</td>
+              <td class="p-3 text-slate-300">High-speed CPU data buffer</td>
+            </tr>
+            <tr class="hover:bg-slate-800/30">
+              <td class="p-3 font-bold text-purple-400 flex items-center gap-2">
+                <i class="fa-solid fa-memory"></i> RAM
+              </td>
+              <td class="p-3 font-mono text-purple-300">Very Fast (~15 ns)</td>
+              <td class="p-3">Medium (4GB - 64GB)</td>
+              <td class="p-3"><span class="px-2 py-0.5 rounded bg-red-950 text-red-400 border border-red-800">Volatile</span></td>
+              <td class="p-3">Read & Write</td>
+              <td class="p-3 text-slate-300">Temporary working space for running programs</td>
+            </tr>
+            <tr class="hover:bg-slate-800/30">
+              <td class="p-3 font-bold text-amber-400 flex items-center gap-2">
+                <i class="fa-solid fa-compact-disc"></i> ROM
+              </td>
+              <td class="p-3 font-mono text-amber-300">Moderate (~50 ns)</td>
+              <td class="p-3">Small (MBs)</td>
+              <td class="p-3"><span class="px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-800">Non-Volatile</span></td>
+              <td class="p-3 font-semibold text-amber-300">READ-ONLY</td>
+              <td class="p-3 text-slate-300">Stores Bootstrap Loader to boot up computer</td>
+            </tr>
+            <tr class="hover:bg-slate-800/30">
+              <td class="p-3 font-bold text-emerald-400 flex items-center gap-2">
+                <i class="fa-solid fa-hard-drive"></i> Flash Memory
+              </td>
+              <td class="p-3 font-mono text-emerald-300">Fast (~100 microseconds)</td>
+              <td class="p-3">Large (64GB - 4TB)</td>
+              <td class="p-3"><span class="px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-800">Non-Volatile</span></td>
+              <td class="p-3">Read & Write</td>
+              <td class="p-3 text-slate-300">Permanent solid-state file storage (USB, SD, SSD)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </section>
+
+    <!-- ========================================== -->
+    <!-- TAB 2: LAB 1 - MEMORY HIERARCHY PYRAMID -->
+    <!-- ========================================== -->
+    <section id="section-hierarchy" class="tab-content hidden space-y-6">
+      
+      <div class="glass-card rounded-2xl p-6">
+        <h2 class="text-2xl font-bold text-white mb-2 flex items-center gap-2">
+          <i class="fa-solid fa-layer-group text-cyan-400"></i> Lab 1: Interactive Memory Hierarchy Pyramid
+        </h2>
+        <p class="text-sm text-slate-300">
+          Click any level of the pyramid to inspect its performance metrics, cost per gigabyte, speed, capacity, and Form 2 real-world analogy.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+        
+        <!-- Pyramid Visual (Left 7 Cols) -->
+        <div class="lg:col-span-7 glass-card rounded-2xl p-6 flex flex-col items-center justify-center min-h-[420px] relative">
+          
+          <!-- Indicators -->
+          <div class="absolute left-4 top-4 text-xs font-mono text-cyan-400 flex items-center gap-1">
+            <i class="fa-solid fa-arrow-up text-cyan-400"></i> FASTER & MORE EXPENSIVE
+          </div>
+          <div class="absolute left-4 bottom-4 text-xs font-mono text-emerald-400 flex items-center gap-1">
+            <i class="fa-solid fa-arrow-down text-emerald-400"></i> LARGER CAPACITY & CHEAPER
+          </div>
+
+          <!-- Pyramid Blocks Stack -->
+          <div class="w-full max-w-md space-y-3 py-6">
+            
+            <!-- Tier 1: Cache -->
+            <button onclick="selectPyramidTier('cache')" id="pyr-cache" class="pyr-btn w-[40%] mx-auto block py-3 rounded-xl bg-gradient-to-r from-cyan-900/80 to-cyan-600/80 border-2 border-cyan-400 text-center font-bold text-white shadow-lg transition-all transform hover:scale-105 active:scale-95">
+              <i class="fa-solid fa-microchip"></i> CACHE MEMORY
+              <span class="block text-[10px] font-mono text-cyan-200">Inside CPU (~1 ns)</span>
+            </button>
+
+            <!-- Tier 2: RAM -->
+            <button onclick="selectPyramidTier('ram')" id="pyr-ram" class="pyr-btn w-[60%] mx-auto block py-3 rounded-xl bg-gradient-to-r from-purple-900/80 to-purple-600/80 border-2 border-purple-400 text-center font-bold text-white shadow-lg transition-all transform hover:scale-105 active:scale-95">
+              <i class="fa-solid fa-memory"></i> RAM (MAIN MEMORY)
+              <span class="block text-[10px] font-mono text-purple-200">Volatile (~15 ns)</span>
+            </button>
+
+            <!-- Tier 3: ROM -->
+            <button onclick="selectPyramidTier('rom')" id="pyr-rom" class="pyr-btn w-[80%] mx-auto block py-3 rounded-xl bg-gradient-to-r from-amber-900/80 to-amber-600/80 border-2 border-amber-400 text-center font-bold text-white shadow-lg transition-all transform hover:scale-105 active:scale-95">
+              <i class="fa-solid fa-compact-disc"></i> ROM (BOOTSTRAP)
+              <span class="block text-[10px] font-mono text-amber-200">Non-Volatile Boot Code</span>
+            </button>
+
+            <!-- Tier 4: Flash Storage -->
+            <button onclick="selectPyramidTier('flash')" id="pyr-flash" class="pyr-btn w-[100%] mx-auto block py-3 rounded-xl bg-gradient-to-r from-emerald-900/80 to-emerald-600/80 border-2 border-emerald-400 text-center font-bold text-white shadow-lg transition-all transform hover:scale-105 active:scale-95">
+              <i class="fa-solid fa-hard-drive"></i> FLASH MEMORY (SSD / USB / SD)
+              <span class="block text-[10px] font-mono text-emerald-200">Non-Volatile Storage</span>
+            </button>
+
+          </div>
+        </div>
+
+        <!-- Metric Dashboard (Right 5 Cols) -->
+        <div class="lg:col-span-5 glass-card rounded-2xl p-6 space-y-5 border-l-4 border-l-cyan-400" id="pyramidDetailsPanel">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+            <h3 class="text-xl font-bold text-cyan-400 flex items-center gap-2" id="pyrTitle">
+              <i class="fa-solid fa-microchip"></i> Cache Memory
+            </h3>
+            <span class="text-xs font-mono px-2 py-1 rounded bg-cyan-950 text-cyan-300 border border-cyan-800" id="pyrTag">TIER 1 (FASTEST)</span>
+          </div>
+
+          <p class="text-xs text-slate-300 leading-relaxed" id="pyrDesc">
+            Ultra-fast, small buffer capacity embedded directly on the CPU die. Holds the instructions CPU needs immediately.
+          </p>
+
+          <!-- Speed Meter -->
+          <div>
+            <div class="flex justify-between text-xs font-mono mb-1">
+              <span class="text-slate-400">Access Speed:</span>
+              <span class="text-cyan-400 font-bold" id="pyrSpeedVal">~1 nanosecond</span>
+            </div>
+            <div class="w-full h-2 rounded-full bg-slate-800 overflow-hidden">
+              <div class="h-full bg-cyan-400 rounded-full transition-all duration-500" id="pyrSpeedBar" style="width: 98%;"></div>
+            </div>
+          </div>
+
+          <!-- Capacity Meter -->
+          <div>
+            <div class="flex justify-between text-xs font-mono mb-1">
+              <span class="text-slate-400">Typical Capacity:</span>
+              <span class="text-purple-400 font-bold" id="pyrCapVal">4 MB - 32 MB</span>
+            </div>
+            <div class="w-full h-2 rounded-full bg-slate-800 overflow-hidden">
+              <div class="h-full bg-purple-400 rounded-full transition-all duration-500" id="pyrCapBar" style="width: 15%;"></div>
+            </div>
+          </div>
+
+          <!-- Cost Bar -->
+          <div>
+            <div class="flex justify-between text-xs font-mono mb-1">
+              <span class="text-slate-400">Cost per Gigabyte:</span>
+              <span class="text-amber-400 font-bold" id="pyrCostVal">Extremely High</span>
+            </div>
+            <div class="w-full h-2 rounded-full bg-slate-800 overflow-hidden">
+              <div class="h-full bg-amber-400 rounded-full transition-all duration-500" id="pyrCostBar" style="width: 95%;"></div>
+            </div>
+          </div>
+
+          <!-- Volatility Status -->
+          <div class="p-3 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between">
+            <span class="text-xs text-slate-400 font-mono">Volatility Status:</span>
+            <span id="pyrVolatilityBadge" class="px-2.5 py-1 rounded text-xs font-bold font-mono bg-red-950 text-red-400 border border-red-800">
+              VOLATILE
+            </span>
+          </div>
+
+          <!-- Real World Analogy Card -->
+          <div class="p-3.5 rounded-xl bg-cyan-950/30 border border-cyan-800/60 text-xs text-cyan-200">
+            <span class="font-bold text-cyan-400 uppercase tracking-wider block text-[10px] mb-1"><i class="fa-solid fa-brain"></i> Everyday Form 2 Analogy</span>
+            <span id="pyrAnalogy">A tiny sticky note kept in your front shirt pocket. Extremely quick to read, but holds only a few words.</span>
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ========================================== -->
+    <!-- TAB 3: LAB 2 - DATA FETCH PIPELINE -->
+    <!-- ========================================== -->
+    <section id="section-pipeline" class="tab-content hidden space-y-6">
+      
+      <div class="glass-card rounded-2xl p-6">
+        <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-2xl font-bold text-white mb-1 flex items-center gap-2">
+              <i class="fa-solid fa-bolt text-cyan-400"></i> Lab 2: CPU Data Fetch & Cache Pipeline Simulator
+            </h2>
+            <p class="text-sm text-slate-300">
+              Simulate how the CPU requests data! Watch whether the requested instruction is found in <strong>Cache (Hit)</strong> or must be retrieved from <strong>RAM</strong> or <strong>Flash SSD (Miss)</strong>.
+            </p>
+          </div>
+          
+          <!-- Controls -->
+          <div class="flex items-center space-x-2">
+            <button onclick="triggerDataFetch(true)" class="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold text-xs hover:from-cyan-400 hover:to-blue-500 shadow-lg transition">
+              <i class="fa-solid fa-play mr-1"></i> Request Data (Hit)
+            </button>
+            <button onclick="triggerDataFetch(false)" class="px-4 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold text-xs hover:from-purple-500 hover:to-pink-500 shadow-lg transition">
+              <i class="fa-solid fa-rotate-right mr-1"></i> Request Data (Miss)
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Live Motherboard Circuit Trace Board -->
+      <div class="glass-card rounded-2xl p-6 relative overflow-hidden min-h-[380px] flex flex-col justify-between">
+        
+        <!-- Motherboard Trace Diagram -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-center my-auto relative z-10" id="pipelineNodes">
+          
+          <!-- Node 1: CPU -->
+          <div id="node-cpu" class="p-4 rounded-xl bg-slate-900 border-2 border-cyan-400 text-center space-y-2 relative transition-all duration-300 shadow-lg shadow-cyan-950">
+            <div class="w-12 h-12 mx-auto rounded-lg bg-cyan-950 flex items-center justify-center text-cyan-400 text-2xl">
+              <i class="fa-solid fa-microchip"></i>
+            </div>
+            <h4 class="font-bold text-white text-sm">1. CPU Core</h4>
+            <span class="text-[10px] font-mono text-cyan-300 block">Needs Data Block X</span>
+            <div id="status-cpu" class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-400">READY</div>
+          </div>
+
+          <!-- Bus Line Arrow 1 -->
+          <div class="hidden md:flex justify-center text-cyan-400 text-xl font-bold animate-pulse">
+            <i class="fa-solid fa-angle-right"></i><i class="fa-solid fa-angle-right"></i>
+          </div>
+
+          <!-- Node 2: Cache Memory -->
+          <div id="node-cache" class="p-4 rounded-xl bg-slate-900 border-2 border-cyan-500/40 text-center space-y-2 relative transition-all duration-300">
+            <div class="w-12 h-12 mx-auto rounded-lg bg-cyan-950 flex items-center justify-center text-cyan-400 text-2xl">
+              <i class="fa-solid fa-bolt"></i>
+            </div>
+            <h4 class="font-bold text-white text-sm">2. Cache Memory</h4>
+            <span class="text-[10px] font-mono text-cyan-300 block">Check L1 / L2 Cache</span>
+            <div id="status-cache" class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-400">IDLE</div>
+          </div>
+
+          <!-- Bus Line Arrow 2 -->
+          <div class="hidden md:flex justify-center text-purple-400 text-xl font-bold animate-pulse">
+            <i class="fa-solid fa-angle-right"></i><i class="fa-solid fa-angle-right"></i>
+          </div>
+
+          <!-- Node 3: RAM Main Memory -->
+          <div id="node-ram" class="p-4 rounded-xl bg-slate-900 border-2 border-purple-500/40 text-center space-y-2 relative transition-all duration-300">
+            <div class="w-12 h-12 mx-auto rounded-lg bg-purple-950 flex items-center justify-center text-purple-400 text-2xl">
+              <i class="fa-solid fa-memory"></i>
+            </div>
+            <h4 class="font-bold text-white text-sm">3. RAM (Main Memory)</h4>
+            <span class="text-[10px] font-mono text-purple-300 block">Secondary Lookup</span>
+            <div id="status-ram" class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-400">STANDBY</div>
+          </div>
+
+        </div>
+
+        <!-- Dynamic Animation Particle Container -->
+        <div id="particleContainer" class="absolute inset-0 pointer-events-none"></div>
+
+        <!-- Live Step Console Log -->
+        <div class="mt-6 p-4 rounded-xl bg-slate-950 border border-slate-800 font-mono text-xs space-y-1">
+          <div class="flex items-center justify-between text-slate-400 text-[10px] border-b border-slate-800 pb-1 mb-2 uppercase">
+            <span><i class="fa-solid fa-terminal text-cyan-400 mr-1"></i> Pipeline Event Log</span>
+            <span id="logLatency" class="text-cyan-400 font-bold">Latency: --</span>
+          </div>
+          <p id="pipelineLog" class="text-cyan-300">System idle. Click 'Request Data (Hit)' or 'Request Data (Miss)' to test fetching logic.</p>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ========================================== -->
+    <!-- TAB 4: LAB 3 - VOLATILITY & POWER OUTAGE -->
+    <!-- ========================================== -->
+    <section id="section-volatility" class="tab-content hidden space-y-6">
+      
+      <div class="glass-card rounded-2xl p-6">
+        <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-2xl font-bold text-white mb-1 flex items-center gap-2">
+              <i class="fa-solid fa-power-off text-red-400"></i> Lab 3: Power Outage & Memory Volatility Simulator
+            </h2>
+            <p class="text-sm text-slate-300">
+              Flip the Master Power Breaker to cut off electricity to the system. Observe which memory contents dissolve and which remain 100% safe!
+            </p>
+          </div>
+
+          <!-- Master Power Toggle Button -->
+          <button onclick="toggleSystemPower()" id="powerBtn" class="flex items-center space-x-3 px-6 py-3 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-sm transition-all transform active:scale-95 shadow-lg shadow-emerald-950">
+            <i class="fa-solid fa-power-off text-lg"></i>
+            <span id="powerBtnText">MASTER POWER: ON</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Live Virtual Screen & Memory State Board -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Left: RAM Workspace Card -->
+        <div class="glass-card rounded-2xl p-5 border-t-2 border-t-purple-400 space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="font-bold text-purple-300 flex items-center gap-2 text-sm">
+              <i class="fa-solid fa-memory"></i> RAM Workspace
+            </h3>
+            <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-red-950 text-red-400 border border-red-800">VOLATILE</span>
+          </div>
+
+          <p class="text-xs text-slate-400">Holds active unsaved files and running software apps.</p>
+
+          <!-- RAM Live Contents -->
+          <div id="ramContentContainer" class="space-y-2 min-h-[160px] p-3 rounded-xl bg-slate-950 border border-slate-800 transition-all">
+            <div class="ram-item p-2.5 rounded-lg bg-purple-950/40 border border-purple-800/50 flex items-center justify-between text-xs text-purple-200">
+              <span><i class="fa-solid fa-file-lines text-purple-400 mr-2"></i> Unsaved_Science_Essay.docx</span>
+              <span class="text-[10px] font-mono bg-purple-900/60 px-1.5 py-0.5 rounded">Active</span>
+            </div>
+            <div class="ram-item p-2.5 rounded-lg bg-purple-950/40 border border-purple-800/50 flex items-center justify-between text-xs text-purple-200">
+              <span><i class="fa-solid fa-gamepad text-purple-400 mr-2"></i> Space_Racer_Game.exe</span>
+              <span class="text-[10px] font-mono bg-purple-900/60 px-1.5 py-0.5 rounded">Running</span>
+            </div>
+            <div class="ram-item p-2.5 rounded-lg bg-purple-950/40 border border-purple-800/50 flex items-center justify-between text-xs text-purple-200">
+              <span><i class="fa-solid fa-globe text-purple-400 mr-2"></i> Web_Browser_Tab_4.html</span>
+              <span class="text-[10px] font-mono bg-purple-900/60 px-1.5 py-0.5 rounded">Loaded</span>
+            </div>
+          </div>
+
+          <p id="ramStatusText" class="text-xs text-purple-400 font-mono text-center">Power ON: Data active in volatile RAM cells.</p>
+        </div>
+
+        <!-- Middle: ROM Bootstrap Chip Card -->
+        <div class="glass-card rounded-2xl p-5 border-t-2 border-t-amber-400 space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="font-bold text-amber-300 flex items-center gap-2 text-sm">
+              <i class="fa-solid fa-compact-disc"></i> ROM (Bootstrap)
+            </h3>
+            <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-800">NON-VOLATILE</span>
+          </div>
+
+          <p class="text-xs text-slate-400">Stores system boot firmware program permanently.</p>
+
+          <!-- ROM Live Contents -->
+          <div id="romContentContainer" class="space-y-2 min-h-[160px] p-3 rounded-xl bg-slate-950 border border-slate-800">
+            <div class="p-2.5 rounded-lg bg-amber-950/40 border border-amber-800/50 flex items-center justify-between text-xs text-amber-200">
+              <span><i class="fa-solid fa-key text-amber-400 mr-2"></i> BOOTSTRAP_LOADER_v2.0</span>
+              <span class="text-[10px] font-mono text-emerald-400"><i class="fa-solid fa-shield"></i> Safe</span>
+            </div>
+            <div class="p-2.5 rounded-lg bg-amber-950/40 border border-amber-800/50 flex items-center justify-between text-xs text-amber-200">
+              <span><i class="fa-solid fa-sliders text-amber-400 mr-2"></i> HARDWARE_INIT_ROUTINE</span>
+              <span class="text-[10px] font-mono text-emerald-400"><i class="fa-solid fa-shield"></i> Safe</span>
+            </div>
+          </div>
+
+          <p id="romStatusText" class="text-xs text-amber-400 font-mono text-center">Power Independent: Protected in silicon ROM.</p>
+        </div>
+
+        <!-- Right: Flash Permanent Storage Card -->
+        <div class="glass-card rounded-2xl p-5 border-t-2 border-t-emerald-400 space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="font-bold text-emerald-300 flex items-center gap-2 text-sm">
+              <i class="fa-solid fa-hard-drive"></i> Flash Memory (SSD)
+            </h3>
+            <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-800">NON-VOLATILE</span>
+          </div>
+
+          <p class="text-xs text-slate-400">Rewritable solid-state drive for permanent saved files.</p>
+
+          <!-- Flash Live Contents -->
+          <div id="flashContentContainer" class="space-y-2 min-h-[160px] p-3 rounded-xl bg-slate-950 border border-slate-800">
+            <div class="p-2.5 rounded-lg bg-emerald-950/40 border border-emerald-800/50 flex items-center justify-between text-xs text-emerald-200">
+              <span><i class="fa-solid fa-file-pdf text-emerald-400 mr-2"></i> Saved_Math_Project.pdf</span>
+              <span class="text-[10px] font-mono text-emerald-400"><i class="fa-solid fa-check"></i> Saved</span>
+            </div>
+            <div class="p-2.5 rounded-lg bg-emerald-950/40 border border-emerald-800/50 flex items-center justify-between text-xs text-emerald-200">
+              <span><i class="fa-solid fa-image text-emerald-400 mr-2"></i> Class_Photo_2026.jpg</span>
+              <span class="text-[10px] font-mono text-emerald-400"><i class="fa-solid fa-check"></i> Saved</span>
+            </div>
+            <div class="p-2.5 rounded-lg bg-emerald-950/40 border border-emerald-800/50 flex items-center justify-between text-xs text-emerald-200">
+              <span><i class="fa-solid fa-gear text-emerald-400 mr-2"></i> Operating_System_Kernel.sys</span>
+              <span class="text-[10px] font-mono text-emerald-400"><i class="fa-solid fa-check"></i> Saved</span>
+            </div>
+          </div>
+
+          <p id="flashStatusText" class="text-xs text-emerald-400 font-mono text-center">Saved Files Intact: Permanent Solid-State Flash.</p>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ========================================== -->
+    <!-- TAB 5: LAB 4 - READ / WRITE / ERASE LAB -->
+    <!-- ========================================== -->
+    <section id="section-rwlab" class="tab-content hidden space-y-6">
+      
+      <div class="glass-card rounded-2xl p-6">
+        <h2 class="text-2xl font-bold text-white mb-1 flex items-center gap-2">
+          <i class="fa-solid fa-lock text-amber-400"></i> Lab 4: Read, Write & Erase Operations Tester
+        </h2>
+        <p class="text-sm text-slate-300">
+          Select a memory component and attempt to perform <strong>Read</strong>, <strong>Write</strong>, or <strong>Erase</strong> commands. Observe why ROM shields write attempts!
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- Selection Controls (Left 5 Cols) -->
+        <div class="lg:col-span-5 glass-card rounded-2xl p-6 space-y-5">
+          <div>
+            <label class="block text-xs font-mono text-slate-400 uppercase mb-2">1. Select Memory Target:</label>
+            <div class="grid grid-cols-2 gap-2">
+              <button onclick="setRwTarget('cache')" id="rw-target-cache" class="rw-target-btn p-3 rounded-xl border border-cyan-500/40 bg-cyan-950/30 text-cyan-300 text-xs font-bold text-left flex items-center gap-2">
+                <i class="fa-solid fa-microchip"></i> Cache
+              </button>
+              <button onclick="setRwTarget('ram')" id="rw-target-ram" class="rw-target-btn p-3 rounded-xl border border-slate-800 bg-slate-900 text-slate-400 text-xs font-bold text-left flex items-center gap-2">
+                <i class="fa-solid fa-memory"></i> RAM
+              </button>
+              <button onclick="setRwTarget('rom')" id="rw-target-rom" class="rw-target-btn p-3 rounded-xl border border-slate-800 bg-slate-900 text-slate-400 text-xs font-bold text-left flex items-center gap-2">
+                <i class="fa-solid fa-compact-disc"></i> ROM
+              </button>
+              <button onclick="setRwTarget('flash')" id="rw-target-flash" class="rw-target-btn p-3 rounded-xl border border-slate-800 bg-slate-900 text-slate-400 text-xs font-bold text-left flex items-center gap-2">
+                <i class="fa-solid fa-hard-drive"></i> Flash
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-mono text-slate-400 uppercase mb-2">2. Select Operation Command:</label>
+            <div class="grid grid-cols-3 gap-2">
+              <button onclick="executeRwOperation('read')" class="p-3 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white font-bold text-xs shadow-md">
+                <i class="fa-solid fa-eye mr-1"></i> READ
+              </button>
+              <button onclick="executeRwOperation('write')" class="p-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold text-xs shadow-md">
+                <i class="fa-solid fa-pen-to-square mr-1"></i> WRITE
+              </button>
+              <button onclick="executeRwOperation('erase')" class="p-3 rounded-xl bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-500 hover:to-amber-500 text-white font-bold text-xs shadow-md">
+                <i class="fa-solid fa-trash mr-1"></i> ERASE
+              </button>
+            </div>
+          </div>
+
+          <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-400 space-y-1">
+            <span class="font-bold text-slate-200 block"><i class="fa-solid fa-circle-info text-cyan-400"></i> Form 2 Golden Rule:</span>
+            <span>ROM stands for <strong>Read-Only Memory</strong>. It is factory-programmed with the <strong>Bootstrap Loader</strong> and cannot be overwritten by normal computer operations.</span>
+          </div>
+
+        </div>
+
+        <!-- Live Terminal Display (Right 7 Cols) -->
+        <div class="lg:col-span-7 glass-card rounded-2xl p-6 flex flex-col justify-between relative overflow-hidden min-h-[320px]" id="rwDisplayCard">
+          
+          <!-- Shield Error Overlay (Shown on ROM Write attempt) -->
+          <div id="romShieldOverlay" class="hidden absolute inset-0 bg-red-950/90 backdrop-blur-md z-20 flex flex-col items-center justify-center space-y-3 p-6 text-center border-2 border-red-500 animate-pulse">
+            <i class="fa-solid fa-shield-halved text-red-400 text-6xl"></i>
+            <h3 class="text-2xl font-extrabold text-white">ACCESS DENIED: READ-ONLY PROTECTED!</h3>
+            <p class="text-xs text-red-200 max-w-md">
+              ROM contains the vital <strong>Bootstrap Loader</strong> program. Writing or modifying ROM is blocked to protect system startup integrity!
+            </p>
+            <button onclick="closeRomShield()" class="px-5 py-2 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold text-xs">
+              Acknowledge & Dismiss
+            </button>
+          </div>
+
+          <div>
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
+              <span class="text-xs font-mono text-cyan-400" id="rwActiveTarget">ACTIVE TARGET: CACHE MEMORY</span>
+              <span class="text-xs font-mono text-slate-400" id="rwOpStatus">Status: Ready</span>
+            </div>
+
+            <!-- Virtual Register Block -->
+            <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 font-mono text-xs space-y-3">
+              <div class="flex justify-between items-center text-slate-400">
+                <span>MEM_ADDR_0x408F:</span>
+                <span id="rwDataVal" class="text-cyan-300 font-bold">[ 0x41 0x50 0x50 0x5F 0x44 0x41 0x54 0x41 ]</span>
+              </div>
+              <div class="flex justify-between items-center text-slate-400">
+                <span>STRING_REPRESENTATION:</span>
+                <span id="rwStringVal" class="text-purple-300 font-bold">"RUNNING_APP_CACHE_DATA"</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Console Output Box -->
+          <div class="mt-4 p-3 rounded-xl bg-slate-950 border border-slate-800 font-mono text-xs text-slate-300" id="rwConsoleLog">
+            > Ready to test operations. Select target and click READ, WRITE, or ERASE.
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ========================================== -->
+    <!-- TAB 6: FORM 2 SORTING CHALLENGE GAME -->
+    <!-- ========================================== -->
+    <section id="section-game" class="tab-content hidden space-y-6">
+      
+      <div class="glass-card rounded-2xl p-6">
+        <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-2xl font-bold text-white mb-1 flex items-center gap-2">
+              <i class="fa-solid fa-gamepad text-purple-400"></i> Form 2 Memory Sorting Challenge
+            </h2>
+            <p class="text-sm text-slate-300">
+              Click a memory scenario card below, then select the correct target memory bucket!
+            </p>
+          </div>
+
+          <!-- Score & Streak Badge -->
+          <div class="flex items-center space-x-4 bg-slate-950 p-3 rounded-xl border border-slate-800 font-mono">
+            <div>
+              <span class="text-[10px] text-slate-400 block uppercase">Score</span>
+              <span id="gameScore" class="text-xl font-bold text-cyan-400">0 pts</span>
+            </div>
+            <div class="border-l border-slate-800 pl-4">
+              <span class="text-[10px] text-slate-400 block uppercase">Streak</span>
+              <span id="gameStreak" class="text-xl font-bold text-amber-400">🔥 0</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Active Scenario Card Deck -->
+      <div class="glass-card rounded-2xl p-6 text-center space-y-4 border-2 border-cyan-500/40 relative" id="activeCardDeck">
+        <span class="text-xs font-mono font-bold px-3 py-1 rounded-full bg-cyan-950 text-cyan-300 border border-cyan-800">
+          CARD <span id="currentCardNum">1</span> OF <span id="totalCardNum">8</span>
+        </span>
+
+        <h3 id="cardPromptText" class="text-lg md:text-xl font-extrabold text-white max-w-2xl mx-auto min-h-[56px] flex items-center justify-center">
+          "Holds the Bootstrap Loader program to boot up the computer system."
+        </h3>
+
+        <p class="text-xs text-slate-400">Which memory category does this statement belong to?</p>
+      </div>
+
+      <!-- 4 Memory Bucket Buttons -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        
+        <button onclick="submitCardAnswer('cache')" class="bucket-btn p-5 rounded-2xl glass-card glass-card-hover border-2 border-cyan-500/30 hover:border-cyan-400 text-center space-y-2 group">
+          <i class="fa-solid fa-microchip text-3xl text-cyan-400 group-hover:scale-110 transition"></i>
+          <h4 class="font-bold text-white text-sm">Cache Memory</h4>
+          <span class="text-[10px] text-slate-400 block">Ultra-fast CPU buffer</span>
+        </button>
+
+        <button onclick="submitCardAnswer('ram')" class="bucket-btn p-5 rounded-2xl glass-card glass-card-hover border-2 border-purple-500/30 hover:border-purple-400 text-center space-y-2 group">
+          <i class="fa-solid fa-memory text-3xl text-purple-400 group-hover:scale-110 transition"></i>
+          <h4 class="font-bold text-white text-sm">RAM Memory</h4>
+          <span class="text-[10px] text-slate-400 block">Volatile working space</span>
+        </button>
+
+        <button onclick="submitCardAnswer('rom')" class="bucket-btn p-5 rounded-2xl glass-card glass-card-hover border-2 border-amber-500/30 hover:border-amber-400 text-center space-y-2 group">
+          <i class="fa-solid fa-compact-disc text-3xl text-amber-400 group-hover:scale-110 transition"></i>
+          <h4 class="font-bold text-white text-sm">ROM Memory</h4>
+          <span class="text-[10px] text-slate-400 block">Bootstrap Loader code</span>
+        </button>
+
+        <button onclick="submitCardAnswer('flash')" class="bucket-btn p-5 rounded-2xl glass-card glass-card-hover border-2 border-emerald-500/30 hover:border-emerald-400 text-center space-y-2 group">
+          <i class="fa-solid fa-hard-drive text-3xl text-emerald-400 group-hover:scale-110 transition"></i>
+          <h4 class="font-bold text-white text-sm">Flash Memory</h4>
+          <span class="text-[10px] text-slate-400 block">Solid-state files (SSD/USB)</span>
+        </button>
+
+      </div>
+
+      <!-- Feedback Alert Banner -->
+      <div id="gameFeedback" class="hidden p-4 rounded-xl text-xs font-semibold text-center transition-all"></div>
+
+    </section>
+
+    <!-- ========================================== -->
+    <!-- TAB 7: FORM 2 KNOWLEDGE QUIZ -->
+    <!-- ========================================== -->
+    <section id="section-quiz" class="tab-content hidden space-y-6">
+      
+      <div class="glass-card rounded-2xl p-6">
+        <h2 class="text-2xl font-bold text-white mb-1 flex items-center gap-2">
+          <i class="fa-solid fa-circle-question text-cyan-400"></i> Form 2 Interactive Knowledge Assessment
+        </h2>
+        <p class="text-sm text-slate-300">
+          Test your understanding with 5 syllabus-aligned multiple choice questions. Instant feedback provided!
+        </p>
+      </div>
+
+      <!-- Quiz Form Container -->
+      <div class="space-y-6" id="quizQuestionsContainer">
+        <!-- Generated via JavaScript -->
+      </div>
+
+      <!-- Quiz Submit / Score Banner -->
+      <div class="glass-card rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-4">
+        <div>
+          <span id="quizScoreText" class="text-lg font-bold text-white">Answer all 5 questions to view your final score.</span>
+          <p class="text-xs text-slate-400">A score of 80%+ unlocks your Master Certificate!</p>
+        </div>
+
+        <button onclick="submitQuiz()" class="px-8 py-3 rounded-xl bg-gradient-to-r from-cyan-500 via-purple-500 to-amber-500 hover:from-cyan-400 hover:to-amber-400 text-slate-950 font-black text-sm shadow-xl transition transform active:scale-95">
+          <i class="fa-solid fa-check-double mr-2"></i> Submit Answers
+        </button>
+      </div>
+
+    </section>
+
+    <!-- ========================================== -->
+    <!-- TAB 8: CERTIFICATE GENERATOR -->
+    <!-- ========================================== -->
+    <section id="section-certificate" class="tab-content hidden space-y-6">
+      
+      <div class="glass-card rounded-2xl p-6 no-print">
+        <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-2xl font-bold text-white mb-1 flex items-center gap-2">
+              <i class="fa-solid fa-certificate text-amber-400"></i> Form 2 Computer Memory Master Certificate
+            </h2>
+            <p class="text-sm text-slate-300">Enter your student name below to customize and print your official certificate!</p>
+          </div>
+
+          <div class="flex items-center space-x-3 w-full md:w-auto">
+            <input type="text" id="studentNameInput" placeholder="Enter Full Name..." value="Form 2 ICT Student" oninput="updateCertificateName()" class="px-4 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs font-bold focus:outline-none focus:border-cyan-400 w-full md:w-64">
+            <button onclick="printCertificate()" class="px-5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs flex items-center gap-1 shadow-lg shrink-0">
+              <i class="fa-solid fa-print"></i> Print
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Printable Certificate Canvas -->
+      <div id="certificateContainer" class="glass-card rounded-3xl p-8 md:p-12 border-4 border-amber-500/60 relative overflow-hidden text-center space-y-6 bg-slate-950 shadow-2xl">
+        
+        <!-- Subtle Corner Ornaments -->
+        <div class="absolute top-4 left-4 w-12 h-12 border-t-2 border-l-2 border-amber-400"></div>
+        <div class="absolute top-4 right-4 w-12 h-12 border-t-2 border-r-2 border-amber-400"></div>
+        <div class="absolute bottom-4 left-4 w-12 h-12 border-b-2 border-l-2 border-amber-400"></div>
+        <div class="absolute bottom-4 right-4 w-12 h-12 border-b-2 border-r-2 border-amber-400"></div>
+
+        <!-- Header -->
+        <div class="space-y-2">
+          <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-tr from-amber-500 to-yellow-300 p-0.5 shadow-xl mb-2">
+            <div class="w-full h-full bg-slate-950 rounded-[14px] flex items-center justify-center text-amber-400 text-2xl">
+              <i class="fa-solid fa-award"></i>
+            </div>
+          </div>
+          <h3 class="text-xs font-mono font-bold tracking-widest text-amber-400 uppercase">Form 2 Computer Science & ICT Excellence</h3>
+          <h2 class="text-3xl md:text-4xl font-extrabold text-white tracking-tight">CERTIFICATE OF ACHIEVEMENT</h2>
+          <p class="text-xs text-slate-400">This certifies that</p>
+        </div>
+
+        <!-- Student Name -->
+        <div class="py-2 border-b-2 border-cyan-500/40 max-w-md mx-auto">
+          <span id="certNameDisplay" class="text-2xl md:text-3xl font-extrabold text-cyan-300 font-serif">Form 2 ICT Student</span>
+        </div>
+
+        <p class="text-xs text-slate-300 max-w-xl mx-auto leading-relaxed">
+          Has successfully completed the <strong>Form 2 Computer Memory Interactive Lab</strong> module, mastering the concepts of Cache Memory, RAM, ROM Bootstrap Loader, Flash Storage, Data Fetch Pipelines, and Memory Volatility.
+        </p>
+
+        <!-- Stats & Date Badge -->
+        <div class="grid grid-cols-3 gap-4 max-w-lg mx-auto py-4 border-y border-slate-800/80 font-mono text-xs">
+          <div>
+            <span class="text-[10px] text-slate-500 block uppercase">Completion Date</span>
+            <span id="certDateDisplay" class="font-bold text-white">October 16, 2026</span>
+          </div>
+          <div>
+            <span class="text-[10px] text-slate-500 block uppercase">Quiz Score</span>
+            <span id="certQuizScore" class="font-bold text-cyan-400">100%</span>
+          </div>
+          <div>
+            <span class="text-[10px] text-slate-500 block uppercase">Status</span>
+            <span class="font-bold text-emerald-400">PASSED</span>
+          </div>
+        </div>
+
+        <!-- Footnote Signatures -->
+        <div class="flex items-center justify-between max-w-md mx-auto pt-4 text-[10px] text-slate-500 font-mono">
+          <div>
+            <div class="border-t border-slate-700 pt-1 w-28 text-center text-slate-300">ICT Department</div>
+            <span>Authorized Signature</span>
+          </div>
+          <div class="text-center">
+            <i class="fa-solid fa-shield-halved text-amber-400 text-2xl block mb-1"></i>
+            <span>Verified Digital Seal</span>
+          </div>
+          <div>
+            <div class="border-t border-slate-700 pt-1 w-28 text-center text-slate-300">Form 2 Curriculum</div>
+            <span>Standard Verified</span>
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="border-t border-slate-800/80 glass-card py-4 mt-8">
+    <div class="max-w-7xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-2 text-xs text-slate-400 font-mono">
+      <span>Form 2 Interactive Computer Science Simulation Suite</span>
+      <span>Topics: Cache, RAM, ROM (Bootstrap), Flash Storage</span>
+    </div>
+  </footer>
+
+  <!-- SCRIPT ENGINE -->
+  <script type="text/javascript">
+    // ==========================================
+    // AUDIO SYNTHESIZER (WEB AUDIO API)
+    // ==========================================
+    class WebAudioSynth {
+      constructor() {
+        this.ctx = null;
+        this.muted = false;
+      }
+
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          this.ctx = new AudioContext();
+        }
+        if (this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+
+      playClick() {
+        if (this.muted) return;
+        this.init();
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(800, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(400, this.ctx.currentTime + 0.05);
+        gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.05);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.05);
+      }
+
+      playSuccess() {
+        if (this.muted) return;
+        this.init();
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(523.25, now); // C5
+        osc.frequency.setValueAtTime(659.25, now + 0.08); // E5
+        osc.frequency.setValueAtTime(783.99, now + 0.16); // G5
+        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.3);
+      }
+
+      playError() {
+        if (this.muted) return;
+        this.init();
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(150, now);
+        osc.frequency.linearRampToValueAtTime(80, now + 0.25);
+        gain.gain.setValueAtTime(0.25, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.25);
+      }
+
+      playPowerBuzz() {
+        if (this.muted) return;
+        this.init();
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(300, now);
+        osc.frequency.exponentialRampToValueAtTime(40, now + 0.6);
+        gain.gain.setValueAtTime(0.3, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.6);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.6);
+      }
+    }
+
+    const audioSynth = new WebAudioSynth();
+
+    function toggleAudio() {
+      audioSynth.muted = !audioSynth.muted;
+      const icon = document.getElementById('audioIcon');
+      const text = document.getElementById('audioText');
+      if (audioSynth.muted) {
+        icon.className = 'fa-solid fa-volume-xmark text-slate-500';
+        text.innerText = 'MUTED';
+      } else {
+        icon.className = 'fa-solid fa-volume-high text-cyan-400';
+        text.innerText = 'SOUND ON';
+        audioSynth.playClick();
+      }
+    }
+
+    // TAB NAVIGATION LOGIC
+    function switchTab(tabId) {
+      audioSynth.playClick();
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.className = 'tab-btn px-3 py-2 rounded-lg transition-all text-slate-300 hover:bg-slate-800/80';
+      });
+
+      const targetSection = document.getElementById(`section-${tabId}`);
+      if (targetSection) targetSection.classList.remove('hidden');
+
+      const activeBtn = document.getElementById(`tab-${tabId}`);
+      if (activeBtn) {
+        activeBtn.className = 'tab-btn px-3 py-2 rounded-lg transition-all bg-cyan-500/20 text-cyan-300 border border-cyan-500/40';
+      }
+    }
+
+    // ==========================================
+    // LAB 1: HIERARCHY DATA
+    // ==========================================
+    const pyramidData = {
+      cache: {
+        title: "Cache Memory",
+        icon: "fa-microchip",
+        tag: "TIER 1 (FASTEST)",
+        desc: "Ultra-fast, small buffer memory embedded directly inside or next to the CPU die. Holds immediate instructions for processor execution.",
+        speed: "~1 nanosecond",
+        speedPct: "98%",
+        cap: "4 MB - 32 MB",
+        capPct: "12%",
+        cost: "Extremely High",
+        costPct: "95%",
+        volatile: true,
+        analogy: "A tiny sticky note kept in your shirt pocket. Fast to check, but holds only a few words."
+      },
+      ram: {
+        title: "RAM (Random Access Memory)",
+        icon: "fa-memory",
+        tag: "TIER 2 (MAIN WORKSPACE)",
+        desc: "Primary workspace memory stick. Stores open software, operating system files, and active games while the computer is turned on.",
+        speed: "~15 nanoseconds",
+        speedPct: "80%",
+        cap: "8 GB - 32 GB",
+        capPct: "55%",
+        cost: "Moderate",
+        costPct: "60%",
+        volatile: true,
+        analogy: "A student's study workbench. You arrange books on it while studying, but clear it completely when finished."
+      },
+      rom: {
+        title: "ROM (Read-Only Memory)",
+        icon: "fa-compact-disc",
+        tag: "BOOTSTRAP CHIP",
+        desc: "Permanent read-only chip containing the Bootstrap Loader program needed to boot up the computer system upon powering on.",
+        speed: "~50 nanoseconds",
+        speedPct: "50%",
+        cap: "4 MB - 16 MB",
+        capPct: "10%",
+        cost: "Low per chip",
+        costPct: "30%",
+        volatile: false,
+        analogy: "A factory-printed instruction rulebook permanently bound in hardback. Cannot be altered or erased."
+      },
+      flash: {
+        title: "Flash Memory (SSD / USB / SD)",
+        icon: "fa-hard-drive",
+        tag: "TIER 3 (PERMANENT STORAGE)",
+        desc: "Solid-state non-volatile storage with no moving parts. Used for secondary storage in SSDs, USB thumb drives, and camera SD cards.",
+        speed: "~100 microseconds",
+        speedPct: "30%",
+        cap: "256 GB - 2 TB",
+        capPct: "95%",
+        cost: "Economical",
+        costPct: "20%",
+        volatile: false,
+        analogy: "A durable photo album notebook. Pages can be safely kept for years, erased, or rewritten."
+      }
+    };
+
+    function selectPyramidTier(key) {
+      audioSynth.playClick();
+      const data = pyramidData[key];
+      if (!data) return;
+
+      document.getElementById('pyrTitle').innerHTML = `<i class="fa-solid ${data.icon}"></i> ${data.title}`;
+      document.getElementById('pyrTag').innerText = data.tag;
+      document.getElementById('pyrDesc').innerText = data.desc;
+      document.getElementById('pyrSpeedVal').innerText = data.speed;
+      document.getElementById('pyrSpeedBar').style.width = data.speedPct;
+      document.getElementById('pyrCapVal').innerText = data.cap;
+      document.getElementById('pyrCapBar').style.width = data.capPct;
+      document.getElementById('pyrCostVal').innerText = data.cost;
+      document.getElementById('pyrCostBar').style.width = data.costPct;
+
+      const badge = document.getElementById('pyrVolatilityBadge');
+      if (data.volatile) {
+        badge.className = 'px-2.5 py-1 rounded text-xs font-bold font-mono bg-red-950 text-red-400 border border-red-800';
+        badge.innerText = 'VOLATILE';
+      } else {
+        badge.className = 'px-2.5 py-1 rounded text-xs font-bold font-mono bg-emerald-950 text-emerald-400 border border-emerald-800';
+        badge.innerText = 'NON-VOLATILE';
+      }
+
+      document.getElementById('pyrAnalogy').innerText = data.analogy;
+    }
+
+    // ==========================================
+    // LAB 2: DATA FETCH PIPELINE SIMULATOR
+    // ==========================================
+    let isPipelineBusy = false;
+
+    function triggerDataFetch(isHit) {
+      if (isPipelineBusy) return;
+      isPipelineBusy = true;
+      audioSynth.playClick();
+
+      const log = document.getElementById('pipelineLog');
+      const latency = document.getElementById('logLatency');
+      const statusCpu = document.getElementById('status-cpu');
+      const statusCache = document.getElementById('status-cache');
+      const statusRam = document.getElementById('status-ram');
+
+      // Reset styles
+      statusCpu.innerText = "FETCHING...";
+      statusCpu.className = "text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-900 text-cyan-200 animate-pulse";
+      statusCache.innerText = "CHECKING...";
+      statusCache.className = "text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-400";
+      statusRam.innerText = "STANDBY";
+      statusRam.className = "text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-400";
+
+      log.innerText = "Step 1: CPU core emits request for Instruction Block 0xFA42...";
+      latency.innerText = "Latency: 0.1 ns";
+
+      setTimeout(() => {
+        statusCache.innerText = isHit ? "CACHE HIT!" : "CACHE MISS!";
+        statusCache.className = isHit 
+          ? "text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-800 font-bold"
+          : "text-[10px] font-mono px-2 py-0.5 rounded bg-amber-950 text-amber-400 border border-amber-800 font-bold";
+
+        if (isHit) {
+          audioSynth.playSuccess();
+          log.innerText = "Step 2: CACHE HIT! Data block found in ultra-fast Cache (~1ns). Delivered directly to CPU ALU!";
+          latency.innerText = "Total Latency: 1.1 ns (SUPER FAST)";
+          statusCpu.innerText = "EXECUTION COMPLETE";
+          statusCpu.className = "text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-900 text-emerald-200";
+          isPipelineBusy = false;
+        } else {
+          audioSynth.playError();
+          log.innerText = "Step 2: CACHE MISS! Instruction not in Cache. Pipeline routing request down motherboard bus to RAM...";
+          latency.innerText = "Latency: 4.5 ns";
+
+          setTimeout(() => {
+            statusRam.innerText = "RAM RETRIEVAL";
+            statusRam.className = "text-[10px] font-mono px-2 py-0.5 rounded bg-purple-900 text-purple-200 animate-pulse";
+
+            setTimeout(() => {
+              audioSynth.playSuccess();
+              log.innerText = "Step 3: Data fetched from RAM (~15ns). A copy is loaded into Cache for future fast access, then sent to CPU.";
+              latency.innerText = "Total Latency: 16.2 ns (SLOWER)";
+              statusCpu.innerText = "EXECUTION COMPLETE";
+              statusCpu.className = "text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-900 text-emerald-200";
+              isPipelineBusy = false;
+            }, 800);
+          }, 800);
+        }
+      }, 700);
+    }
+
+    // ==========================================
+    // LAB 3: POWER OUTAGE & VOLATILITY
+    // ==========================================
+    let isPowerOn = true;
+
+    function toggleSystemPower() {
+      isPowerOn = !isPowerOn;
+      const btn = document.getElementById('powerBtn');
+      const btnText = document.getElementById('powerBtnText');
+      const ramItems = document.querySelectorAll('.ram-item');
+      const ramStatus = document.getElementById('ramStatusText');
+
+      if (!isPowerOn) {
+        audioSynth.playPowerBuzz();
+        btn.className = "flex items-center space-x-3 px-6 py-3 rounded-2xl bg-red-600 hover:bg-red-500 text-white font-black text-sm transition-all transform active:scale-95 shadow-lg shadow-red-950";
+        btnText.innerText = "MASTER POWER: OFF (CUT)";
+
+        // Dissolve RAM Items
+        ramItems.forEach(item => {
+          item.classList.add('dissolving');
+        });
+
+        ramStatus.innerText = "⚡ POWER OUTAGE: RAM cleared completely! All unsaved work lost.";
+        ramStatus.className = "text-xs text-red-400 font-mono text-center font-bold animate-pulse";
+
+      } else {
+        audioSynth.playClick();
+        btn.className = "flex items-center space-x-3 px-6 py-3 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-sm transition-all transform active:scale-95 shadow-lg shadow-emerald-950";
+        btnText.innerText = "MASTER POWER: ON";
+
+        // Restore RAM Items
+        ramItems.forEach(item => {
+          item.classList.remove('dissolving');
+        });
+
+        ramStatus.innerText = "Power ON: System rebooted via ROM Bootstrap Loader.";
+        ramStatus.className = "text-xs text-purple-400 font-mono text-center";
+      }
+    }
+
+    // ==========================================
+    // LAB 4: READ / WRITE LAB
+    // ==========================================
+    let activeRwTarget = 'cache';
+
+    function setRwTarget(target) {
+      audioSynth.playClick();
+      activeRwTarget = target;
+      
+      document.querySelectorAll('.rw-target-btn').forEach(btn => {
+        btn.className = 'rw-target-btn p-3 rounded-xl border border-slate-800 bg-slate-900 text-slate-400 text-xs font-bold text-left flex items-center gap-2';
+      });
+
+      const activeBtn = document.getElementById(`rw-target-${target}`);
+      if (activeBtn) {
+        activeBtn.className = 'rw-target-btn p-3 rounded-xl border border-cyan-500/40 bg-cyan-950/30 text-cyan-300 text-xs font-bold text-left flex items-center gap-2';
+      }
+
+      document.getElementById('rwActiveTarget').innerText = `ACTIVE TARGET: ${target.toUpperCase()} MEMORY`;
+    }
+
+    function executeRwOperation(op) {
+      const consoleLog = document.getElementById('rwConsoleLog');
+      const dataVal = document.getElementById('rwDataVal');
+      const stringVal = document.getElementById('rwStringVal');
+      const shield = document.getElementById('romShieldOverlay');
+
+      if (activeRwTarget === 'rom' && (op === 'write' || op === 'erase')) {
+        audioSynth.playError();
+        shield.classList.remove('hidden');
+        consoleLog.innerText = `> ERROR: [ROM WRITE BLOCK] Target ROM is Read-Only. Operation '${op.toUpperCase()}' REJECTED by hardware lock.`;
+        return;
+      }
+
+      audioSynth.playClick();
+
+      if (op === 'read') {
+        consoleLog.innerText = `> EXECUTE READ [${activeRwTarget.toUpperCase()}]: Reading address 0x408F... Returned 8 bytes cleanly.`;
+      } else if (op === 'write') {
+        const randHex = "0x" + Math.floor(Math.random()*16777215).toString(16).toUpperCase();
+        dataVal.innerText = `[ ${randHex} 0x99 0xFF 0x00 0x11 ]`;
+        stringVal.innerText = `"MODIFIED_DATA_BLOCK"`;
+        consoleLog.innerText = `> EXECUTE WRITE [${activeRwTarget.toUpperCase()}]: Overwrote address 0x408F with new dataset ${randHex}.`;
+      } else if (op === 'erase') {
+        dataVal.innerText = `[ 0x00 0x00 0x00 0x00 0x00 ]`;
+        stringVal.innerText = `"EMPTY_NULL"`;
+        consoleLog.innerText = `> EXECUTE ERASE [${activeRwTarget.toUpperCase()}]: Zeroed out memory range at address 0x408F.`;
+      }
+    }
+
+    function closeRomShield() {
+      audioSynth.playClick();
+      document.getElementById('romShieldOverlay').classList.add('hidden');
+    }
+
+    // ==========================================
+    // FORM 2 SORTING GAME LOGIC
+    // ==========================================
+    const gameCards = [
+      { text: "Holds the Bootstrap Loader program to boot up the computer.", category: "rom" },
+      { text: "Temporary study workbench that empties completely when power turns off.", category: "ram" },
+      { text: "Ultra-fast tiny memory buffer built directly inside the CPU die.", category: "cache" },
+      { text: "Rewritable solid-state storage with no moving parts (USB drive, camera SD card).", category: "flash" },
+      { text: "Stores running applications like web browsers and games while active.", category: "ram" },
+      { text: "Non-volatile memory chip containing factory-printed startup instructions.", category: "rom" },
+      { text: "High-speed secondary cache layer that buffers CPU memory requests.", category: "cache" },
+      { text: "Permanent storage where your saved documents and photos reside safely.", category: "flash" }
+    ];
+
+    let currentCardIndex = 0;
+    let gameScore = 0;
+    let gameStreak = 0;
+
+    function loadCard() {
+      if (currentCardIndex >= gameCards.length) {
+        document.getElementById('cardPromptText').innerText = "🎉 Challenge Complete! You sorted all memory scenarios correctly!";
+        document.getElementById('gameFeedback').className = "p-4 rounded-xl text-xs font-semibold text-center bg-emerald-950 text-emerald-300 border border-emerald-800";
+        document.getElementById('gameFeedback').innerText = "Great job! Head to the Quiz or Certificate tab to finish your lab!";
+        document.getElementById('gameFeedback').classList.remove('hidden');
+        return;
+      }
+
+      const card = gameCards[currentCardIndex];
+      document.getElementById('currentCardNum').innerText = currentCardIndex + 1;
+      document.getElementById('totalCardNum').innerText = gameCards.length;
+      document.getElementById('cardPromptText').innerText = `"${card.text}"`;
+      document.getElementById('gameFeedback').classList.add('hidden');
+    }
+
+    function submitCardAnswer(selectedCategory) {
+      if (currentCardIndex >= gameCards.length) return;
+
+      const card = gameCards[currentCardIndex];
+      const feedback = document.getElementById('gameFeedback');
+      feedback.classList.remove('hidden');
+
+      if (selectedCategory === card.category) {
+        audioSynth.playSuccess();
+        gameScore += 100 + (gameStreak * 20);
+        gameStreak++;
+        feedback.className = "p-3 rounded-xl text-xs font-semibold text-center bg-emerald-950 text-emerald-300 border border-emerald-800";
+        feedback.innerText = `CORRECT! +${100 + ((gameStreak-1)*20)} pts. ${card.category.toUpperCase()} is the right classification.`;
+      } else {
+        audioSynth.playError();
+        gameStreak = 0;
+        feedback.className = "p-3 rounded-xl text-xs font-semibold text-center bg-red-950 text-red-300 border border-red-800";
+        feedback.innerText = `INCORRECT! Correct answer was ${card.category.toUpperCase()}.`;
+      }
+
+      document.getElementById('gameScore').innerText = `${gameScore} pts`;
+      document.getElementById('gameStreak').innerText = `🔥 ${gameStreak}`;
+
+      currentCardIndex++;
+      setTimeout(loadCard, 1200);
+    }
+
+    // ==========================================
+    // FORM 2 KNOWLEDGE QUIZ LOGIC
+    // ==========================================
+    const quizData = [
+      {
+        q: "1. Which memory type contains the Bootstrap Loader program needed to start up the computer?",
+        options: ["RAM", "Cache Memory", "ROM", "USB Flash Drive"],
+        correct: 2,
+        exp: "ROM (Read-Only Memory) is non-volatile and permanently stores the Bootstrap Loader firmware program to boot up the computer."
+      },
+      {
+        q: "2. Why is RAM described as 'Volatile' memory?",
+        options: [
+          "It can overheat easily",
+          "It loses all stored data when the power is turned off",
+          "It cannot be rewritten",
+          "It uses optical laser beams"
+        ],
+        correct: 1,
+        exp: "Volatile memory requires continuous power to hold data. When electrical power cuts out, all data in RAM is wiped."
+      },
+      {
+        q: "3. Where is Cache Memory physically located?",
+        options: [
+          "On an external USB stick",
+          "Inside or directly next to the CPU chip die",
+          "Inside the computer hard disk motor",
+          "On the internet server"
+        ],
+        correct: 1,
+        exp: "Cache memory is embedded directly inside or next to the CPU die for high-speed instruction buffering."
+      },
+      {
+        q: "4. Which memory type is solid-state (no moving parts), rewritable, and non-volatile?",
+        options: ["Cache Memory", "RAM", "Flash Memory", "ROM"],
+        correct: 2,
+        exp: "Flash memory (found in SSDs, USB thumb drives, and camera SD cards) is solid-state, rewritable, and holds files permanently."
+      },
+      {
+        q: "5. A student cuts off system power while typing an unsaved essay. Where was the unsaved draft lost from?",
+        options: ["ROM", "RAM", "Flash Drive", "Bootstrap Loader"],
+        correct: 1,
+        exp: "Unsaved documents exist in RAM (main temporary workspace). Because RAM is volatile, power loss clears its contents."
+      }
+    ];
+
+    function renderQuiz() {
+      const container = document.getElementById('quizQuestionsContainer');
+      container.innerHTML = quizData.map((item, qIdx) => `
+        <div class="glass-card rounded-2xl p-6 space-y-4 border border-slate-800">
+          <h3 class="font-bold text-white text-sm md:text-base">${item.q}</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            ${item.options.map((opt, oIdx) => `
+              <label class="flex items-center space-x-3 p-3 rounded-xl bg-slate-900 border border-slate-800 hover:border-cyan-500/50 cursor-pointer text-xs text-slate-300">
+                <input type="radio" name="quiz-q-${qIdx}" value="${oIdx}" class="text-cyan-500 focus:ring-cyan-400">
+                <span>${opt}</span>
+              </label>
+            `).join('')}
+          </div>
+          <div id="quiz-exp-${qIdx}" class="hidden p-3 rounded-xl text-xs font-mono bg-slate-950 border border-slate-800 text-slate-300"></div>
+        </div>
+      `).join('');
+    }
+
+    function submitQuiz() {
+      audioSynth.playClick();
+      let correctCount = 0;
+
+      quizData.forEach((item, qIdx) => {
+        const selected = document.querySelector(`input[name="quiz-q-${qIdx}"]:checked`);
+        const expBox = document.getElementById(`quiz-exp-${qIdx}`);
+        expBox.classList.remove('hidden');
+
+        if (selected && parseInt(selected.value) === item.correct) {
+          correctCount++;
+          expBox.className = "p-3 rounded-xl text-xs font-sans bg-emerald-950/60 text-emerald-300 border border-emerald-800";
+          expBox.innerHTML = `<strong class="text-emerald-400"><i class="fa-solid fa-circle-check mr-1"></i> Correct!</strong> ${item.exp}`;
+        } else {
+          expBox.className = "p-3 rounded-xl text-xs font-sans bg-red-950/60 text-red-300 border border-red-800";
+          expBox.innerHTML = `<strong class="text-red-400"><i class="fa-solid fa-circle-xmark mr-1"></i> Incorrect.</strong> ${item.exp}`;
+        }
+      });
+
+      const pct = Math.round((correctCount / quizData.length) * 100);
+      document.getElementById('quizScoreText').innerText = `Quiz Score: ${correctCount} / ${quizData.length} (${pct}%)`;
+      document.getElementById('certQuizScore').innerText = `${pct}%`;
+
+      if (pct >= 80) {
+        audioSynth.playSuccess();
+      } else {
+        audioSynth.playError();
+      }
+    }
+
+    // ==========================================
+    // CERTIFICATE LOGIC
+    // ==========================================
+    function updateCertificateName() {
+      const val = document.getElementById('studentNameInput').value;
+      document.getElementById('certNameDisplay').innerText = val.trim() || 'Form 2 ICT Student';
+    }
+
+    function printCertificate() {
+      audioSynth.playClick();
+      window.print();
+    }
+
+    // INITIALIZATION ON LOAD
+    window.onload = function() {
+      loadCard();
+      renderQuiz();
+      selectPyramidTier('cache');
+      document.getElementById('certDateDisplay').innerText = new Date().toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+    };
+  </script>
+</body>
+</html>
