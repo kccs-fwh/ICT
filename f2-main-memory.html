@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Learning Consolidation</title>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --correct: #22c55e;
+            --incorrect: #ef4444;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            padding: 2rem 1rem;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 768px;
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        header {
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            color: var(--text);
+        }
+
+        .score-board {
+            font-weight: 600;
+            color: var(--primary);
+            background: #e0e7ff;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background-color: var(--border);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background-color: var(--primary);
+            transition: width 0.3s ease;
+        }
+
+        .card {
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .card-header {
+            font-size: 0.875rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--primary);
+        }
+
+        .prompt {
+            font-size: 1.125rem;
+            font-weight: 500;
+        }
+
+        /* Multiple Choice Styles */
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .option-btn {
+            background: #fff;
+            border: 1px solid var(--border);
+            padding: 0.75rem 1rem;
+            border-radius: 6px;
+            text-align: left;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+        }
+
+        .option-btn:hover {
+            border-color: var(--primary);
+            background-color: #f5f3ff;
+        }
+
+        .option-btn.correct {
+            background-color: #dcfce7;
+            border-color: var(--correct);
+            color: #14532d;
+        }
+
+        .option-btn.incorrect {
+            background-color: #fee2e2;
+            border-color: var(--incorrect);
+            color: #7f1d1d;
+        }
+
+        /* Matching Styles */
+        .matching-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .match-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .match-item {
+            padding: 0.75rem;
+            border: 1px dashed var(--border);
+            border-radius: 6px;
+            background: #fafafa;
+            cursor: pointer;
+            text-align: center;
+            user-select: none;
+        }
+
+        .match-item.selected {
+            border-color: var(--primary);
+            background: #e0e7ff;
+        }
+
+        .match-item.matched {
+            border-color: var(--correct);
+            background: #dcfce7;
+            cursor: default;
+        }
+
+        /* Input / Code Styles */
+        .input-group {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 1rem;
+        }
+
+        button.action-btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: background-color 0.2s ease;
+        }
+
+        button.action-btn:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .feedback {
+            margin-top: 1rem;
+            padding: 0.75rem;
+            border-radius: 6px;
+            display: none;
+            font-size: 0.95rem;
+        }
+
+        .feedback.show {
+            display: block;
+        }
+
+        .feedback.correct {
+            background-color: #dcfce7;
+            color: #14532d;
+        }
+
+        .feedback.incorrect {
+            background-color: #fee2e2;
+            color: #7f1d1d;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 1rem;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Knowledge Check</h1>
+        <div class="score-board">Score: <span id="score">0</span></div>
+    </header>
+
+    <div class="progress-bar">
+        <div class="progress-fill" id="progress"></div>
+    </div>
+
+    <!-- Container where active task rendering occurs -->
+    <main id="activity-container"></main>
+
+    <div class="controls">
+        <button id="prev-btn" class="action-btn" style="background-color: var(--text-muted);" disabled>Previous</button>
+        <button id="next-btn" class="action-btn">Next</button>
+    </div>
+</div>
+
+<script>
+    /**
+     * EXERCISE TASK CONFIGURATION (Empty / Placeholder contents)
+     * Add or customize tasks here without changing structural code.
+     */
+    const tasksData = [
+        {
+            id: 1,
+            type: "multiple-choice",
+            category: "Task Type: Multiple Choice",
+            prompt: "[[ INSERT PROMPT / QUESTION CONTENT HERE ]]",
+            options: [
+                "[[ Option A Content ]]",
+                "[[ Option B Content ]]",
+                "[[ Option C Content ]]",
+                "[[ Option D Content ]]"
+            ],
+            correctIndex: 0, // Index of correct option (0-based)
+            explanation: "[[ INSERT FEEDBACK / EXPLANATION TEXT HERE ]]"
+        },
+        {
+            id: 2,
+            type: "matching",
+            category: "Task Type: Term Matching",
+            prompt: "[[ INSERT INSTRUCTIONS (e.g. Match the items on the left with those on the right) ]]",
+            pairs: [
+                { left: "[[ Left Item 1 ]]", right: "[[ Right Item 1 ]]" },
+                { left: "[[ Left Item 2 ]]", right: "[[ Right Item 2 ]]" },
+                { left: "[[ Left Item 3 ]]", right: "[[ Right Item 3 ]]" }
+            ],
+            explanation: "[[ INSERT FEEDBACK / EXPLANATION TEXT HERE ]]"
+        },
+        {
+            id: 3,
+            type: "fill-in-blank",
+            category: "Task Type: Text / Value Response",
+            prompt: "[[ INSERT QUESTION / CODE SNIPPET TO PREDICT HERE ]]",
+            acceptableAnswers: ["[[ Answer 1 ]]", "[[ Answer 2 ]]"], // Case-insensitive matching
+            explanation: "[[ INSERT FEEDBACK / EXPLANATION TEXT HERE ]]"
+        }
+    ];
+
+    // State Management
+    let currentIndex = 0;
+    let score = 0;
+    const completedTasks = new Set();
+
+    // DOM Elements
+    const activityContainer = document.getElementById("activity-container");
+    const scoreEl = document.getElementById("score");
+    const progressEl = document.getElementById("progress");
+    const prevBtn = document.getElementById("prev-btn");
+    const nextBtn = document.getElementById("next-btn");
+
+    function init() {
+        renderTask();
+        updateControls();
+    }
+
+    function updateProgress() {
+        const percentage = ((currentIndex + 1) / tasksData.length) * 100;
+        progressEl.style.width = `${percentage}%`;
+    }
+
+    function updateControls() {
+        prevBtn.disabled = currentIndex === 0;
+        if (currentIndex === tasksData.length - 1) {
+            nextBtn.textContent = "Finish";
+        } else {
+            nextBtn.textContent = "Next";
+        }
+    }
+
+    function renderTask() {
+        updateProgress();
+        const task = tasksData[currentIndex];
+        activityContainer.innerHTML = "";
+
+        const card = document.createElement("div");
+        card.className = "card";
+
+        const category = document.createElement("div");
+        category.className = "card-header";
+        category.textContent = task.category;
+        card.appendChild(category);
+
+        const prompt = document.createElement("div");
+        prompt.className = "prompt";
+        prompt.textContent = task.prompt;
+        card.appendChild(prompt);
+
+        // Render appropriate UI based on Task Type
+        if (task.type === "multiple-choice") {
+            renderMultipleChoice(card, task);
+        } else if (task.type === "matching") {
+            renderMatching(card, task);
+        } else if (task.type === "fill-in-blank") {
+            renderFillInBlank(card, task);
+        }
+
+        activityContainer.appendChild(card);
+    }
+
+    /* --- TASK RENDERERS --- */
+
+    function renderMultipleChoice(card, task) {
+        const optionsContainer = document.createElement("div");
+        optionsContainer.className = "options";
+
+        const feedback = document.createElement("div");
+        feedback.className = "feedback";
+
+        task.options.forEach((optText, idx) => {
+            const btn = document.createElement("button");
+            btn.className = "option-btn";
+            btn.textContent = optText;
+            btn.onclick = () => {
+                if (completedTasks.has(task.id)) return;
+                
+                if (idx === task.correctIndex) {
+                    btn.classList.add("correct");
+                    feedback.textContent = `Correct! ${task.explanation}`;
+                    feedback.className = "feedback show correct";
+                    addScore();
+                } else {
+                    btn.classList.add("incorrect");
+                    feedback.textContent = `Incorrect. ${task.explanation}`;
+                    feedback.className = "feedback show incorrect";
+                }
+                completedTasks.add(task.id);
+            };
+            optionsContainer.appendChild(btn);
+        });
+
+        card.appendChild(optionsContainer);
+        card.appendChild(feedback);
+    }
+
+    function renderMatching(card, task) {
+        const grid = document.createElement("div");
+        grid.className = "matching-grid";
+
+        const leftCol = document.createElement("div");
+        leftCol.className = "match-list";
+        const rightCol = document.createElement("div");
+        rightCol.className = "match-list";
+
+        const feedback = document.createElement("div");
+        feedback.className = "feedback";
+
+        // Shuffle right column for task
+        const shuffledRight = [...task.pairs].sort(() => Math.random() - 0.5);
+
+        let selectedLeft = null;
+        let matchesFound = 0;
+
+        task.pairs.forEach((pair) => {
+            const leftEl = document.createElement("div");
+            leftEl.className = "match-item";
+            leftEl.textContent = pair.left;
+            leftEl.dataset.key = pair.left;
+
+            leftEl.onclick = () => {
+                if (leftEl.classList.contains("matched")) return;
+                document.querySelectorAll(".match-list:first-child .match-item").forEach(el => el.classList.remove("selected"));
+                leftEl.classList.add("selected");
+                selectedLeft = pair;
+            };
+
+            leftCol.appendChild(leftEl);
+        });
+
+        shuffledRight.forEach((pair) => {
+            const rightEl = document.createElement("div");
+            rightEl.className = "match-item";
+            rightEl.textContent = pair.right;
+
+            rightEl.onclick = () => {
+                if (!selectedLeft || rightEl.classList.contains("matched")) return;
+
+                if (selectedLeft.right === pair.right) {
+                    rightEl.classList.add("matched");
+                    const leftEl = Array.from(leftCol.children).find(el => el.dataset.key === selectedLeft.left);
+                    if (leftEl) leftEl.classList.add("matched", "selected");
+                    
+                    matchesFound++;
+                    selectedLeft = null;
+
+                    if (matchesFound === task.pairs.length) {
+                        feedback.textContent = `All matches correct! ${task.explanation}`;
+                        feedback.className = "feedback show correct";
+                        if (!completedTasks.has(task.id)) {
+                            addScore();
+                            completedTasks.add(task.id);
+                        }
+                    }
+                } else {
+                    feedback.textContent = "Incorrect match try again.";
+                    feedback.className = "feedback show incorrect";
+                }
+            };
+
+            rightCol.appendChild(rightEl);
+        });
+
+        grid.appendChild(leftCol);
+        grid.appendChild(rightCol);
+        card.appendChild(grid);
+        card.appendChild(feedback);
+    }
+
+    function renderFillInBlank(card, task) {
+        const inputGroup = document.createElement("div");
+        inputGroup.className = "input-group";
+
+        const input = document.createElement("input");
+        input.type = "text";
+        input.placeholder = "Type your answer here...";
+
+        const submitBtn = document.createElement("button");
+        submitBtn.className = "action-btn";
+        submitBtn.textContent = "Submit";
+
+        const feedback = document.createElement("div");
+        feedback.className = "feedback";
+
+        submitBtn.onclick = () => {
+            if (completedTasks.has(task.id)) return;
+            const val = input.value.trim().toLowerCase();
+            const isCorrect = task.acceptableAnswers.some(ans => ans.toLowerCase() === val);
+
+            if (isCorrect) {
+                feedback.textContent = `Correct! ${task.explanation}`;
+                feedback.className = "feedback show correct";
+                addScore();
+            } else {
+                feedback.textContent = `Incorrect. ${task.explanation}`;
+                feedback.className = "feedback show incorrect";
+            }
+            completedTasks.add(task.id);
+        };
+
+        inputGroup.appendChild(input);
+        inputGroup.appendChild(submitBtn);
+        card.appendChild(inputGroup);
+        card.appendChild(feedback);
+    }
+
+    function addScore() {
+        score += 10;
+        scoreEl.textContent = score;
+    }
+
+    /* --- NAVIGATION --- */
+    prevBtn.addEventListener("click", () => {
+        if (currentIndex > 0) {
+            currentIndex--;
+            renderTask();
+            updateControls();
+        }
+    });
+
+    nextBtn.addEventListener("click", () => {
+        if (currentIndex < tasksData.length - 1) {
+            currentIndex++;
+            renderTask();
+            updateControls();
+        } else {
+            alert(`Exercise Complete! Final Score: ${score}`);
+        }
+    });
+
+    init();
+</script>
+</body>
+</html>
