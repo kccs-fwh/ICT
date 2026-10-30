@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interactive Learning Consolidation</title>
+    <title>Chapter 3: Main Memory (RAM & ROM) - Learning Check</title>
     <style>
         :root {
             --primary: #4f46e5;
@@ -54,7 +54,7 @@
         }
 
         h1 {
-            font-size: 1.5rem;
+            font-size: 1.35rem;
             color: var(--text);
         }
 
@@ -99,8 +99,9 @@
         }
 
         .prompt {
-            font-size: 1.125rem;
+            font-size: 1.1rem;
             font-weight: 500;
+            line-height: 1.5;
         }
 
         /* Multiple Choice Styles */
@@ -159,6 +160,7 @@
             cursor: pointer;
             text-align: center;
             user-select: none;
+            font-size: 0.95rem;
         }
 
         .match-item.selected {
@@ -172,7 +174,7 @@
             cursor: default;
         }
 
-        /* Input / Code Styles */
+        /* Input / Calculation Styles */
         .input-group {
             display: flex;
             gap: 0.5rem;
@@ -208,6 +210,7 @@
             border-radius: 6px;
             display: none;
             font-size: 0.95rem;
+            line-height: 1.4;
         }
 
         .feedback.show {
@@ -230,17 +233,13 @@
             align-items: center;
             margin-top: 1rem;
         }
-
-        .hidden {
-            display: none !important;
-        }
     </style>
 </head>
 <body>
 
 <div class="container">
     <header>
-        <h1>Knowledge Check</h1>
+        <h1>Main Memory: RAM and ROM</h1>
         <div class="score-board">Score: <span id="score">0</span></div>
     </header>
 
@@ -259,43 +258,83 @@
 
 <script>
     /**
-     * EXERCISE TASK CONFIGURATION (Empty / Placeholder contents)
-     * Add or customize tasks here without changing structural code.
+     * EXERCISE CONTENT INJECTED FROM CHAPTER 3 PPT
      */
     const tasksData = [
         {
             id: 1,
             type: "multiple-choice",
-            category: "Task Type: Multiple Choice",
-            prompt: "[[ INSERT PROMPT / QUESTION CONTENT HERE ]]",
+            category: "Memory Characteristics",
+            prompt: "What happens to the data stored in RAM when the computer power is turned off?",
             options: [
-                "[[ Option A Content ]]",
-                "[[ Option B Content ]]",
-                "[[ Option C Content ]]",
-                "[[ Option D Content ]]"
+                "It is saved permanently to the hard drive.",
+                "It disappears instantly because RAM is volatile memory.",
+                "It is stored safely inside BIOS.",
+                "It gets converted into flash memory."
             ],
-            correctIndex: 0, // Index of correct option (0-based)
-            explanation: "[[ INSERT FEEDBACK / EXPLANATION TEXT HERE ]]"
+            correctIndex: 1,
+            explanation: "RAM is volatile memory, meaning all data stored in it disappears instantly when the computer is turned off[span_12](start_span)[span_12](end_span)."
         },
         {
             id: 2,
             type: "matching",
-            category: "Task Type: Term Matching",
-            prompt: "[[ INSERT INSTRUCTIONS (e.g. Match the items on the left with those on the right) ]]",
+            category: "Term & Definition Matching",
+            prompt: "Click an item on the left, then click its corresponding description on the right:",
             pairs: [
-                { left: "[[ Left Item 1 ]]", right: "[[ Right Item 1 ]]" },
-                { left: "[[ Left Item 2 ]]", right: "[[ Right Item 2 ]]" },
-                { left: "[[ Left Item 3 ]]", right: "[[ Right Item 3 ]]" }
+                { left: "Bootstrap", right: "Loads & runs the Operating System" },
+                { left: "BIOS", right: "Manages I/O data transfer during startup" },
+                { left: "Cache Memory", right: "Fastest memory storing CPU's recent data" },
+                { left: "Flash Memory", right: "Non-volatile memory used in SSDs and USB drives" }
             ],
-            explanation: "[[ INSERT FEEDBACK / EXPLANATION TEXT HERE ]]"
+            explanation: "ROM stores the bootstrap and BIOS[span_13](start_span)[span_13](end_span)[span_14](start_span)[span_14](end_span). Cache is the fastest memory inside CPU[span_15](start_span)[span_15](end_span)[span_16](start_span)[span_16](end_span). Flash memory is used for SSDs and USB drives[span_17](start_span)[span_17](end_span)[span_18](start_span)[span_18](end_span)."
         },
         {
             id: 3,
             type: "fill-in-blank",
-            category: "Task Type: Text / Value Response",
-            prompt: "[[ INSERT QUESTION / CODE SNIPPET TO PREDICT HERE ]]",
-            acceptableAnswers: ["[[ Answer 1 ]]", "[[ Answer 2 ]]"], // Case-insensitive matching
-            explanation: "[[ INSERT FEEDBACK / EXPLANATION TEXT HERE ]]"
+            category: "Memory Unit Calculation",
+            prompt: "How many Megabytes (MB) are equal to 8 Gigabytes (GB) of RAM? (Hint: 1 GB = 1024 MB)",
+            acceptableAnswers: ["8192", "8192MB", "8192 MB"],
+            explanation: "Since 1 GB = 1024 MB, 8 GB = 8 × 1024 = 8192 MB[span_19](start_span)[span_19](end_span)[span_20](start_span)[span_20](end_span)."
+        },
+        {
+            id: 4,
+            type: "multiple-choice",
+            category: "CPU Operations & Memory",
+            prompt: "When the CPU needs to retrieve data, which memory does it check FIRST?",
+            options: [
+                "RAM",
+                "USB Flash Drive",
+                "Cache Memory",
+                "Hard Disk Drive"
+            ],
+            correctIndex: 2,
+            explanation: "The CPU first searches cache memory for requested data[span_21](start_span)[span_21](end_span). If found, it retrieves it quickly without having to access RAM[span_22](start_span)[span_22](end_span)."
+        },
+        {
+            id: 5,
+            type: "matching",
+            category: "Storage Application",
+            prompt: "Match each file type with its typical storage size:",
+            pairs: [
+                { left: "1 Page of Text File", right: "~3 KB" },
+                { left: "1 AAC Music File", right: "~5 MB" },
+                { left: "1 Hour of 4K MP4 Video", right: "~20 GB" }
+            ],
+            explanation: "Text files take very few KB[span_23](start_span)[span_23](end_span), music files take several MB[span_24](start_span)[span_24](end_span), and high-resolution 4K video occupies gigabytes[span_25](start_span)[span_25](end_span)."
+        },
+        {
+            id: 6,
+            type: "multiple-choice",
+            category: "Data Security",
+            prompt: "Which of the following is a recommended method to protect sensitive data stored on a USB flash drive?",
+            options: [
+                "Reformatting the RAM frequently",
+                "Encrypting sensitive data using software or built-in features",
+                "Increasing the CPU word length to 64-bit",
+                "Deleting BIOS settings regularly"
+            ],
+            correctIndex: 1,
+            explanation: "Encrypting sensitive data and setting strong passwords are effective ways to protect portable USB flash drives from data leaks[span_26](start_span)[span_26](end_span)."
         }
     ];
 
@@ -348,7 +387,6 @@
         prompt.textContent = task.prompt;
         card.appendChild(prompt);
 
-        // Render appropriate UI based on Task Type
         if (task.type === "multiple-choice") {
             renderMultipleChoice(card, task);
         } else if (task.type === "matching") {
@@ -407,7 +445,6 @@
         const feedback = document.createElement("div");
         feedback.className = "feedback";
 
-        // Shuffle right column for task
         const shuffledRight = [...task.pairs].sort(() => Math.random() - 0.5);
 
         let selectedLeft = null;
@@ -446,7 +483,7 @@
                     selectedLeft = null;
 
                     if (matchesFound === task.pairs.length) {
-                        feedback.textContent = `All matches correct! ${task.explanation}`;
+                        feedback.textContent = `All matched correctly! ${task.explanation}`;
                         feedback.className = "feedback show correct";
                         if (!completedTasks.has(task.id)) {
                             addScore();
@@ -454,7 +491,7 @@
                         }
                     }
                 } else {
-                    feedback.textContent = "Incorrect match try again.";
+                    feedback.textContent = "Incorrect pair match. Try selecting another item.";
                     feedback.className = "feedback show incorrect";
                 }
             };
@@ -474,7 +511,7 @@
 
         const input = document.createElement("input");
         input.type = "text";
-        input.placeholder = "Type your answer here...";
+        input.placeholder = "Enter calculated value...";
 
         const submitBtn = document.createElement("button");
         submitBtn.className = "action-btn";
