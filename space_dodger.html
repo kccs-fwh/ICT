@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Space Dodger - Starter Game</title>
+    <style>
+        /* INTENTIONAL UI FLAW: Plain black background, basic default styling, tiny text */
+        body {
+            background-color: #111;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            margin-bottom: 5px;
+            font-size: 20px;
+        }
+
+        #game-container {
+            position: relative;
+            display: inline-block;
+            margin-top: 10px;
+        }
+
+        canvas {
+            background-color: #000;
+            border: 1px solid #444;
+            display: block;
+        }
+
+        /* INTENTIONAL UI FLAW: Extremely basic score & instructions display */
+        #hud {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 14px;
+            color: #aaa;
+            text-align: left;
+        }
+
+        #game-over-overlay {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            color: white;
+            box-sizing: border-box;
+            padding-top: 140px;
+        }
+
+        /* INTENTIONAL UX FLAW: Plain button, small touch targets */
+        button {
+            padding: 6px 12px;
+            font-size: 14px;
+            cursor: pointer;
+            margin-top: 10px;
+            background: #333;
+            color: #fff;
+            border: 1px solid #666;
+        }
+
+        button:hover {
+            background: #555;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Space Dodger</h1>
+    <p style="font-size: 12px; color: #888;">Use LEFT and RIGHT arrow keys to move.</p>
+
+    <div id="game-container">
+        <canvas id="gameCanvas" width="400" height="500"></canvas>
+        
+        <div id="hud">
+            Score: <span id="score">0</span>
+        </div>
+
+        <div id="game-over-overlay">
+            <h2>Game Over</h2>
+            <p>Your score: <span id="final-score">0</span></p>
+            <!-- INTENTIONAL UX FLAW: User must click this small button, no shortcut key to restart -->
+            <button onclick="resetGame()">Try Again</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreElement = document.getElementById('score');
+        const finalScoreElement = document.getElementById('final-score');
+        const gameOverOverlay = document.getElementById('game-over-overlay');
+
+        // Game State Variables
+        let score = 0;
+        let isGameOver = false;
+        let animationFrameId;
+
+        // Player (Ship) Setup - INTENTIONAL UI FLAW: Just a simple green square
+        const player = {
+            x: canvas.width / 2 - 15,
+            y: canvas.height - 40,
+            width: 30,
+            height: 30,
+            speed: 5,
+            moveLeft: false,
+            moveRight: false
+        };
+
+        // Obstacles (Asteroids) Setup - INTENTIONAL UI FLAW: Simple red rectangles
+        let obstacles = [];
+        let spawnTimer = 0;
+        let spawnInterval = 40;
+
+        // Event Listeners for Controls
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') player.moveLeft = true;
+            if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') player.moveRight = true;
+        });
+
+        window.addEventListener('keyup', (e) => {
+            if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') player.moveLeft = false;
+            if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') player.moveRight = false;
+        });
+
+        // Main Game Loop
+        function update() {
+            if (isGameOver) return;
+
+            // Move Player
+            if (player.moveLeft && player.x > 0) {
+                player.x -= player.speed;
+            }
+            if (player.moveRight && player.x + player.width < canvas.width) {
+                player.x += player.speed;
+            }
+
+            // Spawn Obstacles
+            spawnTimer++;
+            if (spawnTimer >= spawnInterval) {
+                const size = Math.floor(Math.random() * 20) + 20;
+                obstacles.push({
+                    x: Math.random() * (canvas.width - size),
+                    y: -size,
+                    width: size,
+                    height: size,
+                    speed: Math.random() * 2 + 3
+                });
+                spawnTimer = 0;
+            }
+
+            // Move & Check Obstacles
+            for (let i = 0; i < obstacles.length; i++) {
+                let obs = obstacles[i];
+                obs.y += obs.speed;
+
+                // Collision Detection (Box Collision)
+                if (
+                    player.x < obs.x + obs.width &&
+                    player.x + player.width > obs.x &&
+                    player.y < obs.y + obs.height &&
+                    player.y + player.height > obs.y
+                ) {
+                    endGame();
+                    return;
+                }
+
+                // Remove off-screen obstacles and increase score
+                if (obs.y > canvas.height) {
+                    obstacles.splice(i, 1);
+                    i--;
+                    score += 10;
+                    scoreElement.textContent = score;
+                }
+            }
+
+            draw();
+            animationFrameId = requestAnimationFrame(update);
+        }
+
+        // Render Graphics
+        function draw() {
+            // Clear Screen
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw Player (Green Box)
+            ctx.fillStyle = '#00ff66';
+            ctx.fillRect(player.x, player.y, player.width, player.height);
+
+            // Draw Obstacles (Red Boxes)
+            ctx.fillStyle = '#ff4444';
+            obstacles.forEach(obs => {
+                ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
+            });
+        }
+
+        function endGame() {
+            isGameOver = true;
+            finalScoreElement.textContent = score;
+            gameOverOverlay.style.display = 'block';
+        }
+
+        function resetGame() {
+            score = 0;
+            scoreElement.textContent = '0';
+            obstacles = [];
+            player.x = canvas.width / 2 - 15;
+            isGameOver = false;
+            gameOverOverlay.style.display = 'none';
+            cancelAnimationFrame(animationFrameId);
+            update();
+        }
+
+        // Start initial game loop
+        update();
+    </script>
+</body>
+</html>
