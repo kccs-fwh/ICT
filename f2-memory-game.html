@@ -78,6 +78,25 @@
             </div>
         </header>
 
+        <!-- Hero Combat Stats Bar (NEW) -->
+        <div id="stats-banner" class="bg-slate-950/80 border border-slate-800 rounded-2xl px-4 py-2 mb-3 flex justify-around items-center text-xs">
+            <div class="flex items-center gap-1.5">
+                <span>⚔️</span>
+                <span class="text-slate-400 font-bold">ATK:</span>
+                <span id="stat-atk" class="text-cyan-400 font-bold">15</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+                <span>🛡️</span>
+                <span class="text-slate-400 font-bold">DEF:</span>
+                <span id="stat-def" class="text-cyan-400 font-bold">5</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+                <span>💪</span>
+                <span class="text-slate-400 font-bold">POWER:</span>
+                <span id="stat-power" class="text-yellow-400 font-bold">20</span>
+            </div>
+        </div>
+
         <!-- Dynamic Game Canvas View -->
         <main id="game-view" class="min-h-[380px] flex flex-col justify-center">
             <!-- Injected via JavaScript -->
@@ -133,6 +152,7 @@
                 accessory: null,
                 inventory: []
             },
+            completedZones: [], // Tracks defeated sector bosses
             currentZone: 0,
             activeBattle: null,
             activeTab: 'adventure'
@@ -176,6 +196,7 @@
                 id: 1,
                 name: "Sector 2: Cache Realm",
                 reqLvl: 2,
+                reqPrevZone: 0,
                 emoji: "🚀",
                 enemyEmoji: "⚡",
                 boss: "Latency Bug",
@@ -198,6 +219,7 @@
                 id: 2,
                 name: "Sector 3: ROM Citadel",
                 reqLvl: 3,
+                reqPrevZone: 1,
                 emoji: "🔒",
                 enemyEmoji: "🤖",
                 boss: "Boot Disruptor",
@@ -220,6 +242,7 @@
                 id: 3,
                 name: "Sector 4: Flash Fortress",
                 reqLvl: 4,
+                reqPrevZone: 2,
                 emoji: "💾",
                 enemyEmoji: "☣️",
                 boss: "Malware Warden",
@@ -242,6 +265,7 @@
                 id: 4,
                 name: "FINAL: Cyber Core",
                 reqLvl: 5,
+                reqPrevZone: 3,
                 emoji: "👑",
                 enemyEmoji: "👹",
                 boss: "GLITCH OVERLORD",
@@ -299,12 +323,38 @@
             renderView();
         }
 
+        function getHeroStats() {
+            const p = gameState.player;
+            let totalAtk = p.atk;
+            let totalDef = p.def;
+            
+            if (p.weapon) totalAtk += p.weapon.atk || 0;
+            if (p.armor) totalDef += p.armor.def || 0;
+            if (p.accessory) {
+                totalAtk += p.accessory.atk || 0;
+                totalDef += p.accessory.def || 0;
+            }
+
+            return {
+                atk: totalAtk,
+                def: totalDef,
+                power: totalAtk + totalDef
+            };
+        }
+
         function updateHeaderStats() {
             const p = gameState.player;
+            const stats = getHeroStats();
+
             document.getElementById('hero-lvl').textContent = p.level;
             document.getElementById('hp-text').textContent = `${p.hp}/${p.maxHp}`;
             document.getElementById('xp-text').textContent = `${p.xp}/${p.nextXp}`;
             document.getElementById('bytes-count').textContent = `${p.bytes} B`;
+
+            // Update Hero Power stats banner
+            document.getElementById('stat-atk').textContent = stats.atk;
+            document.getElementById('stat-def').textContent = stats.def;
+            document.getElementById('stat-power').textContent = stats.power;
         }
 
         function renderView() {
@@ -332,28 +382,55 @@
             }
         }
 
-        // 1. Cleaned Map / Adventure View
+        // Helper function to shuffle options and track correct index
+        function shuffleOptions(question) {
+            const originalCorrect = question.options[question.correct];
+            const shuffled = [...question.options].sort(() => Math.random() - 0.5);
+            const newCorrectIdx = shuffled.indexOf(originalCorrect);
+
+            return {
+                q: question.q,
+                options: shuffled,
+                correct: newCorrectIdx,
+                exp: question.exp
+            };
+        }
+
+        // 1. Sector View with Requirements
         function renderAdventureView(container) {
             let html = `<div class="space-y-3">`;
 
             zones.forEach((z) => {
-                const isLocked = gameState.player.level < z.reqLvl;
+                const lvlMet = gameState.player.level >= z.reqLvl;
+                const prevMet = z.reqPrevZone === undefined || gameState.completedZones.includes(z.reqPrevZone);
+                const isUnlocked = lvlMet && prevMet;
+                const isCleared = gameState.completedZones.includes(z.id);
+
+                let reqText = [];
+                if (!lvlMet) reqText.push(`Lvl ${z.reqLvl}`);
+                if (!prevMet) reqText.push(`Clear ${zones[z.reqPrevZone].name}`);
 
                 html += `
-                    <div class="bg-slate-950/70 border ${isLocked ? 'border-slate-800 opacity-50' : 'border-slate-700 hover:border-cyan-500'} rounded-2xl p-3.5 flex items-center justify-between gap-3 transition">
+                    <div class="bg-slate-950/70 border ${!isUnlocked ? 'border-slate-800 opacity-60' : isCleared ? 'border-emerald-500/50' : 'border-slate-700 hover:border-cyan-500'} rounded-2xl p-3.5 flex items-center justify-between gap-3 transition">
                         <div class="flex items-center gap-3">
                             <span class="text-3xl">${z.emoji}</span>
                             <div>
-                                <h3 class="font-bold text-slate-100 text-sm sm:text-base">${z.name}</h3>
+                                <div class="flex items-center gap-2">
+                                    <h3 class="font-bold text-slate-100 text-sm sm:text-base">${z.name}</h3>
+                                    ${isCleared ? `<span class="text-xs text-emerald-400 font-bold">✓ Cleared</span>` : ''}
+                                </div>
                                 <p class="text-xs text-slate-400">Boss: <span class="text-red-400">${z.boss}</span></p>
                             </div>
                         </div>
 
                         <div>
-                            ${isLocked ? 
-                                `<span class="px-3 py-1.5 bg-slate-800 text-slate-500 text-xs font-bold rounded-xl">🔒 Lvl ${z.reqLvl}</span>` : 
+                            ${!isUnlocked ? 
+                                `<div class="text-right">
+                                    <span class="px-3 py-1 bg-slate-800 text-slate-400 text-[11px] font-bold rounded-xl block">🔒 Locked</span>
+                                    <span class="text-[10px] text-amber-400 font-bold block mt-1">${reqText.join(" & ")}</span>
+                                 </div>` : 
                                 `<button onclick="startBattle(${z.id})" class="px-4 py-2 ${z.isBoss ? 'bg-red-600 hover:bg-red-500 text-white' : 'bg-cyan-500 hover:bg-cyan-400 text-slate-950'} text-xs font-bold rounded-xl transition shadow-lg">
-                                    ${z.isBoss ? '👑 BOSS' : '⚔️ Fight'}
+                                    ${z.isBoss ? '👑 BOSS' : '⚔️ Challenge'}
                                 </button>`
                             }
                         </div>
@@ -365,13 +442,18 @@
             container.innerHTML = html;
         }
 
-        // 2. Battle View with Emojis
+        // 2. Battle View with Options Shuffling
         function startBattle(zoneId) {
             const z = zones[zoneId];
             gameState.currentZone = zoneId;
+
+            // Randomize answer order for each question
+            const shuffledQuestions = z.questions.map(q => shuffleOptions(q));
+
             gameState.activeBattle = {
                 zoneId: zoneId,
                 questionIndex: 0,
+                shuffledQuestions: shuffledQuestions,
                 enemyHp: z.isBoss ? 150 : 80,
                 enemyMaxHp: z.isBoss ? 150 : 80
             };
@@ -381,7 +463,7 @@
         function renderBattleView(container) {
             const b = gameState.activeBattle;
             const z = zones[b.zoneId];
-            const q = z.questions[b.questionIndex];
+            const q = b.shuffledQuestions[b.questionIndex];
 
             const html = `
                 <div class="space-y-4">
@@ -427,55 +509,100 @@
             container.innerHTML = html;
         }
 
+        // 3. Ending Screen After Defeating Sector Bosses
         function submitAnswer(chosenIdx) {
             const b = gameState.activeBattle;
             const z = zones[b.zoneId];
-            const q = z.questions[b.questionIndex];
+            const q = b.shuffledQuestions[b.questionIndex];
             const player = gameState.player;
+            const stats = getHeroStats();
 
             if (chosenIdx === q.correct) {
-                let totalAtk = player.atk;
-                if(player.weapon) totalAtk += player.weapon.atk || 0;
-                if(player.accessory) totalAtk += player.accessory.atk || 0;
-
-                const dmg = Math.floor(totalAtk * 1.2);
+                const dmg = Math.floor(stats.atk * 1.2);
                 b.enemyHp = Math.max(0, b.enemyHp - dmg);
 
-                if (b.enemyHp <= 0 || b.questionIndex >= z.questions.length - 1) {
-                    const earnedBytes = (b.zoneId + 1) * 30;
-                    const earnedXp = (b.zoneId + 1) * 25;
+                if (b.enemyHp <= 0 || b.questionIndex >= b.shuffledQuestions.length - 1) {
+                    const earnedBytes = (b.zoneId + 1) * 35;
+                    const earnedXp = (b.zoneId + 1) * 30;
                     player.bytes += earnedBytes;
                     addXp(earnedXp);
+
+                    // Mark sector completed
+                    if (!gameState.completedZones.includes(z.id)) {
+                        gameState.completedZones.push(z.id);
+                    }
 
                     gameState.activeBattle = null;
 
                     if (z.isBoss) {
-                        showModal("VICTORY! WORLD SAVED!", `You defeated the GLITCH OVERLORD and restored the mainboard! Reward: +${earnedBytes} Bytes!`, "🏆");
+                        // GRAND ENDING SCREEN
+                        renderEndingScreen(z, earnedBytes, earnedXp, true);
                     } else {
-                        showModal("SECTOR CLEARED!", `Correct! ${q.exp}\n\nReward: +${earnedBytes} Bytes, +${earnedXp} XP!`, "✅");
+                        // SECTOR BOSS VICTORY SCREEN
+                        renderEndingScreen(z, earnedBytes, earnedXp, false);
                     }
                 } else {
                     b.questionIndex++;
-                    showModal("GREAT HIT!", `Correct! ${q.exp}\nDealt ${dmg} damage to the enemy!`, "⚡");
+                    showModal("CRITICAL HIT!", `Correct! ${q.exp}\nDealt ${dmg} damage to ${z.boss}!`, "⚡");
                 }
             } else {
-                let totalDef = player.def;
-                if(player.armor) totalDef += player.armor.def || 0;
-                if(player.accessory) totalDef += player.accessory.def || 0;
-
-                const dmg = Math.max(10, 25 - Math.floor(totalDef * 0.5));
+                const dmg = Math.max(10, 25 - Math.floor(stats.def * 0.5));
                 player.hp = Math.max(0, player.hp - dmg);
 
                 if (player.hp <= 0) {
                     player.hp = player.maxHp;
                     gameState.activeBattle = null;
-                    showModal("CRASH!", `Wrong answer! System overheated. Rebooting...`, "💥");
+                    showModal("SYSTEM CRASH!", `Wrong answer! Memory corrupted. System rebooting...`, "💥");
                 } else {
-                    showModal("WRONG!", `Incorrect! ${q.exp}\nYou lost ${dmg} HP!`, "❌");
+                    showModal("INCORRECT!", `Wrong! ${q.exp}\nYou took ${dmg} damage!`, "❌");
                 }
             }
 
             renderView();
+        }
+
+        // Sector / Grand Final Victory Screen Generator
+        function renderEndingScreen(zone, bytes, xp, isFinal) {
+            const view = document.getElementById('game-view');
+
+            const nextZone = zones[zone.id + 1];
+            const nextUnlockText = nextZone ? `Unlocked Sector: ${nextZone.name}` : "All sectors liberated!";
+
+            view.innerHTML = `
+                <div class="bg-slate-950 border-2 ${isFinal ? 'border-yellow-500 glow-gold' : 'border-emerald-500 glow-cyan'} rounded-3xl p-6 text-center space-y-4 my-auto">
+                    <div class="text-6xl animate-bounce">${isFinal ? '🏆' : '🎉'}</div>
+                    <h2 class="pixel-font text-sm ${isFinal ? 'text-yellow-400' : 'text-emerald-400'}">
+                        ${isFinal ? 'WORLD SAVED!' : 'SECTOR LIBERATED!'}
+                    </h2>
+                    <p class="text-slate-300 text-sm max-w-md mx-auto leading-relaxed">
+                        ${isFinal ? 
+                            `Incredible victory! You defeated the <b>GLITCH OVERLORD</b>, restored RAM and ROM integrity, and saved the entire Cyber System!` : 
+                            `You defeated <b>${zone.boss}</b> and restored stability to <b>${zone.name}</b>!`
+                        }
+                    </p>
+
+                    <!-- Rewards Summary -->
+                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 max-w-xs mx-auto flex justify-around items-center">
+                        <div>
+                            <div class="text-xs text-slate-400">Earned Bytes</div>
+                            <div class="text-sm font-bold text-emerald-400">+${bytes} B</div>
+                        </div>
+                        <div class="h-8 w-px bg-slate-800"></div>
+                        <div>
+                            <div class="text-xs text-slate-400">Earned XP</div>
+                            <div class="text-sm font-bold text-yellow-400">+${xp} XP</div>
+                        </div>
+                    </div>
+
+                    <div class="text-xs text-cyan-400 font-bold">
+                        ${nextUnlockText}
+                    </div>
+
+                    <button onclick="renderView()" class="px-6 py-3 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs rounded-2xl transition">
+                        Continue Adventure 🗺️
+                    </button>
+                </div>
+            `;
         }
 
         function fleeBattle() {
@@ -498,7 +625,7 @@
             }
         }
 
-        // 3. Simple Hardware Shop Screen
+        // 4. Hardware Shop
         function renderShopView(container) {
             let html = `<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">`;
 
@@ -553,12 +680,31 @@
             }
         }
 
-        // 4. Equipment Screen
+        // 5. Equipment & Abilities Screen
         function renderInventoryView(container) {
             const p = gameState.player;
+            const stats = getHeroStats();
 
             let html = `
                 <div class="space-y-4">
+                    <!-- Hero Stats Breakdown -->
+                    <div class="bg-slate-950/80 border border-slate-800 rounded-2xl p-3 flex justify-around text-center">
+                        <div>
+                            <div class="text-[10px] text-slate-400 uppercase font-bold">Base ATK</div>
+                            <div class="text-xs font-bold text-slate-200">${p.atk} <span class="text-cyan-400">(+${stats.atk - p.atk})</span></div>
+                        </div>
+                        <div class="h-8 w-px bg-slate-800"></div>
+                        <div>
+                            <div class="text-[10px] text-slate-400 uppercase font-bold">Base DEF</div>
+                            <div class="text-xs font-bold text-slate-200">${p.def} <span class="text-cyan-400">(+${stats.def - p.def})</span></div>
+                        </div>
+                        <div class="h-8 w-px bg-slate-800"></div>
+                        <div>
+                            <div class="text-[10px] text-slate-400 uppercase font-bold">Total Power</div>
+                            <div class="text-xs font-bold text-yellow-400">${stats.power}</div>
+                        </div>
+                    </div>
+
                     <!-- Equipped Slots -->
                     <div class="grid grid-cols-3 gap-2">
                         <div class="bg-slate-950/70 border border-slate-800 p-3 rounded-2xl text-center">
@@ -628,7 +774,7 @@
             renderView();
         }
 
-        // 5. Cleaned Study / Lore Screen
+        // 6. Study / Lore Screen
         function renderLoreView(container) {
             let html = `<div class="space-y-2.5">`;
 
