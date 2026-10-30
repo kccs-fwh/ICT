@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memory Realm: Quest for the Cyber Core</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts for Retro Vibe -->
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background-color: #0b0f19;
+            color: #f1f5f9;
+        }
+        .pixel-font {
+            font-family: 'Press Start 2P', monospace;
+        }
+        .glow-cyan {
+            box-shadow: 0 0 15px rgba(6, 182, 212, 0.3);
+        }
+        .glow-gold {
+            box-shadow: 0 0 15px rgba(234, 179, 8, 0.3);
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-3 sm:p-6 select-none">
+
+    <!-- Main Game Container -->
+    <div class="w-full max-w-2xl bg-slate-900 border-2 border-cyan-500/40 rounded-3xl p-4 sm:p-6 shadow-2xl relative my-auto">
+        
+        <!-- Header / Status Bar -->
+        <header class="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
+            <div class="flex items-center gap-3">
+                <div class="text-3xl bg-slate-950 p-2 rounded-2xl border border-cyan-500/30">
+                    💻
+                </div>
+                <div>
+                    <h1 class="pixel-font text-xs text-cyan-400">CYBER HERO</h1>
+                    <div class="text-xs text-slate-400 font-bold">Level <span id="hero-lvl" class="text-yellow-400">1</span></div>
+                </div>
+            </div>
+
+            <!-- Stats Bar -->
+            <div class="flex items-center gap-3 text-xs">
+                <!-- HP -->
+                <div class="bg-slate-950 px-3 py-1.5 rounded-xl border border-red-500/30 flex items-center gap-2">
+                    <span class="text-base">❤️</span>
+                    <span id="hp-text" class="font-bold text-red-400">100/100</span>
+                </div>
+
+                <!-- XP -->
+                <div class="bg-slate-950 px-3 py-1.5 rounded-xl border border-yellow-500/30 flex items-center gap-2">
+                    <span class="text-base">⚡</span>
+                    <span id="xp-text" class="font-bold text-yellow-400">0/50</span>
+                </div>
+
+                <!-- Gold / Bytes -->
+                <div class="bg-slate-950 px-3 py-1.5 rounded-xl border border-emerald-500/30 flex items-center gap-2">
+                    <span class="text-base">🪙</span>
+                    <span id="bytes-count" class="font-bold text-emerald-400">0 B</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Dynamic Game Canvas View -->
+        <main id="game-view" class="min-h-[380px] flex flex-col justify-center">
+            <!-- Injected via JavaScript -->
+        </main>
+
+        <!-- Bottom Navigation Tabs -->
+        <footer class="mt-4 pt-3 border-t border-slate-800 flex justify-around items-center">
+            <button onclick="switchTab('adventure')" id="tab-adventure" class="nav-tab px-4 py-2 rounded-2xl flex items-center gap-2 text-cyan-400 bg-cyan-950/80 border border-cyan-500/50 font-bold transition hover:scale-105">
+                <span class="text-lg">🗺️</span>
+                <span class="text-xs">Map</span>
+            </button>
+            <button onclick="switchTab('shop')" id="tab-shop" class="nav-tab px-4 py-2 rounded-2xl flex items-center gap-2 text-slate-400 hover:text-cyan-300 transition hover:scale-105">
+                <span class="text-lg">🛒</span>
+                <span class="text-xs">Shop</span>
+            </button>
+            <button onclick="switchTab('inventory')" id="tab-inventory" class="nav-tab px-4 py-2 rounded-2xl flex items-center gap-2 text-slate-400 hover:text-cyan-300 transition hover:scale-105">
+                <span class="text-lg">🎒</span>
+                <span class="text-xs">Gear</span>
+            </button>
+            <button onclick="switchTab('lore')" id="tab-lore" class="nav-tab px-4 py-2 rounded-2xl flex items-center gap-2 text-slate-400 hover:text-cyan-300 transition hover:scale-105">
+                <span class="text-lg">📖</span>
+                <span class="text-xs">Study</span>
+            </button>
+        </footer>
+    </div>
+
+    <!-- Simplified Modal Alert -->
+    <div id="modal-box" class="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-slate-900 border-2 border-cyan-500/60 rounded-3xl p-6 max-w-sm w-full text-center shadow-2xl">
+            <div id="modal-emoji" class="text-5xl mb-3">📢</div>
+            <h2 id="modal-title" class="pixel-font text-xs text-cyan-300 mb-2">SYSTEM MESSAGE</h2>
+            <p id="modal-body" class="text-slate-300 text-sm mb-5 leading-relaxed"></p>
+            <button onclick="closeModal()" class="w-full bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold py-3 rounded-2xl transition text-sm">
+                OK
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Game State Engine
+        const gameState = {
+            player: {
+                level: 1,
+                hp: 100,
+                maxHp: 100,
+                xp: 0,
+                nextXp: 50,
+                bytes: 0,
+                atk: 15,
+                def: 5,
+                weapon: null,
+                armor: null,
+                accessory: null,
+                inventory: []
+            },
+            currentZone: 0,
+            activeBattle: null,
+            activeTab: 'adventure'
+        };
+
+        // Hardware Shop Items with Emojis
+        const shopItems = [
+            { id: 'w1', name: 'DDR4 RAM Stick', type: 'weapon', price: 50, atk: 12, emoji: '⚡', desc: '+12 Attack Power' },
+            { id: 'w2', name: '64-Bit Word Sword', type: 'weapon', price: 120, atk: 25, emoji: '⚔️', desc: '+25 Attack Power' },
+            { id: 'a1', name: 'Cooling Fan Shield', type: 'armor', price: 40, def: 8, emoji: '🛡️', desc: '+8 Defense' },
+            { id: 'a2', name: 'Metal Mainboard Armor', type: 'armor', price: 100, def: 18, emoji: '🎽', desc: '+18 Defense' },
+            { id: 'c1', name: 'L1 Cache Booster Ring', type: 'accessory', price: 70, hp: 30, emoji: '💍', desc: '+30 Max HP' },
+            { id: 'c2', name: 'Encryption Key', type: 'accessory', price: 110, atk: 10, def: 10, emoji: '🔑', desc: '+10 Attack, +10 Defense' }
+        ];
+
+        // Educational Stages / Zones
+        const zones = [
+            {
+                id: 0,
+                name: "Sector 1: RAM Realm",
+                reqLvl: 1,
+                emoji: "📼",
+                enemyEmoji: "👾",
+                boss: "RAM Glitch",
+                questions: [
+                    {
+                        q: "What happens to data in RAM when the computer power turns OFF?",
+                        options: ["It disappears instantly (Volatile)", "It saves permanently", "It moves to USB", "It turns into audio"],
+                        correct: 0,
+                        exp: "RAM is volatile memory. Data is lost when powered off!"
+                    },
+                    {
+                        q: "Which computer type usually has 4 GB to 128 GB of RAM?",
+                        options: ["Desktop Computer", "Digital Watch", "Calculator", "TV Remote"],
+                        correct: 0,
+                        exp: "Desktop computers use between 4 GB to 128 GB RAM."
+                    }
+                ]
+            },
+            {
+                id: 1,
+                name: "Sector 2: Cache Realm",
+                reqLvl: 2,
+                emoji: "🚀",
+                enemyEmoji: "⚡",
+                boss: "Latency Bug",
+                questions: [
+                    {
+                        q: "Where does the CPU check FIRST when it needs data fast?",
+                        options: ["Cache Memory", "Hard Disk", "USB Drive", "Printer"],
+                        correct: 0,
+                        exp: "The CPU checks Cache first because it is ultra-fast!"
+                    },
+                    {
+                        q: "Why is Cache Memory used?",
+                        options: ["To store recent CPU instructions", "To save photos permanently", "To increase sound volume", "To charge the battery"],
+                        correct: 0,
+                        exp: "Cache holds recently used instructions close to the CPU."
+                    }
+                ]
+            },
+            {
+                id: 2,
+                name: "Sector 3: ROM Citadel",
+                reqLvl: 3,
+                emoji: "🔒",
+                enemyEmoji: "🤖",
+                boss: "Boot Disruptor",
+                questions: [
+                    {
+                        q: "Why is ROM called Non-Volatile Memory?",
+                        options: ["It keeps data even when turned off", "It loses data when turned off", "It grows bigger every day", "It melts in heat"],
+                        correct: 0,
+                        exp: "Non-volatile memory keeps saved data permanently!"
+                    },
+                    {
+                        q: "What essential startup code is permanently stored in ROM?",
+                        options: ["Bootstrap & BIOS", "Web Browser", "Music Playlist", "Video Games"],
+                        correct: 0,
+                        exp: "ROM stores the Bootstrap program and BIOS to start the PC."
+                    }
+                ]
+            },
+            {
+                id: 3,
+                name: "Sector 4: Flash Fortress",
+                reqLvl: 4,
+                emoji: "💾",
+                enemyEmoji: "☣️",
+                boss: "Malware Warden",
+                questions: [
+                    {
+                        q: "Which device uses Flash Memory?",
+                        options: ["USB Flash Drive & SSD", "Paper Card", "CD-ROM", "Magnetic Tape"],
+                        correct: 0,
+                        exp: "SSDs and USB drives are popular forms of Flash memory!"
+                    },
+                    {
+                        q: "How can you protect sensitive data on a USB Flash Drive?",
+                        options: ["Use password encryption", "Wash it with water", "Remove RAM sticks", "Turn off screen"],
+                        correct: 0,
+                        exp: "Encryption and passwords keep lost USB drives secure!"
+                    }
+                ]
+            },
+            {
+                id: 4,
+                name: "FINAL: Cyber Core",
+                reqLvl: 5,
+                emoji: "👑",
+                enemyEmoji: "👹",
+                boss: "GLITCH OVERLORD",
+                isBoss: true,
+                questions: [
+                    {
+                        q: "FINAL BOSS 1: Which statement is TRUE about RAM and ROM?",
+                        options: ["RAM is temporary; ROM is permanent", "RAM is permanent; ROM is temporary", "Both lose data when off", "Both store photos"],
+                        correct: 0,
+                        exp: "RAM is temporary/volatile; ROM is permanent/non-volatile!"
+                    },
+                    {
+                        q: "FINAL BOSS 2: How many Megabytes (MB) make 1 Gigabyte (GB)?",
+                        options: ["1024 MB", "100 MB", "8 MB", "500 MB"],
+                        correct: 0,
+                        exp: "1 GB = 1024 MB!"
+                    }
+                ]
+            }
+        ];
+
+        // Study Database Content for Lore Tab
+        const loreDatabase = [
+            { title: "RAM (Random Access Memory)", emoji: "📼", content: "Temporary & Volatile. Loses data when powered off. Used for active apps." },
+            { title: "ROM (Read-Only Memory)", emoji: "🔒", content: "Permanent & Non-volatile. Holds startup code (Bootstrap & BIOS)." },
+            { title: "Cache Memory", emoji: "🚀", content: "Ultra-fast memory inside CPU. Holds recent instructions to speed up tasks." },
+            { title: "Flash Memory", emoji: "💾", content: "Non-volatile rewritable storage used in USB drives and SSDs." }
+        ];
+
+        window.onload = function() {
+            renderView();
+        };
+
+        function showModal(title, body, emoji = "📢") {
+            document.getElementById('modal-title').textContent = title;
+            document.getElementById('modal-body').textContent = body;
+            document.getElementById('modal-emoji').textContent = emoji;
+            document.getElementById('modal-box').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('modal-box').classList.add('hidden');
+        }
+
+        function switchTab(tab) {
+            gameState.activeTab = tab;
+            document.querySelectorAll('.nav-tab').forEach(btn => {
+                btn.className = "nav-tab px-4 py-2 rounded-2xl flex items-center gap-2 text-slate-400 hover:text-cyan-300 transition hover:scale-105";
+            });
+            
+            const activeBtn = document.getElementById(`tab-${tab}`);
+            if(activeBtn) {
+                activeBtn.className = "nav-tab px-4 py-2 rounded-2xl flex items-center gap-2 text-cyan-400 bg-cyan-950/80 border border-cyan-500/50 font-bold transition hover:scale-105";
+            }
+            renderView();
+        }
+
+        function updateHeaderStats() {
+            const p = gameState.player;
+            document.getElementById('hero-lvl').textContent = p.level;
+            document.getElementById('hp-text').textContent = `${p.hp}/${p.maxHp}`;
+            document.getElementById('xp-text').textContent = `${p.xp}/${p.nextXp}`;
+            document.getElementById('bytes-count').textContent = `${p.bytes} B`;
+        }
+
+        function renderView() {
+            updateHeaderStats();
+            const view = document.getElementById('game-view');
+
+            if (gameState.activeBattle) {
+                renderBattleView(view);
+                return;
+            }
+
+            switch(gameState.activeTab) {
+                case 'adventure':
+                    renderAdventureView(view);
+                    break;
+                case 'shop':
+                    renderShopView(view);
+                    break;
+                case 'inventory':
+                    renderInventoryView(view);
+                    break;
+                case 'lore':
+                    renderLoreView(view);
+                    break;
+            }
+        }
+
+        // 1. Cleaned Map / Adventure View
+        function renderAdventureView(container) {
+            let html = `<div class="space-y-3">`;
+
+            zones.forEach((z) => {
+                const isLocked = gameState.player.level < z.reqLvl;
+
+                html += `
+                    <div class="bg-slate-950/70 border ${isLocked ? 'border-slate-800 opacity-50' : 'border-slate-700 hover:border-cyan-500'} rounded-2xl p-3.5 flex items-center justify-between gap-3 transition">
+                        <div class="flex items-center gap-3">
+                            <span class="text-3xl">${z.emoji}</span>
+                            <div>
+                                <h3 class="font-bold text-slate-100 text-sm sm:text-base">${z.name}</h3>
+                                <p class="text-xs text-slate-400">Boss: <span class="text-red-400">${z.boss}</span></p>
+                            </div>
+                        </div>
+
+                        <div>
+                            ${isLocked ? 
+                                `<span class="px-3 py-1.5 bg-slate-800 text-slate-500 text-xs font-bold rounded-xl">🔒 Lvl ${z.reqLvl}</span>` : 
+                                `<button onclick="startBattle(${z.id})" class="px-4 py-2 ${z.isBoss ? 'bg-red-600 hover:bg-red-500 text-white' : 'bg-cyan-500 hover:bg-cyan-400 text-slate-950'} text-xs font-bold rounded-xl transition shadow-lg">
+                                    ${z.isBoss ? '👑 BOSS' : '⚔️ Fight'}
+                                </button>`
+                            }
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += `</div>`;
+            container.innerHTML = html;
+        }
+
+        // 2. Battle View with Emojis
+        function startBattle(zoneId) {
+            const z = zones[zoneId];
+            gameState.currentZone = zoneId;
+            gameState.activeBattle = {
+                zoneId: zoneId,
+                questionIndex: 0,
+                enemyHp: z.isBoss ? 150 : 80,
+                enemyMaxHp: z.isBoss ? 150 : 80
+            };
+            renderView();
+        }
+
+        function renderBattleView(container) {
+            const b = gameState.activeBattle;
+            const z = zones[b.zoneId];
+            const q = z.questions[b.questionIndex];
+
+            const html = `
+                <div class="space-y-4">
+                    <!-- Enemy Banner -->
+                    <div class="bg-slate-950 border border-red-500/40 rounded-2xl p-4 flex items-center justify-between gap-4">
+                        <div class="flex items-center gap-3">
+                            <span class="text-4xl animate-bounce">${z.enemyEmoji}</span>
+                            <div>
+                                <h2 class="font-bold text-slate-100 text-base">${z.boss}</h2>
+                                <span class="text-xs text-slate-400">Question ${b.questionIndex + 1} / ${z.questions.length}</span>
+                            </div>
+                        </div>
+
+                        <!-- HP Bar -->
+                        <div class="w-32 sm:w-40">
+                            <div class="text-right text-xs text-slate-400 mb-1 font-bold">${b.enemyHp}/${b.enemyMaxHp} HP</div>
+                            <div class="w-full bg-slate-900 h-2.5 rounded-full overflow-hidden border border-slate-700">
+                                <div class="bg-red-500 h-full transition-all duration-300" style="width: ${(b.enemyHp / b.enemyMaxHp) * 100}%"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Question Card -->
+                    <div class="bg-slate-950/80 border border-slate-700 rounded-2xl p-4 space-y-3">
+                        <p class="text-slate-100 text-sm font-bold leading-relaxed">${q.q}</p>
+
+                        <div class="grid grid-cols-1 gap-2 pt-1">
+                            ${q.options.map((opt, idx) => `
+                                <button onclick="submitAnswer(${idx})" class="w-full text-left p-3 rounded-xl bg-slate-900 hover:bg-cyan-950 border border-slate-700 hover:border-cyan-500 text-slate-200 text-xs sm:text-sm font-semibold transition flex items-center gap-2">
+                                    <span class="text-cyan-400 font-bold">${String.fromCharCode(65 + idx)}.</span>
+                                    <span>${opt}</span>
+                                </button>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <div class="text-center">
+                        <button onclick="fleeBattle()" class="text-xs text-slate-500 hover:text-slate-400 font-bold">🏃 Abort Battle</button>
+                    </div>
+                </div>
+            `;
+
+            container.innerHTML = html;
+        }
+
+        function submitAnswer(chosenIdx) {
+            const b = gameState.activeBattle;
+            const z = zones[b.zoneId];
+            const q = z.questions[b.questionIndex];
+            const player = gameState.player;
+
+            if (chosenIdx === q.correct) {
+                let totalAtk = player.atk;
+                if(player.weapon) totalAtk += player.weapon.atk || 0;
+                if(player.accessory) totalAtk += player.accessory.atk || 0;
+
+                const dmg = Math.floor(totalAtk * 1.2);
+                b.enemyHp = Math.max(0, b.enemyHp - dmg);
+
+                if (b.enemyHp <= 0 || b.questionIndex >= z.questions.length - 1) {
+                    const earnedBytes = (b.zoneId + 1) * 30;
+                    const earnedXp = (b.zoneId + 1) * 25;
+                    player.bytes += earnedBytes;
+                    addXp(earnedXp);
+
+                    gameState.activeBattle = null;
+
+                    if (z.isBoss) {
+                        showModal("VICTORY! WORLD SAVED!", `You defeated the GLITCH OVERLORD and restored the mainboard! Reward: +${earnedBytes} Bytes!`, "🏆");
+                    } else {
+                        showModal("SECTOR CLEARED!", `Correct! ${q.exp}\n\nReward: +${earnedBytes} Bytes, +${earnedXp} XP!`, "✅");
+                    }
+                } else {
+                    b.questionIndex++;
+                    showModal("GREAT HIT!", `Correct! ${q.exp}\nDealt ${dmg} damage to the enemy!`, "⚡");
+                }
+            } else {
+                let totalDef = player.def;
+                if(player.armor) totalDef += player.armor.def || 0;
+                if(player.accessory) totalDef += player.accessory.def || 0;
+
+                const dmg = Math.max(10, 25 - Math.floor(totalDef * 0.5));
+                player.hp = Math.max(0, player.hp - dmg);
+
+                if (player.hp <= 0) {
+                    player.hp = player.maxHp;
+                    gameState.activeBattle = null;
+                    showModal("CRASH!", `Wrong answer! System overheated. Rebooting...`, "💥");
+                } else {
+                    showModal("WRONG!", `Incorrect! ${q.exp}\nYou lost ${dmg} HP!`, "❌");
+                }
+            }
+
+            renderView();
+        }
+
+        function fleeBattle() {
+            gameState.activeBattle = null;
+            renderView();
+        }
+
+        function addXp(amount) {
+            const p = gameState.player;
+            p.xp += amount;
+            if (p.xp >= p.nextXp) {
+                p.level++;
+                p.xp -= p.nextXp;
+                p.nextXp = Math.floor(p.nextXp * 1.5);
+                p.maxHp += 20;
+                p.hp = p.maxHp;
+                p.atk += 5;
+                p.def += 3;
+                showModal("LEVEL UP!", `Upgraded to Level ${p.level}! HP, Attack and Defense increased!`, "🎉");
+            }
+        }
+
+        // 3. Simple Hardware Shop Screen
+        function renderShopView(container) {
+            let html = `<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">`;
+
+            shopItems.forEach(item => {
+                const isBought = gameState.player.inventory.some(i => i.id === item.id);
+                const canAfford = gameState.player.bytes >= item.price;
+
+                html += `
+                    <div class="bg-slate-950/70 border border-slate-800 rounded-2xl p-3.5 flex items-center justify-between gap-2">
+                        <div class="flex items-center gap-3">
+                            <span class="text-3xl">${item.emoji}</span>
+                            <div>
+                                <h3 class="font-bold text-slate-100 text-xs sm:text-sm">${item.name}</h3>
+                                <p class="text-[11px] text-slate-400">${item.desc}</p>
+                                <span class="text-xs font-bold text-emerald-400 mt-0.5 block">${item.price} Bytes</span>
+                            </div>
+                        </div>
+
+                        <div>
+                            ${isBought ? 
+                                `<span class="px-2.5 py-1 bg-slate-800 text-slate-500 text-xs font-bold rounded-xl">Owned</span>` :
+                                `<button onclick="buyItem('${item.id}')" ${!canAfford ? 'disabled' : ''} class="px-3 py-1.5 ${canAfford ? 'bg-yellow-500 hover:bg-yellow-400 text-slate-950' : 'bg-slate-800 text-slate-600'} text-xs font-bold rounded-xl transition">
+                                    Buy
+                                </button>`
+                            }
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += `</div>`;
+            container.innerHTML = html;
+        }
+
+        function buyItem(itemId) {
+            const item = shopItems.find(i => i.id === itemId);
+            const p = gameState.player;
+
+            if (item && p.bytes >= item.price) {
+                p.bytes -= item.price;
+                p.inventory.push(item);
+
+                if (item.type === 'weapon' && !p.weapon) p.weapon = item;
+                if (item.type === 'armor' && !p.armor) p.armor = item;
+                if (item.type === 'accessory' && !p.accessory) {
+                    p.accessory = item;
+                    if(item.hp) { p.maxHp += item.hp; p.hp += item.hp; }
+                }
+
+                showModal("BOUGHT!", `Purchased ${item.name}!`, "🛒");
+                renderView();
+            }
+        }
+
+        // 4. Equipment Screen
+        function renderInventoryView(container) {
+            const p = gameState.player;
+
+            let html = `
+                <div class="space-y-4">
+                    <!-- Equipped Slots -->
+                    <div class="grid grid-cols-3 gap-2">
+                        <div class="bg-slate-950/70 border border-slate-800 p-3 rounded-2xl text-center">
+                            <span class="text-2xl">${p.weapon ? p.weapon.emoji : '⚔️'}</span>
+                            <div class="text-[10px] text-slate-400 mt-1 uppercase font-bold">Weapon</div>
+                            <div class="text-xs font-bold text-slate-200 truncate">${p.weapon ? p.weapon.name : 'None'}</div>
+                        </div>
+                        <div class="bg-slate-950/70 border border-slate-800 p-3 rounded-2xl text-center">
+                            <span class="text-2xl">${p.armor ? p.armor.emoji : '🛡️'}</span>
+                            <div class="text-[10px] text-slate-400 mt-1 uppercase font-bold">Armor</div>
+                            <div class="text-xs font-bold text-slate-200 truncate">${p.armor ? p.armor.name : 'None'}</div>
+                        </div>
+                        <div class="bg-slate-950/70 border border-slate-800 p-3 rounded-2xl text-center">
+                            <span class="text-2xl">${p.accessory ? p.accessory.emoji : '💍'}</span>
+                            <div class="text-[10px] text-slate-400 mt-1 uppercase font-bold">Accessory</div>
+                            <div class="text-xs font-bold text-slate-200 truncate">${p.accessory ? p.accessory.name : 'None'}</div>
+                        </div>
+                    </div>
+
+                    <!-- Inventory Grid -->
+                    <div class="bg-slate-950/80 border border-slate-800 rounded-2xl p-3.5">
+                        <h3 class="text-xs font-bold text-slate-400 mb-2">MY GEAR</h3>
+                        ${p.inventory.length === 0 ? 
+                            `<p class="text-xs text-slate-500 py-3 text-center">No gear owned. Visit the Shop!</p>` :
+                            `<div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                ${p.inventory.map(item => {
+                                    const isEquipped = p.weapon?.id === item.id || p.armor?.id === item.id || p.accessory?.id === item.id;
+                                    return `
+                                        <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800 flex justify-between items-center">
+                                            <div class="flex items-center gap-2">
+                                                <span class="text-xl">${item.emoji}</span>
+                                                <span class="text-xs text-slate-200 font-bold">${item.name}</span>
+                                            </div>
+                                            <button onclick="toggleEquip('${item.id}')" class="px-2.5 py-1 ${isEquipped ? 'bg-red-900 text-red-300' : 'bg-cyan-900 text-cyan-200'} text-[10px] font-bold rounded-lg">
+                                                ${isEquipped ? 'Unequip' : 'Equip'}
+                                            </button>
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>`
+                        }
+                    </div>
+                </div>
+            `;
+
+            container.innerHTML = html;
+        }
+
+        function toggleEquip(itemId) {
+            const p = gameState.player;
+            const item = p.inventory.find(i => i.id === itemId);
+            if (!item) return;
+
+            if (item.type === 'weapon') {
+                p.weapon = (p.weapon && p.weapon.id === item.id) ? null : item;
+            } else if (item.type === 'armor') {
+                p.armor = (p.armor && p.armor.id === item.id) ? null : item;
+            } else if (item.type === 'accessory') {
+                if (p.accessory && p.accessory.id === item.id) {
+                    if (item.hp) { p.maxHp -= item.hp; p.hp = Math.min(p.hp, p.maxHp); }
+                    p.accessory = null;
+                } else {
+                    p.accessory = item;
+                    if (item.hp) { p.maxHp += item.hp; p.hp += item.hp; }
+                }
+            }
+            renderView();
+        }
+
+        // 5. Cleaned Study / Lore Screen
+        function renderLoreView(container) {
+            let html = `<div class="space-y-2.5">`;
+
+            loreDatabase.forEach(item => {
+                html += `
+                    <div class="bg-slate-950/70 border border-slate-800 rounded-2xl p-3.5 flex items-start gap-3">
+                        <span class="text-3xl">${item.emoji}</span>
+                        <div>
+                            <h3 class="font-bold text-cyan-300 text-xs sm:text-sm mb-0.5">${item.title}</h3>
+                            <p class="text-xs text-slate-300 leading-snug">${item.content}</p>
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += `</div>`;
+            container.innerHTML = html;
+        }
+    </script>
+</body>
+</html>
