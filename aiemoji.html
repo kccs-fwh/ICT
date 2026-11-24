@@ -136,7 +136,7 @@
           </span>
         </div>
         <p class="text-xs sm:text-sm text-slate-500">
-          Train Happy 😄, Angry 😠 &amp; Silly 😜 — then beat the clock!
+          Train Happy 😄, Sad 😢 &amp; Silly 😜 — then beat the clock!
         </p>
       </div>
     </div>
@@ -215,33 +215,31 @@
             <label for="teamNameInput" class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">
               Team Name (3 Teams of 5)
             </label>
-            <div class="flex gap-2 mb-2.5">
-              <input
-                id="teamNameInput"
-                type="text"
-                maxlength="24"
-                value="Team 1"
-                placeholder="e.g. Team 1"
-                class="w-full px-3 py-2 rounded-xl bg-white border-2 border-slate-200 focus:border-indigo-500 focus:outline-none text-sm font-semibold text-slate-800"
-              />
-            </div>
-            <div class="flex gap-1.5 flex-wrap">
-              <button type="button" data-preset-team="Team 1" class="preset-team-btn text-xs font-semibold px-2.5 py-1 rounded-lg bg-white hover:bg-indigo-50 border border-slate-200 text-slate-600">Team 1</button>
-              <button type="button" data-preset-team="Team 2" class="preset-team-btn text-xs font-semibold px-2.5 py-1 rounded-lg bg-white hover:bg-indigo-50 border border-slate-200 text-slate-600">Team 2</button>
-              <button type="button" data-preset-team="Team 3" class="preset-team-btn text-xs font-semibold px-2.5 py-1 rounded-lg bg-white hover:bg-indigo-50 border border-slate-200 text-slate-600">Team 3</button>
+            <input
+              id="teamNameInput"
+              type="text"
+              maxlength="24"
+              value="Team 1"
+              placeholder="e.g. Team 1"
+              class="w-full px-3.5 py-2 rounded-xl bg-white border-2 border-slate-200 focus:border-indigo-500 focus:outline-none text-sm font-semibold text-slate-800"
+            />
+            <div class="flex items-center gap-1.5 mt-2">
+              <button type="button" data-preset-team="Team 1" class="preset-team-btn px-2.5 py-1 rounded-lg bg-indigo-100 hover:bg-indigo-200 text-indigo-800 text-xs font-bold transition">Team 1</button>
+              <button type="button" data-preset-team="Team 2" class="preset-team-btn px-2.5 py-1 rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-900 text-xs font-bold transition">Team 2</button>
+              <button type="button" data-preset-team="Team 3" class="preset-team-btn px-2.5 py-1 rounded-lg bg-purple-100 hover:bg-purple-200 text-purple-800 text-xs font-bold transition">Team 3</button>
             </div>
           </div>
         </div>
 
-        <!-- Two Load Options Grid: (A) Shareable URL & (B) Upload Local Files -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+        <!-- Model Load Option: Shareable URL -->
+        <div class="mt-6">
 
           <!-- Option A: Teachable Machine Shareable URL -->
           <div class="rounded-2xl border-2 border-indigo-100 bg-indigo-50/40 p-5 flex flex-col justify-between">
             <div>
               <div class="flex items-center justify-between gap-2 mb-2">
                 <span class="font-display text-lg font-bold text-indigo-950 flex items-center gap-2">
-                  <span>🔗</span> Option A: Teachable Machine URL
+                  <span>🔗</span> Teachable Machine Shareable URL
                 </span>
                 <span class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700">
                   Fastest
@@ -269,56 +267,6 @@
             >
               <span>🚀</span>
               <span>Load Model from URL</span>
-            </button>
-          </div>
-
-          <!-- Option B: Upload Local Files (Drag & Drop + File Picker) -->
-          <div class="rounded-2xl border-2 border-amber-100 bg-amber-50/40 p-5 flex flex-col justify-between">
-            <div>
-              <div class="flex items-center justify-between gap-2 mb-2">
-                <span class="font-display text-lg font-bold text-amber-950 flex items-center gap-2">
-                  <span>📁</span> Option B: Upload Model Files
-                </span>
-                <span class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">
-                  Offline / Exported
-                </span>
-              </div>
-              <p class="text-xs sm:text-sm text-slate-600 mb-3.5">
-                Select or drop all three exported files together: <strong class="text-slate-800">model.json</strong>, <strong class="text-slate-800">metadata.json</strong>, and <strong class="text-slate-800">weights.bin</strong>.
-              </p>
-
-              <!-- Drag & Drop Zone -->
-              <div
-                id="dropZone"
-                tabindex="0"
-                role="button"
-                aria-label="Drop model.json, metadata.json, and weights.bin here or click to browse"
-                class="border-2 border-dashed border-amber-300 hover:border-amber-500 bg-white rounded-2xl p-4 text-center cursor-pointer transition-colors"
-              >
-                <input
-                  id="modelFilesInput"
-                  type="file"
-                  multiple
-                  accept=".json,.bin"
-                  class="hidden"
-                />
-                <div class="text-2xl mb-1">📥</div>
-                <p class="text-xs sm:text-sm font-semibold text-slate-700">
-                  Drop files here or <span class="text-amber-700 underline">click to choose files</span>
-                </p>
-                <p id="selectedFilesSummary" class="text-xs text-slate-500 mt-1">
-                  Waiting for model.json, metadata.json &amp; weights.bin
-                </p>
-              </div>
-            </div>
-
-            <button
-              id="loadFilesBtn"
-              type="button"
-              class="btn-chunky mt-4 w-full py-3 px-4 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-display font-semibold text-base shadow-chunky flex items-center justify-center gap-2"
-            >
-              <span>📦</span>
-              <span>Load Uploaded Model</span>
             </button>
           </div>
         </div>
@@ -352,41 +300,6 @@
             <span>▶️</span>
             <span>Launch Demo Mode</span>
           </button>
-        </div>
-      </div>
-
-      <!-- 4 Target Emojis Reference Strip -->
-      <div class="bg-white rounded-3xl border-2 border-slate-200/90 shadow-chunky p-5 sm:p-6">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
-          <h3 class="font-display text-lg sm:text-xl font-bold text-slate-900 flex items-center gap-2">
-            <span>🎯</span> The 4 Target Emojis to Train
-          </h3>
-          <p class="text-xs sm:text-sm text-slate-300 mt-1.5 max-w-xs">
-            Click a face button below (or press keys 1–3) to simulate the AI seeing that face!
-          </p>
-        </div>
-
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-          <div class="rounded-2xl bg-amber-50 border-2 border-amber-200 p-4 text-center">
-            <div class="text-4xl sm:text-5xl mb-1.5">😄</div>
-            <div class="font-display font-bold text-lg text-amber-950">Happy</div>
-            <div class="text-xs text-amber-800/80 mt-0.5">Big smile &amp; bright eyes</div>
-          </div>
-          <div class="rounded-2xl bg-rose-50 border-2 border-rose-200 p-4 text-center">
-            <div class="text-4xl sm:text-5xl mb-1.5">😠</div>
-            <div class="font-display font-bold text-lg text-rose-950">Angry</div>
-            <div class="text-xs text-rose-800/80 mt-0.5">Furrowed brows &amp; serious face</div>
-          </div>
-          <div class="rounded-2xl bg-sky-50 border-2 border-sky-200 p-4 text-center">
-            <div class="text-4xl sm:text-5xl mb-1.5">😢</div>
-            <div class="font-display font-bold text-lg text-sky-950">Sad</div>
-            <div class="text-xs text-sky-800/80 mt-0.5">Droopy mouth &amp; pout</div>
-          </div>
-          <div class="rounded-2xl bg-fuchsia-50 border-2 border-fuchsia-200 p-4 text-center">
-            <div class="text-4xl sm:text-5xl mb-1.5">😜</div>
-            <div class="font-display font-bold text-lg text-fuchsia-950">Silly</div>
-            <div class="text-xs text-fuchsia-800/80 mt-0.5">Wink, tongue out, or funny tilt</div>
-          </div>
         </div>
       </div>
     </section>
@@ -584,7 +497,7 @@
                 Simulated Webcam Active
               </div>
               <p class="text-xs text-slate-300 mt-1.5 max-w-xs">
-                Click a face button below (or press keys 1–4) to simulate the AI seeing that face!
+                Click a face button below (or press keys 1–3) to simulate the AI seeing that face!
               </p>
             </div>
 
@@ -603,64 +516,65 @@
           </div>
 
           <!-- Demo Mode Face Trigger Pad (visible ONLY when Demo Mode is active) -->
-        <div id="demoTriggerPad" class="hidden rounded-2xl bg-purple-50 border-2 border-purple-200 p-3.5">
-          <div class="flex items-center justify-between mb-2">
-            <span class="text-xs font-bold uppercase tracking-wider text-purple-900">
-              🎭 Demo Face Simulator (Click or press 1–3)
-            </span>
-            <span class="text-[11px] font-semibold text-purple-700">Instant ~92% confidence</span>
-          </div>
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-            <button type="button" data-sim-face="Happy" class="sim-face-btn btn-chunky py-2 px-2.5 rounded-xl bg-white hover:bg-amber-100 border-2 border-amber-200 font-display font-semibold text-sm text-slate-800 shadow-sm">
-              😄 Happy (1)
-            </button>
-            <button type="button" data-sim-face="Angry" class="sim-face-btn btn-chunky py-2 px-2.5 rounded-xl bg-white hover:bg-rose-100 border-2 border-rose-200 font-display font-semibold text-sm text-slate-800 shadow-sm">
-              😠 Angry (2)
-            </button>
-            <button type="button" data-sim-face="Silly" class="sim-face-btn btn-chunky py-2 px-2.5 rounded-xl bg-white hover:bg-fuchsia-100 border-2 border-fuchsia-200 font-display font-semibold text-sm text-slate-800 shadow-sm">
-              😜 Silly (3)
-            </button>
-          </div>
-        </div>
-
-        <!-- Live Confidence Bars for All 3 Emojis -->
-        <div class="space-y-2.5">
-          <div class="flex items-center justify-between text-xs font-bold text-slate-500 uppercase tracking-wider">
-            <span>Live AI Confidence Meter</span>
-            <span id="matchedCounterText">Matched: 0</span>
+          <div id="demoTriggerPad" class="hidden rounded-2xl bg-purple-50 border-2 border-purple-200 p-3.5">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-bold uppercase tracking-wider text-purple-900">
+                🎭 Demo Face Simulator (Click or press 1–3)
+              </span>
+              <span class="text-[11px] font-semibold text-purple-700">Instant ~92% confidence</span>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <button type="button" data-sim-face="Happy" class="sim-face-btn btn-chunky py-2 px-2.5 rounded-xl bg-white hover:bg-amber-100 border-2 border-amber-200 font-display font-semibold text-sm text-slate-800 shadow-sm">
+                😄 Happy (1)
+              </button>
+              <button type="button" data-sim-face="Sad" class="sim-face-btn btn-chunky py-2 px-2.5 rounded-xl bg-white hover:bg-sky-100 border-2 border-sky-200 font-display font-semibold text-sm text-slate-800 shadow-sm">
+                😢 Sad (2)
+              </button>
+              <button type="button" data-sim-face="Silly" class="sim-face-btn btn-chunky py-2 px-2.5 rounded-xl bg-white hover:bg-fuchsia-100 border-2 border-fuchsia-200 font-display font-semibold text-sm text-slate-800 shadow-sm">
+                😜 Silly (3)
+              </button>
+            </div>
           </div>
 
-          <div id="confidenceBarsContainer" class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-            <!-- Happy Bar -->
-            <div class="rounded-xl bg-slate-50 border border-slate-200 p-2.5">
-              <div class="flex justify-between text-xs font-bold mb-1">
-                <span class="text-slate-800">😄 Happy</span>
-                <span id="confText-Happy" class="text-slate-600">0%</span>
-              </div>
-              <div class="w-full h-2.5 bg-slate-200 rounded-full overflow-hidden">
-                <div id="confBar-Happy" class="h-full bg-amber-400 rounded-full transition-all duration-150" style="width: 0%;"></div>
-              </div>
+          <!-- Live Confidence Bars for All 3 Emojis -->
+          <div class="space-y-2.5">
+            <div class="flex items-center justify-between text-xs font-bold text-slate-500 uppercase tracking-wider">
+              <span>Live AI Confidence Meter</span>
+              <span id="matchedCounterText">Matched: 0</span>
             </div>
 
-            <!-- Angry Bar -->
-            <div class="rounded-xl bg-slate-50 border border-slate-200 p-2.5">
-              <div class="flex justify-between text-xs font-bold mb-1">
-                <span class="text-slate-800">😠 Angry</span>
-                <span id="confText-Angry" class="text-slate-600">0%</span>
+            <div id="confidenceBarsContainer" class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+              <!-- Happy Bar -->
+              <div class="rounded-xl bg-slate-50 border border-slate-200 p-2.5">
+                <div class="flex justify-between text-xs font-bold mb-1">
+                  <span class="text-slate-800">😄 Happy</span>
+                  <span id="confText-Happy" class="text-slate-600">0%</span>
+                </div>
+                <div class="w-full h-2.5 bg-slate-200 rounded-full overflow-hidden">
+                  <div id="confBar-Happy" class="h-full bg-amber-400 rounded-full transition-all duration-150" style="width: 0%;"></div>
+                </div>
               </div>
-              <div class="w-full h-2.5 bg-slate-200 rounded-full overflow-hidden">
-                <div id="confBar-Angry" class="h-full bg-rose-500 rounded-full transition-all duration-150" style="width: 0%;"></div>
-              </div>
-            </div>
 
-            <!-- Silly Bar -->
-            <div class="rounded-xl bg-slate-50 border border-slate-200 p-2.5">
-              <div class="flex justify-between text-xs font-bold mb-1">
-                <span class="text-slate-800">😜 Silly</span>
-                <span id="confText-Silly" class="text-slate-600">0%</span>
+              <!-- Sad Bar -->
+              <div class="rounded-xl bg-slate-50 border border-slate-200 p-2.5">
+                <div class="flex justify-between text-xs font-bold mb-1">
+                  <span class="text-slate-800">😢 Sad</span>
+                  <span id="confText-Sad" class="text-slate-600">0%</span>
+                </div>
+                <div class="w-full h-2.5 bg-slate-200 rounded-full overflow-hidden">
+                  <div id="confBar-Sad" class="h-full bg-sky-500 rounded-full transition-all duration-150" style="width: 0%;"></div>
+                </div>
               </div>
-              <div class="w-full h-2.5 bg-slate-200 rounded-full overflow-hidden">
-                <div id="confBar-Silly" class="h-full bg-fuchsia-500 rounded-full transition-all duration-150" style="width: 0%;"></div>
+
+              <!-- Silly Bar -->
+              <div class="rounded-xl bg-slate-50 border border-slate-200 p-2.5">
+                <div class="flex justify-between text-xs font-bold mb-1">
+                  <span class="text-slate-800">😜 Silly</span>
+                  <span id="confText-Silly" class="text-slate-600">0%</span>
+                </div>
+                <div class="w-full h-2.5 bg-slate-200 rounded-full overflow-hidden">
+                  <div id="confBar-Silly" class="h-full bg-fuchsia-500 rounded-full transition-all duration-150" style="width: 0%;"></div>
+                </div>
               </div>
             </div>
           </div>
@@ -764,12 +678,12 @@
         cardBg: 'bg-amber-50 border-amber-200 text-amber-950',
       },
       {
-        key: 'Angry',
-        label: 'Angry',
-        emoji: '😠',
-        hint: 'Pull your eyebrows down & look fierce!',
-        barColor: 'bg-rose-500',
-        cardBg: 'bg-rose-50 border-rose-200 text-rose-950',
+        key: 'Sad',
+        label: 'Sad',
+        emoji: '😢',
+        hint: 'Make a sad or pouty expression!',
+        barColor: 'bg-sky-500',
+        cardBg: 'bg-sky-50 border-sky-200 text-sky-950',
       },
       {
         key: 'Silly',
@@ -792,7 +706,7 @@
 
     /**
      * Normalizes class labels from Teachable Machine so variations like
-     * "happy", "Happy ", "HAPPY FACE", or "Class 1: Happy" match cleanly.
+     * "happy", "Happy ", "SAD FACE", or "Class 2: Silly" match cleanly.
      */
     function normalizeEmojiLabel(rawLabel) {
       if (!rawLabel || typeof rawLabel !== 'string') return null;
@@ -800,7 +714,7 @@
 
       // Direct or substring match against the 3 target keys
       if (cleaned === 'happy' || cleaned.includes('happy')) return 'Happy';
-      if (cleaned === 'angry' || cleaned.includes('angry') || cleaned.includes('mad')) return 'Angry';
+      if (cleaned === 'sad' || cleaned.includes('sad') || cleaned.includes('cry') || cleaned.includes('frown')) return 'Sad';
       if (cleaned === 'silly' || cleaned.includes('silly') || cleaned.includes('funny') || cleaned.includes('goofy')) {
         return 'Silly';
       }
@@ -895,7 +809,6 @@
       webcam: null,              // tmImage.Webcam instance
       maxPredictions: 0,
       modelClassNames: [],       // Raw class names from model metadata
-      uploadedFiles: [],         // File[] from file input or drag-and-drop
 
       teamName: 'Team 1',
       gameMode: 'timed-45',      // 'timed-45' | 'timed-60' | 'sprint-10'
@@ -912,7 +825,7 @@
       bestStreak: 0,
       matchedCount: 0,
       matchTimesSec: [],
-      perEmojiMatches: { Happy: 0, Angry: 0, Silly: 0 },
+      perEmojiMatches: { Happy: 0, Sad: 0, Silly: 0 },
 
       timeRemainingSec: 45,
       totalRoundSec: 45,
@@ -949,10 +862,6 @@
       teamNameInput: document.getElementById('teamNameInput'),
       modelUrlInput: document.getElementById('modelUrlInput'),
       loadUrlBtn: document.getElementById('loadUrlBtn'),
-      dropZone: document.getElementById('dropZone'),
-      modelFilesInput: document.getElementById('modelFilesInput'),
-      selectedFilesSummary: document.getElementById('selectedFilesSummary'),
-      loadFilesBtn: document.getElementById('loadFilesBtn'),
       startDemoModeBtn: document.getElementById('startDemoModeBtn'),
 
       // Game HUD & Controls
@@ -1001,260 +910,12 @@
     };
 
     // -------------------------------------------------------------------------
-    // 5. UI BANNER & SCREEN NAVIGATION HELPERS
-    // -------------------------------------------------------------------------
-    function showBanner(message, type = 'info') {
-      const styles = {
-        info: 'bg-sky-50 border-sky-200 text-sky-900',
-        success: 'bg-emerald-50 border-emerald-200 text-emerald-900',
-        warning: 'bg-amber-50 border-amber-300 text-amber-950',
-        error: 'bg-rose-50 border-rose-200 text-rose-900',
-      };
-      const icons = {
-        info: '💡',
-        success: '✅',
-        warning: '⚠️',
-        error: '🛑',
-      };
-
-      dom.statusBanner.className = `rounded-2xl px-4 py-3 text-sm font-medium flex items-start sm:items-center justify-between gap-3 border-2 shadow-sm ${styles[type] || styles.info}`;
-      dom.statusBannerIcon.textContent = icons[type] || icons.info;
-      dom.statusBannerText.textContent = message;
-      dom.statusBannerContainer.classList.remove('hidden');
-    }
-
-    function hideBanner() {
-      dom.statusBannerContainer.classList.add('hidden');
-    }
-
-    function switchScreen(screenName) {
-      state.screen = screenName;
-      dom.setupScreen.classList.toggle('hidden', screenName !== 'setup');
-      dom.gameScreen.classList.toggle('hidden', screenName !== 'game');
-      dom.summaryScreen.classList.toggle('hidden', screenName !== 'summary');
-      dom.changeModelBtn.classList.toggle('hidden', screenName === 'setup');
-    }
-
-    function syncTeamName() {
-      const raw = dom.teamNameInput.value.trim();
-      state.teamName = raw || 'Team 1';
-      dom.hudTeamName.textContent = state.teamName;
-      dom.headerTeamName.textContent = state.teamName;
-      dom.headerTeamBadge.classList.remove('hidden');
-    }
-
-    // -------------------------------------------------------------------------
-    // 6. CLEANUP OF WEBCAM, TIMERS, AND TENSORFLOW RESOURCES
-    // -------------------------------------------------------------------------
-    // Reliable loader for TensorFlow.js and @teachablemachine/image across CDNs
-    const TM_CDN_SOURCES = {
-      tfjs: [
-        'https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.20.0/dist/tf.min.js',
-        'https://unpkg.com/@tensorflow/tfjs@4.20.0/dist/tf.min.js',
-        'https://cdnjs.cloudflare.com/ajax/libs/tensorflow/4.20.0/tf.min.js',
-      ],
-      tmImage: [
-        'https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8.5/dist/teachablemachine-image.min.js',
-        'https://unpkg.com/@teachablemachine/image@0.8.5/dist/teachablemachine-image.min.js',
-      ],
-    };
-
-    let tmDependencyPromise = null;
-
-    function loadScriptFromUrl(url, timeoutMs = 9000) {
-      return new Promise((resolve, reject) => {
-        // Reuse an already-injected script tag for the same URL if present
-        const existing = Array.from(document.querySelectorAll('script')).find((s) => s.src === url);
-        if (existing) {
-          if (existing.dataset.loaded === 'true') {
-            resolve();
-            return;
-          }
-          existing.addEventListener('load', () => resolve(), { once: true });
-          existing.addEventListener('error', () => reject(new Error(`Failed to load ${url}`)), { once: true });
-        }
-
-        const script = existing || document.createElement('script');
-        let settled = false;
-
-        const timer = setTimeout(() => {
-          if (!settled) {
-            settled = true;
-            reject(new Error(`Timed out loading ${url}`));
-          }
-        }, timeoutMs);
-
-        const onLoad = () => {
-          if (settled) return;
-          settled = true;
-          clearTimeout(timer);
-          script.dataset.loaded = 'true';
-          resolve();
-        };
-
-        const onError = () => {
-          if (settled) return;
-          settled = true;
-          clearTimeout(timer);
-          reject(new Error(`Network error loading ${url}`));
-        };
-
-        if (!existing) {
-          script.src = url;
-          script.async = true;
-          script.crossOrigin = 'anonymous';
-          script.addEventListener('load', onLoad, { once: true });
-          script.addEventListener('error', onError, { once: true });
-          document.head.appendChild(script);
-        }
-      });
-    }
-
-    async function loadFirstAvailableScript(urls, checkGlobalFn) {
-      if (typeof checkGlobalFn === 'function' && checkGlobalFn()) {
-        return true;
-      }
-
-      const errors = [];
-      for (const url of urls) {
-        try {
-          await loadScriptFromUrl(url);
-          if (typeof checkGlobalFn === 'function' && checkGlobalFn()) {
-            return true;
-          }
-          errors.push(`${url} loaded without exposing expected global`);
-        } catch (err) {
-          errors.push(err && err.message ? err.message : String(err));
-        }
-      }
-
-      throw new Error(errors.join(' | '));
-    }
-
-    async function waitForTmImageApi(timeoutMs = 5000) {
-      const start = performance.now();
-      while (performance.now() - start < timeoutMs) {
-        if (window.tmImage && typeof window.tmImage.load === 'function') {
-          return window.tmImage;
-        }
-        await new Promise((r) => setTimeout(r, 80));
-      }
-      return null;
-    }
-
-    async function ensureTeachableMachineReady() {
-      if (window.tmImage && typeof window.tmImage.load === 'function') {
-        return window.tmImage;
-      }
-
-      if (!tmDependencyPromise) {
-        tmDependencyPromise = (async () => {
-          // Step 1: Ensure TensorFlow.js (window.tf) is available
-          await loadFirstAvailableScript(
-            TM_CDN_SOURCES.tfjs,
-            () => Boolean(window.tf)
-          );
-
-          // Step 2: Ensure Teachable Machine Image (window.tmImage) is available
-          await loadFirstAvailableScript(
-            TM_CDN_SOURCES.tmImage,
-            () => Boolean(window.tmImage && typeof window.tmImage.load === 'function')
-          );
-
-          // Step 3: Poll briefly in case globals register asynchronously after script onload
-          const api = await waitForTmImageApi(5000);
-          if (!api || typeof api.load !== 'function') {
-            throw new Error('window.tmImage.load is undefined after loading scripts.');
-          }
-          return api;
-        })().catch((err) => {
-          // Reset cached promise so a later retry or network change can try again
-          tmDependencyPromise = null;
-          throw err;
-        });
-      }
-
-      return await tmDependencyPromise;
-    }
-
-    function formatTmDiagnosticMessage(err, actionLabel) {
-      const isOffline = typeof navigator !== 'undefined' && navigator.onLine === false;
-      const detail = err && err.message ? err.message : String(err);
-
-      if (isOffline) {
-        return `Cannot ${actionLabel}: Your device appears offline. Connect to school Wi-Fi to load Teachable Machine libraries, or use Demo Mode.`;
-      }
-
-      return `Cannot ${actionLabel}: Teachable Machine library (window.tmImage.load) could not be initialized from CDNs (jsDelivr / unpkg / cdnjs). School firewall/ad-blocker may be blocking external scripts. Try Demo Mode or check network access. [Diagnostic: ${detail}]`;
-    }
-
-    async function cleanupSessionResources() {
-      state.isRoundActive = false;
-      state.isTransitioning = false;
-      state.holdStartTime = null;
-      state.simulatedActiveFace = null;
-
-      if (state.countdownIntervalId) {
-        clearInterval(state.countdownIntervalId);
-        state.countdownIntervalId = null;
-      }
-
-      if (state.predictionLoopId) {
-        cancelAnimationFrame(state.predictionLoopId);
-        state.predictionLoopId = null;
-      }
-
-      if (state.demoSimulationTimeoutId) {
-        clearTimeout(state.demoSimulationTimeoutId);
-        state.demoSimulationTimeoutId = null;
-      }
-
-      if (state.webcam) {
-        try {
-          if (typeof state.webcam.stop === 'function') {
-            await state.webcam.stop();
-          }
-        } catch (err) {
-          // Safe cleanup fallback
-        }
-        state.webcam = null;
-      }
-
-      // Also stop any lingering media tracks inside webcamMount
-      try {
-        const videos = dom.webcamMount.querySelectorAll('video');
-        videos.forEach((vid) => {
-          if (vid.srcObject && typeof vid.srcObject.getTracks === 'function') {
-            vid.srcObject.getTracks().forEach((track) => track.stop());
-          }
-        });
-      } catch (err) {
-        // Ignore
-      }
-
-      dom.webcamMount.innerHTML = '';
-
-      if (state.model && typeof state.model.dispose === 'function') {
-        try {
-          state.model.dispose();
-        } catch (err) {
-          // Ignore disposal errors
-        }
-      }
-      state.model = null;
-      state.modelClassNames = [];
-      state.maxPredictions = 0;
-    }
-
-    // -------------------------------------------------------------------------
-    // 7. MODEL LOADING (URL, LOCAL FILES, OR DEMO MODE)
+    // 7. MODEL LOADING (URL OR DEMO MODE)
     // -------------------------------------------------------------------------
     function setLoadingButtonsState(isLoading) {
       dom.loadUrlBtn.disabled = isLoading;
-      dom.loadFilesBtn.disabled = isLoading;
       dom.startDemoModeBtn.disabled = isLoading;
       dom.loadUrlBtn.classList.toggle('opacity-60', isLoading);
-      dom.loadFilesBtn.classList.toggle('opacity-60', isLoading);
       dom.startDemoModeBtn.classList.toggle('opacity-60', isLoading);
     }
 
@@ -1279,7 +940,7 @@
     function renderLoadedClassPills() {
       dom.loadedClassesStrip.innerHTML = '<span class="text-slate-500 font-medium">Classes:</span>';
       const labelsToShow = state.isDemoMode
-        ? ['Happy', 'Angry', 'Silly']
+        ? ['Happy', 'Sad', 'Silly']
         : state.modelClassNames;
 
       labelsToShow.forEach((rawName) => {
@@ -1373,104 +1034,6 @@
       }
     }
 
-    function handleFilesSelection(fileList) {
-      const files = Array.from(fileList || []);
-      state.uploadedFiles = files;
-
-      if (!files.length) {
-        dom.selectedFilesSummary.textContent = 'Waiting for model.json, metadata.json & weights.bin';
-        return;
-      }
-
-      const names = files.map((f) => f.name);
-      const hasModel = names.includes('model.json');
-      const hasMeta = names.includes('metadata.json');
-      const hasWeights = names.some((n) => n.endsWith('.bin'));
-
-      const statusBits = [
-        hasModel ? '✓ model.json' : '✕ model.json',
-        hasMeta ? '✓ metadata.json' : '✕ metadata.json',
-        hasWeights ? '✓ weights.bin' : '✕ weights.bin',
-      ];
-
-      dom.selectedFilesSummary.textContent = `${files.length} file(s) selected: ${statusBits.join(' • ')}`;
-    }
-
-    async function handleLoadFromFiles() {
-      hideBanner();
-      const files = state.uploadedFiles;
-
-      if (!files || files.length === 0) {
-        showBanner('Please select or drop model.json, metadata.json, and weights.bin first.', 'warning');
-        return;
-      }
-
-      const modelFile = files.find((f) => f.name === 'model.json');
-      const metadataFile = files.find((f) => f.name === 'metadata.json');
-      const weightsFiles = files.filter((f) => f.name.endsWith('.bin') || f.name.includes('weights'));
-
-      if (!modelFile || !metadataFile || weightsFiles.length === 0) {
-        showBanner(
-          'Missing required files! Make sure you include model.json, metadata.json, and your .bin weights file.',
-          'warning'
-        );
-        return;
-      }
-
-      setLoadingButtonsState(true);
-      showBanner('Checking Teachable Machine AI library, loading uploaded model files, and starting webcam...', 'info');
-
-      try {
-        await cleanupSessionResources();
-        state.isDemoMode = false;
-
-        const tmApi = await ensureTeachableMachineReady();
-        if (typeof tmApi?.load !== 'function' || typeof tmApi?.loadFromFiles !== 'function') {
-          throw new Error('window.tmImage.loadFromFiles is not available.');
-        }
-
-        // Combine model.json, metadata.json, and weights files into a FileList-like array
-        const orderedFiles = [modelFile, metadataFile, ...weightsFiles];
-        const loadedModel = await tmApi.loadFromFiles(
-          modelFile,
-          metadataFile,
-          weightsFiles.length === 1 ? weightsFiles[0] : weightsFiles
-        ).catch(async () => {
-          // Fallback signature in some @teachablemachine/image versions: (filesArray)
-          return await tmApi.loadFromFiles(orderedFiles);
-        });
-
-        state.model = loadedModel;
-        state.maxPredictions = loadedModel.getTotalClasses();
-        state.modelClassNames = typeof loadedModel.getClassLabels === 'function'
-          ? loadedModel.getClassLabels()
-          : Array.from({ length: state.maxPredictions }, (_, i) => `Class ${i + 1}`);
-
-        await initRealWebcam();
-        configureGameScreenForSource();
-        startPredictionLoop();
-        showBanner('Uploaded model loaded! Click "Start Round" to begin.', 'success');
-      } catch (err) {
-        await cleanupSessionResources();
-        const isLibIssue =
-          !window.tmImage ||
-          typeof window.tmImage.load !== 'function' ||
-          typeof window.tmImage.loadFromFiles !== 'function' ||
-          (err && String(err.message || '').includes('tmImage'));
-
-        if (isLibIssue) {
-          showBanner(formatTmDiagnosticMessage(err, 'load uploaded model files'), 'error');
-        } else {
-          showBanner(
-            `Failed to load uploaded model files. Ensure all 3 files came from the same Teachable Machine export. (${err.message || err})`,
-            'error'
-          );
-        }
-      } finally {
-        setLoadingButtonsState(false);
-      }
-    }
-
     async function handleStartDemoMode() {
       hideBanner();
       setLoadingButtonsState(true);
@@ -1478,7 +1041,7 @@
       try {
         await cleanupSessionResources();
         state.isDemoMode = true;
-        state.modelClassNames = ['Happy', 'Angry', 'Silly'];
+        state.modelClassNames = ['Happy', 'Sad', 'Silly'];
         state.maxPredictions = 3;
 
         configureGameScreenForSource();
@@ -1547,7 +1110,7 @@
     async function predictionStep() {
       if (state.screen !== 'game') return;
 
-      const scoresByEmoji = { Happy: 0, Angry: 0, Silly: 0 };
+      const scoresByEmoji = { Happy: 0, Sad: 0, Silly: 0 };
 
       try {
         if (state.isDemoMode) {
@@ -1615,7 +1178,7 @@
       state.bestStreak = 0;
       state.matchedCount = 0;
       state.matchTimesSec = [];
-      state.perEmojiMatches = { Happy: 0, Angry: 0, Silly: 0 };
+      state.perEmojiMatches = { Happy: 0, Sad: 0, Silly: 0 };
 
       dom.hudScore.textContent = '0';
       dom.hudStreak.textContent = '0🔥';
@@ -1886,43 +1449,6 @@
       });
       dom.startDemoModeBtn.addEventListener('click', handleStartDemoMode);
 
-      // File Picker & Drag-and-Drop
-      dom.dropZone.addEventListener('click', () => dom.modelFilesInput.click());
-      dom.dropZone.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          dom.modelFilesInput.click();
-        }
-      });
-
-      dom.modelFilesInput.addEventListener('change', (e) => {
-        handleFilesSelection(e.target.files);
-      });
-
-      ['dragenter', 'dragover'].forEach((eventName) => {
-        dom.dropZone.addEventListener(eventName, (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          dom.dropZone.classList.add('border-amber-500', 'bg-amber-50');
-        });
-      });
-
-      ['dragleave', 'drop'].forEach((eventName) => {
-        dom.dropZone.addEventListener(eventName, (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          dom.dropZone.classList.remove('border-amber-500', 'bg-amber-50');
-        });
-      });
-
-      dom.dropZone.addEventListener('drop', (e) => {
-        if (e.dataTransfer && e.dataTransfer.files) {
-          handleFilesSelection(e.dataTransfer.files);
-        }
-      });
-
-      dom.loadFilesBtn.addEventListener('click', handleLoadFromFiles);
-
       // Mode buttons
       document.querySelectorAll('.mode-btn').forEach((btn) => {
         btn.addEventListener('click', () => setGameMode(btn.dataset.mode));
@@ -1957,12 +1483,11 @@
       dom.changeModelBtn.addEventListener('click', returnToSetup);
       dom.summaryChangeModelBtn.addEventListener('click', returnToSetup);
 
-      // Number keys 1-4 in Demo Mode for quick teacher/student testing
       // Number keys 1-3 in Demo Mode for quick teacher/student testing
       window.addEventListener('keydown', (e) => {
         if (state.screen === 'game' && state.isDemoMode) {
           if (e.key === '1') triggerSimulatedFace('Happy');
-          if (e.key === '2') triggerSimulatedFace('Angry');
+          if (e.key === '2') triggerSimulatedFace('Sad');
           if (e.key === '3') triggerSimulatedFace('Silly');
         }
       });
