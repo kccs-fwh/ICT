@@ -1,0 +1,1812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Emoji Face Match AI — Primary 6 STEM Game</title>
+
+  <!-- Google Fonts: Fredoka for playful display headings, Inter for clean UI -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- TensorFlow.js & Teachable Machine Image Library -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.20.0/dist/tfjs.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8.5/dist/teachablemachine-image.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            display: ['Fredoka', 'sans-serif'],
+            sans: ['Inter', 'sans-serif'],
+          },
+          boxShadow: {
+            chunky: '0 6px 0 rgba(15, 23, 42, 0.14)',
+            'chunky-lg': '0 10px 0 rgba(15, 23, 42, 0.16)',
+          },
+        },
+      },
+    };
+  </script>
+
+  <style>
+    /* Custom animations & tactile secondary-school STEM arcade styling */
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f8fafc;
+      background-image:
+        radial-gradient(circle at 12% 15%, rgba(56, 189, 248, 0.18) 0%, transparent 42%),
+        radial-gradient(circle at 88% 18%, rgba(251, 191, 36, 0.2) 0%, transparent 40%),
+        radial-gradient(circle at 50% 92%, rgba(168, 85, 247, 0.14) 0%, transparent 45%);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .font-display {
+      font-family: 'Fredoka', sans-serif;
+    }
+
+    /* Tactile chunky press effect for big classroom buttons */
+    .btn-chunky {
+      transition: transform 0.12s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.12s ease, background-color 0.15s ease;
+    }
+    .btn-chunky:hover:not(:disabled) {
+      transform: translateY(-2px);
+    }
+    .btn-chunky:active:not(:disabled) {
+      transform: translateY(4px);
+      box-shadow: 0 2px 0 rgba(15, 23, 42, 0.16) !important;
+    }
+
+    @keyframes emojiPopIn {
+      0% {
+        opacity: 0;
+        transform: scale(0.45) rotate(-10deg);
+      }
+      70% {
+        opacity: 1;
+        transform: scale(1.12) rotate(4deg);
+      }
+      100% {
+        opacity: 1;
+        transform: scale(1) rotate(0deg);
+      }
+    }
+
+    .animate-emoji-pop {
+      animation: emojiPopIn 0.38s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+
+    @keyframes floatGentle {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-6px); }
+    }
+
+    .animate-float {
+      animation: floatGentle 2.6s ease-in-out infinite;
+    }
+
+    @keyframes burstBadge {
+      0% { opacity: 0; transform: scale(0.6) translateY(8px); }
+      25% { opacity: 1; transform: scale(1.08) translateY(-4px); }
+      85% { opacity: 1; transform: scale(1) translateY(-8px); }
+      100% { opacity: 0; transform: scale(0.95) translateY(-14px); }
+    }
+
+    .animate-burst {
+      animation: burstBadge 0.85s ease-out forwards;
+    }
+
+    /* Mirrored selfie feed so movements feel natural like a mirror */
+    .mirror-selfie {
+      transform: scaleX(-1);
+    }
+
+    /* Custom subtle scrollbar for model class pills */
+    .thin-scroll::-webkit-scrollbar {
+      height: 6px;
+      width: 6px;
+    }
+    .thin-scroll::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 9999px;
+    }
+  </style>
+</head>
+<body class="text-slate-800 antialiased selection:bg-amber-200 selection:text-slate-900">
+
+  <!-- Top Navigation & Classroom Status Header -->
+  <header class="w-full max-w-6xl mx-auto px-4 sm:px-6 pt-4 pb-2 flex flex-wrap items-center justify-between gap-3">
+    <div class="flex items-center gap-3">
+      <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-amber-400 via-orange-400 to-rose-500 flex items-center justify-center text-2xl shadow-chunky border-2 border-white">
+        🤖
+      </div>
+      <div>
+        <div class="flex items-center gap-2 flex-wrap">
+          <h1 class="font-display text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
+            Emoji Face Match AI
+          </h1>
+          <span class="px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider rounded-full bg-indigo-100 text-indigo-700 border border-indigo-200">
+            P6 STEM Lab
+          </span>
+        </div>
+        <p class="text-xs sm:text-sm text-slate-500">
+          Train Happy 😄, Angry 😠 &amp; Silly 😜 — then beat the clock!
+        </p>
+      </div>
+    </div>
+
+    <!-- Top Action Controls: Active Team Pill, Change Model, Sound Toggle -->
+    <div class="flex items-center gap-2 sm:gap-2.5 flex-wrap">
+      <div id="headerTeamBadge" class="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border-2 border-slate-200 text-xs font-semibold text-slate-700 shadow-sm">
+        <span>👥</span>
+        <span id="headerTeamName">Team 1</span>
+      </div>
+
+      <button
+        id="changeModelBtn"
+        type="button"
+        class="btn-chunky hidden px-3.5 py-2 rounded-xl bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs sm:text-sm border-2 border-slate-200 shadow-chunky flex items-center gap-1.5"
+        title="Return to model loader setup"
+      >
+        <span>🔄</span>
+        <span>Change Model</span>
+      </button>
+
+      <button
+        id="soundToggleBtn"
+        type="button"
+        aria-label="Toggle sound effects"
+        class="btn-chunky px-3.5 py-2 rounded-xl bg-white hover:bg-amber-50 text-slate-700 font-semibold text-xs sm:text-sm border-2 border-slate-200 shadow-chunky flex items-center gap-1.5"
+      >
+        <span id="soundIcon">🔊</span>
+        <span id="soundLabel" class="hidden sm:inline">Sound On</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Inline Banner Notification Area (replaces browser alerts cleanly) -->
+  <div id="statusBannerContainer" class="w-full max-w-6xl mx-auto px-4 sm:px-6 mt-2 hidden">
+    <div id="statusBanner" class="rounded-2xl px-4 py-3 text-sm font-medium flex items-start sm:items-center justify-between gap-3 border-2 shadow-sm">
+      <div class="flex items-center gap-2.5">
+        <span id="statusBannerIcon" class="text-lg shrink-0">💡</span>
+        <p id="statusBannerText" class="leading-snug"></p>
+      </div>
+      <button
+        id="dismissBannerBtn"
+        type="button"
+        aria-label="Dismiss message"
+        class="text-xs font-bold px-2.5 py-1 rounded-lg bg-black/5 hover:bg-black/10 shrink-0"
+      >
+        ✕
+      </button>
+    </div>
+  </div>
+
+  <!-- Main Workspace Container -->
+  <main class="w-full max-w-6xl mx-auto px-4 sm:px-6 py-4 sm:py-6">
+
+    <!-- ===================================================================== -->
+    <!-- SCREEN 1: MODEL LOADER & SETUP SCREEN                                 -->
+    <!-- ===================================================================== -->
+    <section id="setupScreen" class="space-y-6">
+      <!-- Hero Setup Card -->
+      <div class="bg-white rounded-3xl border-2 border-slate-200/90 shadow-chunky-lg p-5 sm:p-8">
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pb-6 border-b border-slate-100">
+          <div>
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 mb-2">
+              <span>⚡</span> Step 1 of 2: Connect Your AI Model
+            </span>
+            <h2 class="font-display text-2xl sm:text-3xl font-bold text-slate-900">
+              Load Your Trained Emoji Model
+            </h2>
+            <p class="text-sm sm:text-base text-slate-600 mt-1 max-w-2xl">
+              Use a Teachable Machine share link, upload exported model files, or turn on <strong class="text-slate-800">Demo Mode</strong> to test right away without a webcam.
+            </p>
+          </div>
+
+          <!-- Team Name & Mode Quick Config -->
+          <div class="bg-slate-50 border-2 border-slate-200 rounded-2xl p-3.5 sm:p-4 lg:w-80 shrink-0">
+            <label for="teamNameInput" class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">
+              Team Name (3 Teams of 5)
+            </label>
+            <div class="flex gap-2 mb-2.5">
+              <input
+                id="teamNameInput"
+                type="text"
+                maxlength="24"
+                value="Team 1"
+                placeholder="e.g. Team 1"
+                class="w-full px-3 py-2 rounded-xl bg-white border-2 border-slate-200 focus:border-indigo-500 focus:outline-none text-sm font-semibold text-slate-800"
+              />
+            </div>
+            <div class="flex gap-1.5 flex-wrap">
+              <button type="button" data-preset-team="Team 1" class="preset-team-btn text-xs font-semibold px-2.5 py-1 rounded-lg bg-white hover:bg-indigo-50 border border-slate-200 text-slate-600">Team 1</button>
+              <button type="button" data-preset-team="Team 2" class="preset-team-btn text-xs font-semibold px-2.5 py-1 rounded-lg bg-white hover:bg-indigo-50 border border-slate-200 text-slate-600">Team 2</button>
+              <button type="button" data-preset-team="Team 3" class="preset-team-btn text-xs font-semibold px-2.5 py-1 rounded-lg bg-white hover:bg-indigo-50 border border-slate-200 text-slate-600">Team 3</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Two Load Options Grid: (A) Shareable URL & (B) Upload Local Files -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+
+          <!-- Option A: Teachable Machine Shareable URL -->
+          <div class="rounded-2xl border-2 border-indigo-100 bg-indigo-50/40 p-5 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between gap-2 mb-2">
+                <span class="font-display text-lg font-bold text-indigo-950 flex items-center gap-2">
+                  <span>🔗</span> Option A: Teachable Machine URL
+                </span>
+                <span class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700">
+                  Fastest
+                </span>
+              </div>
+              <p class="text-xs sm:text-sm text-slate-600 mb-3.5">
+                Paste the shareable model URL from Teachable Machine (ends with <code class="px-1.5 py-0.5 rounded bg-white border border-indigo-200 text-indigo-700 font-mono text-xs">/</code>).
+              </p>
+
+              <label for="modelUrlInput" class="block text-xs font-bold text-slate-700 mb-1.5">
+                Model URL
+              </label>
+              <input
+                id="modelUrlInput"
+                type="url"
+                placeholder="https://teachablemachine.withgoogle.com/models/AbCdEf123/"
+                class="w-full px-3.5 py-2.5 rounded-xl bg-white border-2 border-indigo-200 focus:border-indigo-500 focus:outline-none text-sm text-slate-800 placeholder:text-slate-400"
+              />
+            </div>
+
+            <button
+              id="loadUrlBtn"
+              type="button"
+              class="btn-chunky mt-4 w-full py-3 px-4 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-display font-semibold text-base shadow-chunky flex items-center justify-center gap-2"
+            >
+              <span>🚀</span>
+              <span>Load Model from URL</span>
+            </button>
+          </div>
+
+          <!-- Option B: Upload Local Files (Drag & Drop + File Picker) -->
+          <div class="rounded-2xl border-2 border-amber-100 bg-amber-50/40 p-5 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between gap-2 mb-2">
+                <span class="font-display text-lg font-bold text-amber-950 flex items-center gap-2">
+                  <span>📁</span> Option B: Upload Model Files
+                </span>
+                <span class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">
+                  Offline / Exported
+                </span>
+              </div>
+              <p class="text-xs sm:text-sm text-slate-600 mb-3.5">
+                Select or drop all three exported files together: <strong class="text-slate-800">model.json</strong>, <strong class="text-slate-800">metadata.json</strong>, and <strong class="text-slate-800">weights.bin</strong>.
+              </p>
+
+              <!-- Drag & Drop Zone -->
+              <div
+                id="dropZone"
+                tabindex="0"
+                role="button"
+                aria-label="Drop model.json, metadata.json, and weights.bin here or click to browse"
+                class="border-2 border-dashed border-amber-300 hover:border-amber-500 bg-white rounded-2xl p-4 text-center cursor-pointer transition-colors"
+              >
+                <input
+                  id="modelFilesInput"
+                  type="file"
+                  multiple
+                  accept=".json,.bin"
+                  class="hidden"
+                />
+                <div class="text-2xl mb-1">📥</div>
+                <p class="text-xs sm:text-sm font-semibold text-slate-700">
+                  Drop files here or <span class="text-amber-700 underline">click to choose files</span>
+                </p>
+                <p id="selectedFilesSummary" class="text-xs text-slate-500 mt-1">
+                  Waiting for model.json, metadata.json &amp; weights.bin
+                </p>
+              </div>
+            </div>
+
+            <button
+              id="loadFilesBtn"
+              type="button"
+              class="btn-chunky mt-4 w-full py-3 px-4 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-display font-semibold text-base shadow-chunky flex items-center justify-center gap-2"
+            >
+              <span>📦</span>
+              <span>Load Uploaded Model</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Demo Mode (Simulated Webcam) Card -->
+        <div class="mt-6 rounded-2xl border-2 border-purple-200 bg-gradient-to-r from-purple-50 via-fuchsia-50 to-sky-50 p-4 sm:p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div class="flex items-start sm:items-center gap-3.5">
+            <div class="w-12 h-12 rounded-2xl bg-purple-600 text-white flex items-center justify-center text-2xl shrink-0 shadow-sm">
+              🎭
+            </div>
+            <div>
+              <div class="flex items-center gap-2 flex-wrap">
+                <h3 class="font-display text-lg font-bold text-purple-950">
+                  Demo Mode (Simulated Webcam &amp; AI)
+                </h3>
+                <span class="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-purple-200/80 text-purple-900">
+                  No Camera or URL Needed
+                </span>
+              </div>
+              <p class="text-xs sm:text-sm text-slate-600 mt-0.5">
+                Perfect for teacher demos, testing on a projector, or practicing before training in Teachable Machine. Includes quick face-trigger buttons during play!
+              </p>
+            </div>
+          </div>
+
+          <button
+            id="startDemoModeBtn"
+            type="button"
+            class="btn-chunky px-5 py-3 rounded-2xl bg-purple-600 hover:bg-purple-500 text-white font-display font-semibold text-sm sm:text-base shadow-chunky shrink-0 flex items-center justify-center gap-2"
+          >
+            <span>▶️</span>
+            <span>Launch Demo Mode</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 4 Target Emojis Reference Strip -->
+      <div class="bg-white rounded-3xl border-2 border-slate-200/90 shadow-chunky p-5 sm:p-6">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
+          <h3 class="font-display text-lg sm:text-xl font-bold text-slate-900 flex items-center gap-2">
+            <span>🎯</span> The 4 Target Emojis to Train
+          </h3>
+          <p class="text-xs sm:text-sm text-slate-300 mt-1.5 max-w-xs">
+            Click a face button below (or press keys 1–3) to simulate the AI seeing that face!
+          </p>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+          <div class="rounded-2xl bg-amber-50 border-2 border-amber-200 p-4 text-center">
+            <div class="text-4xl sm:text-5xl mb-1.5">😄</div>
+            <div class="font-display font-bold text-lg text-amber-950">Happy</div>
+            <div class="text-xs text-amber-800/80 mt-0.5">Big smile &amp; bright eyes</div>
+          </div>
+          <div class="rounded-2xl bg-rose-50 border-2 border-rose-200 p-4 text-center">
+            <div class="text-4xl sm:text-5xl mb-1.5">😠</div>
+            <div class="font-display font-bold text-lg text-rose-950">Angry</div>
+            <div class="text-xs text-rose-800/80 mt-0.5">Furrowed brows &amp; serious face</div>
+          </div>
+          <div class="rounded-2xl bg-sky-50 border-2 border-sky-200 p-4 text-center">
+            <div class="text-4xl sm:text-5xl mb-1.5">😢</div>
+            <div class="font-display font-bold text-lg text-sky-950">Sad</div>
+            <div class="text-xs text-sky-800/80 mt-0.5">Droopy mouth &amp; pout</div>
+          </div>
+          <div class="rounded-2xl bg-fuchsia-50 border-2 border-fuchsia-200 p-4 text-center">
+            <div class="text-4xl sm:text-5xl mb-1.5">😜</div>
+            <div class="font-display font-bold text-lg text-fuchsia-950">Silly</div>
+            <div class="text-xs text-fuchsia-800/80 mt-0.5">Wink, tongue out, or funny tilt</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- SCREEN 2: ACTIVE GAMEPLAY & READY SCREEN                              -->
+    <!-- ===================================================================== -->
+    <section id="gameScreen" class="hidden space-y-5">
+
+      <!-- Top Game HUD Bar: Team, Mode Selector, Score, Streak, Timer / Progress -->
+      <div class="bg-white rounded-3xl border-2 border-slate-200 shadow-chunky p-4 sm:p-5">
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+
+          <!-- Left: Active Model Source Badge & Class Labels -->
+          <div class="flex flex-col gap-2">
+            <div class="flex items-center gap-2 flex-wrap">
+              <span id="modelSourceBadge" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                <span>🟢</span>
+                <span id="modelSourceText">Teachable Machine Model Ready</span>
+              </span>
+              <span class="text-xs font-semibold text-slate-500">
+                Team: <strong id="hudTeamName" class="text-slate-800">Team 1</strong>
+              </span>
+            </div>
+            <div id="loadedClassesStrip" class="flex items-center gap-1.5 flex-wrap text-xs">
+              <span class="text-slate-500 font-medium">Classes:</span>
+              <!-- Populated dynamically with loaded model class names -->
+            </div>
+          </div>
+
+          <!-- Right: Game Mode Selector + Score / Streak / Clock Readouts -->
+          <div class="flex flex-wrap items-center justify-between lg:justify-end gap-2.5 sm:gap-3">
+            <!-- Challenge Mode Picker (enabled when idle/ready) -->
+            <div class="flex items-center gap-1 bg-slate-100 p-1 rounded-2xl border border-slate-200">
+              <button
+                type="button"
+                data-mode="timed-45"
+                class="mode-btn px-3 py-1.5 rounded-xl text-xs font-bold bg-white text-slate-900 shadow-sm transition"
+              >
+                ⏱️ 45s
+              </button>
+              <button
+                type="button"
+                data-mode="timed-60"
+                class="mode-btn px-3 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 transition"
+              >
+                ⏱️ 60s
+              </button>
+              <button
+                type="button"
+                data-mode="sprint-10"
+                class="mode-btn px-3 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 transition"
+              >
+                🎯 10 Emojis
+              </button>
+            </div>
+
+            <!-- Score Pill -->
+            <div class="px-3.5 py-2 rounded-2xl bg-amber-50 border-2 border-amber-200 text-center min-w-[84px]">
+              <div class="text-[10px] font-bold uppercase tracking-wider text-amber-700">Score</div>
+              <div id="hudScore" class="font-display text-xl sm:text-2xl font-bold text-amber-950 leading-tight">0</div>
+            </div>
+
+            <!-- Streak Pill -->
+            <div class="px-3.5 py-2 rounded-2xl bg-orange-50 border-2 border-orange-200 text-center min-w-[84px]">
+              <div class="text-[10px] font-bold uppercase tracking-wider text-orange-700">Streak</div>
+              <div id="hudStreak" class="font-display text-xl sm:text-2xl font-bold text-orange-950 leading-tight">0🔥</div>
+            </div>
+
+            <!-- Timer / Progress Pill -->
+            <div class="px-3.5 py-2 rounded-2xl bg-indigo-50 border-2 border-indigo-200 text-center min-w-[96px]">
+              <div id="hudTimerLabel" class="text-[10px] font-bold uppercase tracking-wider text-indigo-700">Time Left</div>
+              <div id="hudTimerValue" class="font-display text-xl sm:text-2xl font-bold text-indigo-950 leading-tight">45s</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Countdown / Sprint Progress Bar -->
+        <div class="mt-4">
+          <div class="w-full h-3.5 bg-slate-100 rounded-full overflow-hidden border border-slate-200/80">
+            <div
+              id="roundProgressBar"
+              class="h-full bg-gradient-to-r from-emerald-400 via-sky-500 to-indigo-600 rounded-full transition-all duration-200"
+              style="width: 100%;"
+            ></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Arena: Target Emoji Stage (Left) + Live Webcam & AI Confidence (Right) -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+
+        <!-- LEFT COLUMN (6 cols): Target Emoji Prompt & Start/Skip Controls -->
+        <div class="lg:col-span-6 bg-white rounded-3xl border-2 border-slate-200 shadow-chunky-lg p-6 sm:p-8 flex flex-col justify-between relative overflow-hidden">
+
+          <!-- Celebratory Score Burst Overlay -->
+          <div
+            id="matchBurstBadge"
+            class="hidden pointer-events-none absolute top-5 right-5 z-20 px-4 py-2 rounded-2xl bg-emerald-500 text-white font-display font-bold text-lg shadow-lg border-2 border-white"
+          >
+            +100 🎉
+          </div>
+
+          <div class="text-center">
+            <span id="targetStatusPill" class="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-bold bg-sky-100 text-sky-800 border border-sky-200">
+              <span>✨</span> Make This Face!
+            </span>
+
+            <!-- Big Target Emoji Display -->
+            <div class="my-5 sm:my-6 flex flex-col items-center justify-center min-h-[190px] sm:min-h-[220px] rounded-3xl bg-gradient-to-b from-slate-50 to-amber-50/60 border-2 border-dashed border-slate-200 p-4">
+              <div
+                id="targetEmojiGlyph"
+                class="text-7xl sm:text-8xl md:text-9xl select-none animate-float leading-none"
+                aria-live="polite"
+              >
+                😄
+              </div>
+              <div
+                id="targetEmojiLabel"
+                class="font-display text-3xl sm:text-4xl font-bold text-slate-900 mt-3"
+              >
+                Happy
+              </div>
+              <p
+                id="targetEmojiHint"
+                class="text-xs sm:text-sm text-slate-500 mt-1"
+              >
+                Press Start Round when your team is ready!
+              </p>
+            </div>
+
+            <!-- Hold-to-Confirm Progress Bar (helps make match feel crisp & reliable) -->
+            <div class="max-w-sm mx-auto">
+              <div class="flex items-center justify-between text-xs font-bold text-slate-600 mb-1">
+                <span>Match Lock Meter</span>
+                <span id="matchLockPercent">0%</span>
+              </div>
+              <div class="w-full h-3 bg-slate-100 rounded-full overflow-hidden border border-slate-200">
+                <div
+                  id="matchLockBar"
+                  class="h-full bg-gradient-to-r from-amber-400 to-emerald-500 rounded-full transition-all duration-100"
+                  style="width: 0%;"
+                ></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Primary Action Buttons: Start Round / Skip Emoji / End Round -->
+          <div class="mt-6 flex flex-wrap items-center justify-center gap-3">
+            <button
+              id="startRoundBtn"
+              type="button"
+              class="btn-chunky flex-1 min-w-[180px] py-3.5 px-6 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-white font-display font-bold text-lg shadow-chunky flex items-center justify-center gap-2"
+            >
+              <span>🚀</span>
+              <span>Start Round</span>
+            </button>
+
+            <button
+              id="skipEmojiBtn"
+              type="button"
+              disabled
+              class="btn-chunky py-3.5 px-4 rounded-2xl bg-slate-100 hover:bg-slate-200 disabled:opacity-45 disabled:cursor-not-allowed text-slate-700 font-display font-semibold text-base border-2 border-slate-200 shadow-chunky flex items-center justify-center gap-1.5"
+              title="Skip tricky emoji"
+            >
+              <span>⏭️</span>
+              <span>Skip</span>
+            </button>
+
+            <button
+              id="stopRoundBtn"
+              type="button"
+              disabled
+              class="btn-chunky py-3.5 px-4 rounded-2xl bg-rose-50 hover:bg-rose-100 disabled:opacity-40 disabled:cursor-not-allowed text-rose-700 font-display font-semibold text-base border-2 border-rose-200 shadow-chunky flex items-center justify-center gap-1.5"
+              title="Finish round early"
+            >
+              <span>⏹️</span>
+              <span>Finish</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- RIGHT COLUMN (6 cols): Mirrored Webcam / Demo Canvas & Live AI Confidence Bars -->
+        <div class="lg:col-span-6 bg-white rounded-3xl border-2 border-slate-200 shadow-chunky-lg p-5 sm:p-6 flex flex-col justify-between gap-4">
+
+          <!-- Camera / Simulated Stage Container -->
+          <div class="relative w-full aspect-[4/3] max-h-[340px] rounded-2xl overflow-hidden bg-slate-900 border-2 border-slate-800 flex items-center justify-center">
+            <!-- Live Webcam or Teachable Machine Canvas -->
+            <div id="webcamMount" class="w-full h-full flex items-center justify-center mirror-selfie"></div>
+
+            <!-- Simulated Webcam Visual Stage (shown in Demo Mode) -->
+            <div id="demoStageVisual" class="hidden w-full h-full bg-gradient-to-br from-slate-900 via-indigo-950 to-purple-950 flex flex-col items-center justify-center text-center p-4">
+              <div id="demoAvatarEmoji" class="text-6xl sm:text-7xl mb-2 transition-transform duration-200">🙂</div>
+              <div class="text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-white/10 text-purple-200 border border-white/15">
+                Simulated Webcam Active
+              </div>
+              <p class="text-xs text-slate-300 mt-1.5 max-w-xs">
+                Click a face button below (or press keys 1–4) to simulate the AI seeing that face!
+              </p>
+            </div>
+
+            <!-- Top-left Live Detection Pill -->
+            <div class="absolute top-3 left-3 z-10 px-3 py-1.5 rounded-xl bg-slate-950/75 backdrop-blur-sm text-white text-xs sm:text-sm font-semibold flex items-center gap-2 border border-white/15">
+              <span id="livePredEmoji" class="text-base">🤔</span>
+              <span>AI sees:</span>
+              <strong id="livePredLabel" class="text-amber-300">Waiting...</strong>
+              <span id="livePredConf" class="text-slate-300 text-xs">(0%)</span>
+            </div>
+
+            <!-- Top-right Match Threshold Pill -->
+            <div class="absolute top-3 right-3 z-10 px-2.5 py-1 rounded-xl bg-slate-950/70 backdrop-blur-sm text-emerald-300 text-[11px] font-bold border border-white/10">
+              Target ≥ <span id="thresholdLabel">75%</span>
+            </div>
+          </div>
+
+          <!-- Demo Mode Face Trigger Pad (visible ONLY when Demo Mode is active) -->
+        <div id="demoTriggerPad" class="hidden rounded-2xl bg-purple-50 border-2 border-purple-200 p-3.5">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-bold uppercase tracking-wider text-purple-900">
+              🎭 Demo Face Simulator (Click or press 1–3)
+            </span>
+            <span class="text-[11px] font-semibold text-purple-700">Instant ~92% confidence</span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <button type="button" data-sim-face="Happy" class="sim-face-btn btn-chunky py-2 px-2.5 rounded-xl bg-white hover:bg-amber-100 border-2 border-amber-200 font-display font-semibold text-sm text-slate-800 shadow-sm">
+              😄 Happy (1)
+            </button>
+            <button type="button" data-sim-face="Angry" class="sim-face-btn btn-chunky py-2 px-2.5 rounded-xl bg-white hover:bg-rose-100 border-2 border-rose-200 font-display font-semibold text-sm text-slate-800 shadow-sm">
+              😠 Angry (2)
+            </button>
+            <button type="button" data-sim-face="Silly" class="sim-face-btn btn-chunky py-2 px-2.5 rounded-xl bg-white hover:bg-fuchsia-100 border-2 border-fuchsia-200 font-display font-semibold text-sm text-slate-800 shadow-sm">
+              😜 Silly (3)
+            </button>
+          </div>
+        </div>
+
+        <!-- Live Confidence Bars for All 3 Emojis -->
+        <div class="space-y-2.5">
+          <div class="flex items-center justify-between text-xs font-bold text-slate-500 uppercase tracking-wider">
+            <span>Live AI Confidence Meter</span>
+            <span id="matchedCounterText">Matched: 0</span>
+          </div>
+
+          <div id="confidenceBarsContainer" class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+            <!-- Happy Bar -->
+            <div class="rounded-xl bg-slate-50 border border-slate-200 p-2.5">
+              <div class="flex justify-between text-xs font-bold mb-1">
+                <span class="text-slate-800">😄 Happy</span>
+                <span id="confText-Happy" class="text-slate-600">0%</span>
+              </div>
+              <div class="w-full h-2.5 bg-slate-200 rounded-full overflow-hidden">
+                <div id="confBar-Happy" class="h-full bg-amber-400 rounded-full transition-all duration-150" style="width: 0%;"></div>
+              </div>
+            </div>
+
+            <!-- Angry Bar -->
+            <div class="rounded-xl bg-slate-50 border border-slate-200 p-2.5">
+              <div class="flex justify-between text-xs font-bold mb-1">
+                <span class="text-slate-800">😠 Angry</span>
+                <span id="confText-Angry" class="text-slate-600">0%</span>
+              </div>
+              <div class="w-full h-2.5 bg-slate-200 rounded-full overflow-hidden">
+                <div id="confBar-Angry" class="h-full bg-rose-500 rounded-full transition-all duration-150" style="width: 0%;"></div>
+              </div>
+            </div>
+
+            <!-- Silly Bar -->
+            <div class="rounded-xl bg-slate-50 border border-slate-200 p-2.5">
+              <div class="flex justify-between text-xs font-bold mb-1">
+                <span class="text-slate-800">😜 Silly</span>
+                <span id="confText-Silly" class="text-slate-600">0%</span>
+              </div>
+              <div class="w-full h-2.5 bg-slate-200 rounded-full overflow-hidden">
+                <div id="confBar-Silly" class="h-full bg-fuchsia-500 rounded-full transition-all duration-150" style="width: 0%;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+    <!-- ===================================================================== -->
+    <!-- SCREEN 3: ROUND SUMMARY & CELEBRATION SCREEN                          -->
+    <!-- ===================================================================== -->
+    <section id="summaryScreen" class="hidden">
+      <div class="bg-white rounded-3xl border-2 border-slate-200 shadow-chunky-lg p-6 sm:p-10 text-center max-w-3xl mx-auto">
+        <div class="text-6xl sm:text-7xl mb-2 animate-emoji-pop">🏆</div>
+        <span class="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-200 mb-2">
+          <span>🎉</span> Round Complete!
+        </span>
+        <h2 id="summaryTitle" class="font-display text-3xl sm:text-4xl font-bold text-slate-900">
+          Awesome Job, Team 1!
+        </h2>
+        <p id="summarySubtitle" class="text-sm sm:text-base text-slate-600 mt-1.5">
+          Your trained AI model faced the random emoji challenge!
+        </p>
+
+        <!-- Key Stats Grid -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 my-7">
+          <div class="rounded-2xl bg-amber-50 border-2 border-amber-200 p-4">
+            <div class="text-xs font-bold uppercase text-amber-700">Final Score</div>
+            <div id="summaryScore" class="font-display text-3xl font-bold text-amber-950 mt-1">0</div>
+          </div>
+
+          <div class="rounded-2xl bg-emerald-50 border-2 border-emerald-200 p-4">
+            <div class="text-xs font-bold uppercase text-emerald-700">Emojis Matched</div>
+            <div id="summaryMatched" class="font-display text-3xl font-bold text-emerald-950 mt-1">0</div>
+          </div>
+
+          <div class="rounded-2xl bg-orange-50 border-2 border-orange-200 p-4">
+            <div class="text-xs font-bold uppercase text-orange-700">Best Streak</div>
+            <div id="summaryBestStreak" class="font-display text-3xl font-bold text-orange-950 mt-1">0</div>
+          </div>
+
+          <div class="rounded-2xl bg-indigo-50 border-2 border-indigo-200 p-4">
+            <div class="text-xs font-bold uppercase text-indigo-700">Avg Match Speed</div>
+            <div id="summaryAvgSpeed" class="font-display text-2xl sm:text-3xl font-bold text-indigo-950 mt-1.5">—</div>
+          </div>
+        </div>
+
+        <!-- Per-Emoji Breakdown -->
+        <div class="rounded-2xl bg-slate-50 border-2 border-slate-200 p-4 mb-7 text-left">
+          <div class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">
+            Emoji Breakdown This Round
+          </div>
+          <div id="summaryEmojiBreakdown" class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+
+        <!-- Action Buttons: Play Again & Change Model -->
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-3.5">
+          <button
+            id="playAgainBtn"
+            type="button"
+            class="btn-chunky w-full sm:w-auto py-3.5 px-7 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-white font-display font-bold text-lg shadow-chunky flex items-center justify-center gap-2"
+          >
+            <span>🔁</span>
+            <span>Play Again</span>
+          </button>
+
+          <button
+            id="summaryChangeModelBtn"
+            type="button"
+            class="btn-chunky w-full sm:w-auto py-3.5 px-6 rounded-2xl bg-white hover:bg-slate-50 text-slate-800 font-display font-bold text-lg border-2 border-slate-200 shadow-chunky flex items-center justify-center gap-2"
+          >
+            <span>🔄</span>
+            <span>Change Model</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    /**
+     * =========================================================================
+     * EMOJI FACE MATCH AI — PRIMARY 6 STEM GAME
+     * Self-contained Teachable Machine Image + Web Audio + Demo Mode Game
+     * =========================================================================
+     */
+
+    // -------------------------------------------------------------------------
+    // 1. TARGET EMOJI DEFINITIONS & NORMALIZATION HELPERS
+    // -------------------------------------------------------------------------
+    const TARGET_EMOJIS = [
+      {
+        key: 'Happy',
+        label: 'Happy',
+        emoji: '😄',
+        hint: 'Show a big, cheerful smile!',
+        barColor: 'bg-amber-400',
+        cardBg: 'bg-amber-50 border-amber-200 text-amber-950',
+      },
+      {
+        key: 'Angry',
+        label: 'Angry',
+        emoji: '😠',
+        hint: 'Pull your eyebrows down & look fierce!',
+        barColor: 'bg-rose-500',
+        cardBg: 'bg-rose-50 border-rose-200 text-rose-950',
+      },
+      {
+        key: 'Silly',
+        label: 'Silly',
+        emoji: '😜',
+        hint: 'Strike a goofy or silly face!',
+        barColor: 'bg-fuchsia-500',
+        cardBg: 'bg-fuchsia-50 border-fuchsia-200 text-fuchsia-950',
+      },
+    ];
+
+    const EMOJI_MAP = Object.fromEntries(TARGET_EMOJIS.map((item) => [item.key, item]));
+
+    // Game tuning constants
+    const CONFIDENCE_THRESHOLD = 0.75; // 75% model confidence required
+    const HOLD_DURATION_MS = 280;      // Brief hold time to prevent accidental flickers
+    const BASE_MATCH_POINTS = 100;
+    const STREAK_BONUS_STEP = 25;
+    const SPRINT_GOAL_COUNT = 10;
+
+    /**
+     * Normalizes class labels from Teachable Machine so variations like
+     * "happy", "Happy ", "HAPPY FACE", or "Class 1: Happy" match cleanly.
+     */
+    function normalizeEmojiLabel(rawLabel) {
+      if (!rawLabel || typeof rawLabel !== 'string') return null;
+      const cleaned = rawLabel.trim().toLowerCase();
+
+      // Direct or substring match against the 3 target keys
+      if (cleaned === 'happy' || cleaned.includes('happy')) return 'Happy';
+      if (cleaned === 'angry' || cleaned.includes('angry') || cleaned.includes('mad')) return 'Angry';
+      if (cleaned === 'silly' || cleaned.includes('silly') || cleaned.includes('funny') || cleaned.includes('goofy')) {
+        return 'Silly';
+      }
+      return null;
+    }
+
+    // -------------------------------------------------------------------------
+    // 2. WEB AUDIO SOUND EFFECTS (NO EXTERNAL AUDIO FILES REQUIRED)
+    // -------------------------------------------------------------------------
+    const soundFX = {
+      ctx: null,
+      enabled: true,
+
+      ensureContext() {
+        if (!this.enabled) return null;
+        try {
+          if (!this.ctx) {
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            if (AudioCtx) {
+              this.ctx = new AudioCtx();
+            }
+          }
+          if (this.ctx && this.ctx.state === 'suspended') {
+            this.ctx.resume();
+          }
+          return this.ctx;
+        } catch (err) {
+          return null;
+        }
+      },
+
+      playTone(freq, duration, type = 'sine', delay = 0, gainPeak = 0.14) {
+        const ctx = this.ensureContext();
+        if (!ctx) return;
+
+        try {
+          const now = ctx.currentTime + delay;
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+
+          osc.type = type;
+          osc.frequency.setValueAtTime(freq, now);
+
+          gain.gain.setValueAtTime(0.0001, now);
+          gain.gain.exponentialRampToValueAtTime(gainPeak, now + 0.015);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+
+          osc.start(now);
+          osc.stop(now + duration + 0.02);
+        } catch (err) {
+          // Ignore audio playback errors if blocked by browser policy
+        }
+      },
+
+      playPop() {
+        // Cheerful pop when a new emoji appears
+        this.playTone(440, 0.09, 'sine', 0, 0.11);
+        this.playTone(587.33, 0.11, 'triangle', 0.05, 0.11);
+      },
+
+      playMatch(streak = 1) {
+        // Bright ascending arpeggio scaled slightly by streak
+        const pitchBoost = Math.min(streak - 1, 5) * 25;
+        this.playTone(523.25 + pitchBoost, 0.12, 'triangle', 0, 0.15);
+        this.playTone(659.25 + pitchBoost, 0.12, 'triangle', 0.08, 0.15);
+        this.playTone(783.99 + pitchBoost, 0.22, 'sine', 0.16, 0.17);
+      },
+
+      playSkip() {
+        this.playTone(330, 0.11, 'sine', 0, 0.09);
+        this.playTone(261.63, 0.14, 'sine', 0.07, 0.09);
+      },
+
+      playRoundEnd() {
+        this.playTone(523.25, 0.14, 'triangle', 0, 0.14);
+        this.playTone(659.25, 0.14, 'triangle', 0.12, 0.14);
+        this.playTone(783.99, 0.16, 'triangle', 0.24, 0.14);
+        this.playTone(1046.5, 0.34, 'sine', 0.38, 0.16);
+      },
+    };
+
+    // -------------------------------------------------------------------------
+    // 3. APPLICATION STATE
+    // -------------------------------------------------------------------------
+    const state = {
+      screen: 'setup',           // 'setup' | 'game' | 'summary'
+      isDemoMode: false,         // true when using simulated webcam/AI
+      model: null,               // tmImage.CustomTMModel instance
+      webcam: null,              // tmImage.Webcam instance
+      maxPredictions: 0,
+      modelClassNames: [],       // Raw class names from model metadata
+      uploadedFiles: [],         // File[] from file input or drag-and-drop
+
+      teamName: 'Team 1',
+      gameMode: 'timed-45',      // 'timed-45' | 'timed-60' | 'sprint-10'
+      isRoundActive: false,
+      isTransitioning: false,    // Brief lock during celebratory match pop
+
+      targetEmojiKey: 'Happy',
+      lastTargetEmojiKey: null,
+      holdStartTime: null,
+      emojiShownTimestamp: null,
+
+      score: 0,
+      streak: 0,
+      bestStreak: 0,
+      matchedCount: 0,
+      matchTimesSec: [],
+      perEmojiMatches: { Happy: 0, Angry: 0, Silly: 0 },
+
+      timeRemainingSec: 45,
+      totalRoundSec: 45,
+      countdownIntervalId: null,
+      predictionLoopId: null,
+      demoSimulationTimeoutId: null,
+      simulatedActiveFace: null,
+    };
+
+    // -------------------------------------------------------------------------
+    // 4. DOM ELEMENT REFERENCES
+    // -------------------------------------------------------------------------
+    const dom = {
+      // Screens & Header
+      setupScreen: document.getElementById('setupScreen'),
+      gameScreen: document.getElementById('gameScreen'),
+      summaryScreen: document.getElementById('summaryScreen'),
+      changeModelBtn: document.getElementById('changeModelBtn'),
+      summaryChangeModelBtn: document.getElementById('summaryChangeModelBtn'),
+      soundToggleBtn: document.getElementById('soundToggleBtn'),
+      soundIcon: document.getElementById('soundIcon'),
+      soundLabel: document.getElementById('soundLabel'),
+      headerTeamBadge: document.getElementById('headerTeamBadge'),
+      headerTeamName: document.getElementById('headerTeamName'),
+
+      // Status Banner
+      statusBannerContainer: document.getElementById('statusBannerContainer'),
+      statusBanner: document.getElementById('statusBanner'),
+      statusBannerIcon: document.getElementById('statusBannerIcon'),
+      statusBannerText: document.getElementById('statusBannerText'),
+      dismissBannerBtn: document.getElementById('dismissBannerBtn'),
+
+      // Setup Inputs
+      teamNameInput: document.getElementById('teamNameInput'),
+      modelUrlInput: document.getElementById('modelUrlInput'),
+      loadUrlBtn: document.getElementById('loadUrlBtn'),
+      dropZone: document.getElementById('dropZone'),
+      modelFilesInput: document.getElementById('modelFilesInput'),
+      selectedFilesSummary: document.getElementById('selectedFilesSummary'),
+      loadFilesBtn: document.getElementById('loadFilesBtn'),
+      startDemoModeBtn: document.getElementById('startDemoModeBtn'),
+
+      // Game HUD & Controls
+      modelSourceBadge: document.getElementById('modelSourceBadge'),
+      modelSourceText: document.getElementById('modelSourceText'),
+      hudTeamName: document.getElementById('hudTeamName'),
+      loadedClassesStrip: document.getElementById('loadedClassesStrip'),
+      hudScore: document.getElementById('hudScore'),
+      hudStreak: document.getElementById('hudStreak'),
+      hudTimerLabel: document.getElementById('hudTimerLabel'),
+      hudTimerValue: document.getElementById('hudTimerValue'),
+      roundProgressBar: document.getElementById('roundProgressBar'),
+
+      // Target Emoji Stage
+      targetStatusPill: document.getElementById('targetStatusPill'),
+      targetEmojiGlyph: document.getElementById('targetEmojiGlyph'),
+      targetEmojiLabel: document.getElementById('targetEmojiLabel'),
+      targetEmojiHint: document.getElementById('targetEmojiHint'),
+      matchLockPercent: document.getElementById('matchLockPercent'),
+      matchLockBar: document.getElementById('matchLockBar'),
+      matchBurstBadge: document.getElementById('matchBurstBadge'),
+      startRoundBtn: document.getElementById('startRoundBtn'),
+      skipEmojiBtn: document.getElementById('skipEmojiBtn'),
+      stopRoundBtn: document.getElementById('stopRoundBtn'),
+
+      // Webcam & Confidence Meter
+      webcamMount: document.getElementById('webcamMount'),
+      demoStageVisual: document.getElementById('demoStageVisual'),
+      demoAvatarEmoji: document.getElementById('demoAvatarEmoji'),
+      demoTriggerPad: document.getElementById('demoTriggerPad'),
+      livePredEmoji: document.getElementById('livePredEmoji'),
+      livePredLabel: document.getElementById('livePredLabel'),
+      livePredConf: document.getElementById('livePredConf'),
+      thresholdLabel: document.getElementById('thresholdLabel'),
+      matchedCounterText: document.getElementById('matchedCounterText'),
+
+      // Summary Screen
+      summaryTitle: document.getElementById('summaryTitle'),
+      summarySubtitle: document.getElementById('summarySubtitle'),
+      summaryScore: document.getElementById('summaryScore'),
+      summaryMatched: document.getElementById('summaryMatched'),
+      summaryBestStreak: document.getElementById('summaryBestStreak'),
+      summaryAvgSpeed: document.getElementById('summaryAvgSpeed'),
+      summaryEmojiBreakdown: document.getElementById('summaryEmojiBreakdown'),
+      playAgainBtn: document.getElementById('playAgainBtn'),
+    };
+
+    // -------------------------------------------------------------------------
+    // 5. UI BANNER & SCREEN NAVIGATION HELPERS
+    // -------------------------------------------------------------------------
+    function showBanner(message, type = 'info') {
+      const styles = {
+        info: 'bg-sky-50 border-sky-200 text-sky-900',
+        success: 'bg-emerald-50 border-emerald-200 text-emerald-900',
+        warning: 'bg-amber-50 border-amber-300 text-amber-950',
+        error: 'bg-rose-50 border-rose-200 text-rose-900',
+      };
+      const icons = {
+        info: '💡',
+        success: '✅',
+        warning: '⚠️',
+        error: '🛑',
+      };
+
+      dom.statusBanner.className = `rounded-2xl px-4 py-3 text-sm font-medium flex items-start sm:items-center justify-between gap-3 border-2 shadow-sm ${styles[type] || styles.info}`;
+      dom.statusBannerIcon.textContent = icons[type] || icons.info;
+      dom.statusBannerText.textContent = message;
+      dom.statusBannerContainer.classList.remove('hidden');
+    }
+
+    function hideBanner() {
+      dom.statusBannerContainer.classList.add('hidden');
+    }
+
+    function switchScreen(screenName) {
+      state.screen = screenName;
+      dom.setupScreen.classList.toggle('hidden', screenName !== 'setup');
+      dom.gameScreen.classList.toggle('hidden', screenName !== 'game');
+      dom.summaryScreen.classList.toggle('hidden', screenName !== 'summary');
+      dom.changeModelBtn.classList.toggle('hidden', screenName === 'setup');
+    }
+
+    function syncTeamName() {
+      const raw = dom.teamNameInput.value.trim();
+      state.teamName = raw || 'Team 1';
+      dom.hudTeamName.textContent = state.teamName;
+      dom.headerTeamName.textContent = state.teamName;
+      dom.headerTeamBadge.classList.remove('hidden');
+    }
+
+    // -------------------------------------------------------------------------
+    // 6. CLEANUP OF WEBCAM, TIMERS, AND TENSORFLOW RESOURCES
+    // -------------------------------------------------------------------------
+    async function cleanupSessionResources() {
+      state.isRoundActive = false;
+      state.isTransitioning = false;
+      state.holdStartTime = null;
+      state.simulatedActiveFace = null;
+
+      if (state.countdownIntervalId) {
+        clearInterval(state.countdownIntervalId);
+        state.countdownIntervalId = null;
+      }
+
+      if (state.predictionLoopId) {
+        cancelAnimationFrame(state.predictionLoopId);
+        state.predictionLoopId = null;
+      }
+
+      if (state.demoSimulationTimeoutId) {
+        clearTimeout(state.demoSimulationTimeoutId);
+        state.demoSimulationTimeoutId = null;
+      }
+
+      if (state.webcam) {
+        try {
+          if (typeof state.webcam.stop === 'function') {
+            await state.webcam.stop();
+          }
+        } catch (err) {
+          // Safe cleanup fallback
+        }
+        state.webcam = null;
+      }
+
+      // Also stop any lingering media tracks inside webcamMount
+      try {
+        const videos = dom.webcamMount.querySelectorAll('video');
+        videos.forEach((vid) => {
+          if (vid.srcObject && typeof vid.srcObject.getTracks === 'function') {
+            vid.srcObject.getTracks().forEach((track) => track.stop());
+          }
+        });
+      } catch (err) {
+        // Ignore
+      }
+
+      dom.webcamMount.innerHTML = '';
+
+      if (state.model && typeof state.model.dispose === 'function') {
+        try {
+          state.model.dispose();
+        } catch (err) {
+          // Ignore disposal errors
+        }
+      }
+      state.model = null;
+      state.modelClassNames = [];
+      state.maxPredictions = 0;
+    }
+
+    // -------------------------------------------------------------------------
+    // 7. MODEL LOADING (URL, LOCAL FILES, OR DEMO MODE)
+    // -------------------------------------------------------------------------
+    function setLoadingButtonsState(isLoading) {
+      dom.loadUrlBtn.disabled = isLoading;
+      dom.loadFilesBtn.disabled = isLoading;
+      dom.startDemoModeBtn.disabled = isLoading;
+      dom.loadUrlBtn.classList.toggle('opacity-60', isLoading);
+      dom.loadFilesBtn.classList.toggle('opacity-60', isLoading);
+      dom.startDemoModeBtn.classList.toggle('opacity-60', isLoading);
+    }
+
+    async function initRealWebcam() {
+      if (!window.tmImage) {
+        throw new Error('Teachable Machine library did not load. Check your internet connection or use Demo Mode.');
+      }
+
+      const flip = true; // Mirror webcam horizontally
+      const webcam = new window.tmImage.Webcam(480, 360, flip);
+      await webcam.setup(); // Request camera access
+      await webcam.play();
+
+      dom.webcamMount.innerHTML = '';
+      dom.webcamMount.appendChild(webcam.canvas);
+      webcam.canvas.className = 'w-full h-full object-cover';
+
+      state.webcam = webcam;
+    }
+
+    function renderLoadedClassPills() {
+      dom.loadedClassesStrip.innerHTML = '<span class="text-slate-500 font-medium">Classes:</span>';
+      const labelsToShow = state.isDemoMode
+        ? ['Happy', 'Angry', 'Silly']
+        : state.modelClassNames;
+
+      labelsToShow.forEach((rawName) => {
+        const matchedKey = normalizeEmojiLabel(rawName);
+        const emojiIcon = matchedKey ? EMOJI_MAP[matchedKey].emoji : '🏷️';
+        const pill = document.createElement('span');
+        pill.className = matchedKey
+          ? 'px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 font-semibold'
+          : 'px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200 font-medium';
+        pill.textContent = `${emojiIcon} ${rawName}`;
+        dom.loadedClassesStrip.appendChild(pill);
+      });
+    }
+
+    function configureGameScreenForSource() {
+      syncTeamName();
+      dom.thresholdLabel.textContent = `${Math.round(CONFIDENCE_THRESHOLD * 100)}%`;
+
+      if (state.isDemoMode) {
+        dom.modelSourceBadge.className = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-purple-100 text-purple-800 border border-purple-200';
+        dom.modelSourceText.textContent = 'Demo Mode (Simulated Webcam)';
+        dom.webcamMount.classList.add('hidden');
+        dom.demoStageVisual.classList.remove('hidden');
+        dom.demoTriggerPad.classList.remove('hidden');
+      } else {
+        dom.modelSourceBadge.className = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200';
+        dom.modelSourceText.textContent = 'Teachable Machine Model Active';
+        dom.webcamMount.classList.remove('hidden');
+        dom.demoStageVisual.classList.add('hidden');
+        dom.demoTriggerPad.classList.add('hidden');
+      }
+
+      renderLoadedClassPills();
+      resetRoundHudToReady();
+      switchScreen('game');
+    }
+
+    async function handleLoadFromUrl() {
+      hideBanner();
+      const rawUrl = dom.modelUrlInput.value.trim();
+
+      if (!rawUrl) {
+        showBanner('Please paste a Teachable Machine model URL first, or try Demo Mode.', 'warning');
+        return;
+      }
+
+      const normalizedUrl = rawUrl.endsWith('/') ? rawUrl : `${rawUrl}/`;
+      const checkpointURL = `${normalizedUrl}model.json`;
+      const metadataURL = `${normalizedUrl}metadata.json`;
+
+      setLoadingButtonsState(true);
+      showBanner('Loading Teachable Machine model and starting webcam...', 'info');
+
+      try {
+        await cleanupSessionResources();
+        state.isDemoMode = false;
+
+        const loadedModel = await window.tmImage.load(checkpointURL, metadataURL);
+        state.model = loadedModel;
+        state.maxPredictions = loadedModel.getTotalClasses();
+        state.modelClassNames = typeof loadedModel.getClassLabels === 'function'
+          ? loadedModel.getClassLabels()
+          : Array.from({ length: state.maxPredictions }, (_, i) => `Class ${i + 1}`);
+
+        await initRealWebcam();
+        configureGameScreenForSource();
+        startPredictionLoop();
+        showBanner('Model & webcam ready! Click "Start Round" when your team is set.', 'success');
+      } catch (err) {
+        await cleanupSessionResources();
+        showBanner(
+          `Could not load model from URL. Double-check the link and allow camera access (or switch to Demo Mode). Details: ${err.message || err}`,
+          'error'
+        );
+      } finally {
+        setLoadingButtonsState(false);
+      }
+    }
+
+    function handleFilesSelection(fileList) {
+      const files = Array.from(fileList || []);
+      state.uploadedFiles = files;
+
+      if (!files.length) {
+        dom.selectedFilesSummary.textContent = 'Waiting for model.json, metadata.json & weights.bin';
+        return;
+      }
+
+      const names = files.map((f) => f.name);
+      const hasModel = names.includes('model.json');
+      const hasMeta = names.includes('metadata.json');
+      const hasWeights = names.some((n) => n.endsWith('.bin'));
+
+      const statusBits = [
+        hasModel ? '✓ model.json' : '✕ model.json',
+        hasMeta ? '✓ metadata.json' : '✕ metadata.json',
+        hasWeights ? '✓ weights.bin' : '✕ weights.bin',
+      ];
+
+      dom.selectedFilesSummary.textContent = `${files.length} file(s) selected: ${statusBits.join(' • ')}`;
+    }
+
+    async function handleLoadFromFiles() {
+      hideBanner();
+      const files = state.uploadedFiles;
+
+      if (!files || files.length === 0) {
+        showBanner('Please select or drop model.json, metadata.json, and weights.bin first.', 'warning');
+        return;
+      }
+
+      const modelFile = files.find((f) => f.name === 'model.json');
+      const metadataFile = files.find((f) => f.name === 'metadata.json');
+      const weightsFiles = files.filter((f) => f.name.endsWith('.bin') || f.name.includes('weights'));
+
+      if (!modelFile || !metadataFile || weightsFiles.length === 0) {
+        showBanner(
+          'Missing required files! Make sure you include model.json, metadata.json, and your .bin weights file.',
+          'warning'
+        );
+        return;
+      }
+
+      setLoadingButtonsState(true);
+      showBanner('Loading uploaded model files and starting webcam...', 'info');
+
+      try {
+        await cleanupSessionResources();
+        state.isDemoMode = false;
+
+        // Combine model.json, metadata.json, and weights files into a FileList-like array
+        const orderedFiles = [modelFile, metadataFile, ...weightsFiles];
+        const loadedModel = await window.tmImage.loadFromFiles(
+          modelFile,
+          metadataFile,
+          weightsFiles.length === 1 ? weightsFiles[0] : weightsFiles
+        ).catch(async () => {
+          // Fallback signature in some @teachablemachine/image versions: (filesArray)
+          return await window.tmImage.loadFromFiles(orderedFiles);
+        });
+
+        state.model = loadedModel;
+        state.maxPredictions = loadedModel.getTotalClasses();
+        state.modelClassNames = typeof loadedModel.getClassLabels === 'function'
+          ? loadedModel.getClassLabels()
+          : Array.from({ length: state.maxPredictions }, (_, i) => `Class ${i + 1}`);
+
+        await initRealWebcam();
+        configureGameScreenForSource();
+        startPredictionLoop();
+        showBanner('Uploaded model loaded! Click "Start Round" to begin.', 'success');
+      } catch (err) {
+        await cleanupSessionResources();
+        showBanner(
+          `Failed to load uploaded model files. Ensure all 3 files came from the same Teachable Machine export. (${err.message || err})`,
+          'error'
+        );
+      } finally {
+        setLoadingButtonsState(false);
+      }
+    }
+
+    async function handleStartDemoMode() {
+      hideBanner();
+      setLoadingButtonsState(true);
+
+      try {
+        await cleanupSessionResources();
+        state.isDemoMode = true;
+        state.modelClassNames = ['Happy', 'Angry', 'Silly'];
+        state.maxPredictions = 3;
+
+        configureGameScreenForSource();
+        startPredictionLoop();
+        showBanner('Demo Mode active! Click "Start Round", then use the Demo Face buttons or keys 1–3.', 'info');
+      } finally {
+        setLoadingButtonsState(false);
+      }
+    }
+
+    // -------------------------------------------------------------------------
+    // 8. CONFIDENCE METER & PREDICTION LOOP
+    // -------------------------------------------------------------------------
+    function updateConfidenceBars(scoresByEmoji) {
+      let topKey = null;
+      let topProb = 0;
+
+      TARGET_EMOJIS.forEach((item) => {
+        const prob = Math.max(0, Math.min(1, scoresByEmoji[item.key] || 0));
+        const pct = Math.round(prob * 100);
+
+        const barEl = document.getElementById(`confBar-${item.key}`);
+        const textEl = document.getElementById(`confText-${item.key}`);
+
+        if (barEl) barEl.style.width = `${pct}%`;
+        if (textEl) textEl.textContent = `${pct}%`;
+
+        if (prob > topProb) {
+          topProb = prob;
+          topKey = item.key;
+        }
+      });
+
+      if (topKey && topProb > 0.05) {
+        const topItem = EMOJI_MAP[topKey];
+        dom.livePredEmoji.textContent = topItem.emoji;
+        dom.livePredLabel.textContent = topItem.label;
+        dom.livePredConf.textContent = `(${Math.round(topProb * 100)}%)`;
+      } else {
+        dom.livePredEmoji.textContent = '🤔';
+        dom.livePredLabel.textContent = 'Scanning...';
+        dom.livePredConf.textContent = '(0%)';
+      }
+
+      return { topKey, topProb };
+    }
+
+    function triggerSimulatedFace(faceKey) {
+      if (!EMOJI_MAP[faceKey]) return;
+      state.simulatedActiveFace = faceKey;
+      dom.demoAvatarEmoji.textContent = EMOJI_MAP[faceKey].emoji;
+      dom.demoAvatarEmoji.classList.add('scale-110');
+
+      if (state.demoSimulationTimeoutId) {
+        clearTimeout(state.demoSimulationTimeoutId);
+      }
+
+      // Hold simulated face briefly so students see the confidence meter & lock bar fill
+      state.demoSimulationTimeoutId = setTimeout(() => {
+        state.simulatedActiveFace = null;
+        dom.demoAvatarEmoji.textContent = '🙂';
+        dom.demoAvatarEmoji.classList.remove('scale-110');
+      }, 950);
+    }
+
+    async function predictionStep() {
+      if (state.screen !== 'game') return;
+
+      const scoresByEmoji = { Happy: 0, Angry: 0, Silly: 0 };
+
+      try {
+        if (state.isDemoMode) {
+          // Gentle ambient baseline + strong spike when a simulated face is triggered
+          TARGET_EMOJIS.forEach((item) => {
+            scoresByEmoji[item.key] = 0.04 + Math.random() * 0.05;
+          });
+
+          if (state.simulatedActiveFace) {
+            scoresByEmoji[state.simulatedActiveFace] = 0.91 + Math.random() * 0.07;
+          }
+        } else if (state.model && state.webcam) {
+          state.webcam.update();
+          const predictions = await state.model.predict(state.webcam.canvas);
+
+          if (Array.isArray(predictions)) {
+            predictions.forEach((pred) => {
+              const mappedKey = normalizeEmojiLabel(pred.className);
+              if (mappedKey) {
+                scoresByEmoji[mappedKey] = Math.max(scoresByEmoji[mappedKey], pred.probability || 0);
+              }
+            });
+          }
+        }
+      } catch (err) {
+        // Keep loop alive even if an individual frame has a transient error
+      }
+
+      const { topKey, topProb } = updateConfidenceBars(scoresByEmoji);
+      evaluateMatchProgress(topKey, topProb);
+
+      state.predictionLoopId = requestAnimationFrame(predictionStep);
+    }
+
+    function startPredictionLoop() {
+      if (state.predictionLoopId) {
+        cancelAnimationFrame(state.predictionLoopId);
+      }
+      state.predictionLoopId = requestAnimationFrame(predictionStep);
+    }
+
+    // -------------------------------------------------------------------------
+    // 9. GAME LOOP, SCORING & ROUND SUMMARY
+    // -------------------------------------------------------------------------
+    function setGameMode(modeKey) {
+      if (state.isRoundActive) return; // Prevent switching mid-round
+      state.gameMode = modeKey;
+
+      document.querySelectorAll('.mode-btn').forEach((btn) => {
+        const active = btn.dataset.mode === modeKey;
+        btn.className = active
+          ? 'mode-btn px-3 py-1.5 rounded-xl text-xs font-bold bg-white text-slate-900 shadow-sm transition'
+          : 'mode-btn px-3 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 transition';
+      });
+
+      resetRoundHudToReady();
+    }
+
+    function resetRoundHudToReady() {
+      state.isRoundActive = false;
+      state.isTransitioning = false;
+      state.holdStartTime = null;
+      state.score = 0;
+      state.streak = 0;
+      state.bestStreak = 0;
+      state.matchedCount = 0;
+      state.matchTimesSec = [];
+      state.perEmojiMatches = { Happy: 0, Angry: 0, Silly: 0 };
+
+      dom.hudScore.textContent = '0';
+      dom.hudStreak.textContent = '0🔥';
+      dom.matchedCounterText.textContent = 'Matched: 0';
+      dom.matchLockBar.style.width = '0%';
+      dom.matchLockPercent.textContent = '0%';
+
+      if (state.gameMode === 'timed-45') {
+        state.totalRoundSec = 45;
+        state.timeRemainingSec = 45;
+        dom.hudTimerLabel.textContent = 'Time Left';
+        dom.hudTimerValue.textContent = '45s';
+        dom.roundProgressBar.style.width = '100%';
+      } else if (state.gameMode === 'timed-60') {
+        state.totalRoundSec = 60;
+        state.timeRemainingSec = 60;
+        dom.hudTimerLabel.textContent = 'Time Left';
+        dom.hudTimerValue.textContent = '60s';
+        dom.roundProgressBar.style.width = '100%';
+      } else {
+        // Sprint 10 mode
+        dom.hudTimerLabel.textContent = 'Emojis';
+        dom.hudTimerValue.textContent = `0 / ${SPRINT_GOAL_COUNT}`;
+        dom.roundProgressBar.style.width = '0%';
+      }
+
+      const initialEmoji = EMOJI_MAP[state.targetEmojiKey] || TARGET_EMOJIS[0];
+      dom.targetEmojiGlyph.textContent = initialEmoji.emoji;
+      dom.targetEmojiLabel.textContent = initialEmoji.label;
+      dom.targetEmojiHint.textContent = 'Click "Start Round" when your team is ready!';
+      dom.targetStatusPill.innerHTML = '<span>✨</span> Ready to Play';
+
+      dom.startRoundBtn.disabled = false;
+      dom.skipEmojiBtn.disabled = true;
+      dom.stopRoundBtn.disabled = true;
+    }
+
+    function pickNextRandomEmoji() {
+      const candidates = TARGET_EMOJIS.filter((item) => item.key !== state.lastTargetEmojiKey);
+      const pool = candidates.length > 0 ? candidates : TARGET_EMOJIS;
+      const chosen = pool[Math.floor(Math.random() * pool.length)];
+
+      state.targetEmojiKey = chosen.key;
+      state.lastTargetEmojiKey = chosen.key;
+      state.holdStartTime = null;
+      state.emojiShownTimestamp = performance.now();
+
+      dom.matchLockBar.style.width = '0%';
+      dom.matchLockPercent.textContent = '0%';
+
+      // Re-trigger pop animation cleanly
+      dom.targetEmojiGlyph.classList.remove('animate-emoji-pop');
+      void dom.targetEmojiGlyph.offsetWidth;
+      dom.targetEmojiGlyph.classList.add('animate-emoji-pop');
+
+      dom.targetEmojiGlyph.textContent = chosen.emoji;
+      dom.targetEmojiLabel.textContent = chosen.label;
+      dom.targetEmojiHint.textContent = chosen.hint;
+      dom.targetStatusPill.innerHTML = '<span>🎯</span> Make This Face Now!';
+    }
+
+    function startRound() {
+      if (state.isRoundActive) return;
+      hideBanner();
+      resetRoundHudToReady();
+
+      state.isRoundActive = true;
+      dom.startRoundBtn.disabled = true;
+      dom.skipEmojiBtn.disabled = false;
+      dom.stopRoundBtn.disabled = false;
+
+      pickNextRandomEmoji();
+      soundFX.playPop();
+
+      if (state.gameMode === 'timed-45' || state.gameMode === 'timed-60') {
+        const startTimeMs = performance.now();
+        state.countdownIntervalId = setInterval(() => {
+          if (!state.isRoundActive) return;
+          const elapsedSec = (performance.now() - startTimeMs) / 1000;
+          const remaining = Math.max(0, Math.ceil(state.totalRoundSec - elapsedSec));
+          state.timeRemainingSec = remaining;
+
+          dom.hudTimerValue.textContent = `${remaining}s`;
+          const pct = Math.max(0, Math.min(100, (remaining / state.totalRoundSec) * 100));
+          dom.roundProgressBar.style.width = `${pct}%`;
+
+          if (remaining <= 0) {
+            finishRound();
+          }
+        }, 150);
+      }
+    }
+
+    function skipCurrentEmoji() {
+      if (!state.isRoundActive || state.isTransitioning) return;
+      state.streak = 0;
+      dom.hudStreak.textContent = '0🔥';
+      soundFX.playSkip();
+      pickNextRandomEmoji();
+    }
+
+    function evaluateMatchProgress(topKey, topProb) {
+      if (!state.isRoundActive || state.isTransitioning) return;
+
+      const isMatchingTarget = topKey === state.targetEmojiKey && topProb >= CONFIDENCE_THRESHOLD;
+
+      if (isMatchingTarget) {
+        if (!state.holdStartTime) {
+          state.holdStartTime = performance.now();
+        }
+
+        const heldMs = performance.now() - state.holdStartTime;
+        const lockPct = Math.min(100, Math.round((heldMs / HOLD_DURATION_MS) * 100));
+        dom.matchLockBar.style.width = `${lockPct}%`;
+        dom.matchLockPercent.textContent = `${lockPct}%`;
+
+        if (heldMs >= HOLD_DURATION_MS) {
+          handleEmojiMatched();
+        }
+      } else {
+        state.holdStartTime = null;
+        dom.matchLockBar.style.width = '0%';
+        dom.matchLockPercent.textContent = '0%';
+      }
+    }
+
+    function showScoreBurst(pointsEarned, streakCount) {
+      dom.matchBurstBadge.textContent = streakCount > 1
+        ? `+${pointsEarned} (${streakCount}🔥)`
+        : `+${pointsEarned} 🎉`;
+
+      dom.matchBurstBadge.classList.remove('hidden', 'animate-burst');
+      void dom.matchBurstBadge.offsetWidth;
+      dom.matchBurstBadge.classList.add('animate-burst');
+    }
+
+    function handleEmojiMatched() {
+      if (!state.isRoundActive || state.isTransitioning) return;
+      state.isTransitioning = true;
+      state.holdStartTime = null;
+
+      const matchedKey = state.targetEmojiKey;
+      state.matchedCount += 1;
+      state.streak += 1;
+      state.bestStreak = Math.max(state.bestStreak, state.streak);
+      state.perEmojiMatches[matchedKey] = (state.perEmojiMatches[matchedKey] || 0) + 1;
+
+      if (state.emojiShownTimestamp) {
+        const reactionSec = Math.max(0.2, (performance.now() - state.emojiShownTimestamp) / 1000);
+        state.matchTimesSec.push(reactionSec);
+      }
+
+      const bonus = (state.streak - 1) * STREAK_BONUS_STEP;
+      const earned = BASE_MATCH_POINTS + bonus;
+      state.score += earned;
+
+      dom.hudScore.textContent = String(state.score);
+      dom.hudStreak.textContent = `${state.streak}🔥`;
+      dom.matchedCounterText.textContent = `Matched: ${state.matchedCount}`;
+      dom.matchLockBar.style.width = '100%';
+      dom.matchLockPercent.textContent = '100%';
+      dom.targetStatusPill.innerHTML = '<span>🌟</span> Matched!';
+
+      showScoreBurst(earned, state.streak);
+      soundFX.playMatch(state.streak);
+
+      if (state.gameMode === 'sprint-10') {
+        dom.hudTimerValue.textContent = `${Math.min(state.matchedCount, SPRINT_GOAL_COUNT)} / ${SPRINT_GOAL_COUNT}`;
+        const sprintPct = Math.min(100, (state.matchedCount / SPRINT_GOAL_COUNT) * 100);
+        dom.roundProgressBar.style.width = `${sprintPct}%`;
+
+        if (state.matchedCount >= SPRINT_GOAL_COUNT) {
+          setTimeout(() => {
+            finishRound();
+          }, 420);
+          return;
+        }
+      }
+
+      setTimeout(() => {
+        if (!state.isRoundActive) return;
+        state.isTransitioning = false;
+        pickNextRandomEmoji();
+      }, 420);
+    }
+
+    function finishRound() {
+      if (!state.isRoundActive && state.screen === 'summary') return;
+      state.isRoundActive = false;
+      state.isTransitioning = false;
+
+      if (state.countdownIntervalId) {
+        clearInterval(state.countdownIntervalId);
+        state.countdownIntervalId = null;
+      }
+
+      soundFX.playRoundEnd();
+      renderSummaryScreen();
+      switchScreen('summary');
+    }
+
+    function renderSummaryScreen() {
+      dom.summaryTitle.textContent = `Awesome Job, ${state.teamName}!`;
+      dom.summarySubtitle.textContent = state.isDemoMode
+        ? 'Demo Mode round finished — ready to test with your trained Teachable Machine model!'
+        : 'Great teamwork training and testing your face-recognition AI model!';
+
+      dom.summaryScore.textContent = String(state.score);
+      dom.summaryMatched.textContent = String(state.matchedCount);
+      dom.summaryBestStreak.textContent = `${state.bestStreak}🔥`;
+
+      if (state.matchTimesSec.length > 0) {
+        const avg = state.matchTimesSec.reduce((a, b) => a + b, 0) / state.matchTimesSec.length;
+        dom.summaryAvgSpeed.textContent = `${avg.toFixed(1)}s`;
+      } else {
+        dom.summaryAvgSpeed.textContent = '—';
+      }
+
+      dom.summaryEmojiBreakdown.innerHTML = '';
+      TARGET_EMOJIS.forEach((item) => {
+        const count = state.perEmojiMatches[item.key] || 0;
+        const card = document.createElement('div');
+        card.className = `rounded-xl border-2 p-3 flex items-center justify-between ${item.cardBg}`;
+        card.innerHTML = `
+          <div class="flex items-center gap-2">
+            <span class="text-2xl">${item.emoji}</span>
+            <span class="font-display font-bold text-base">${item.label}</span>
+          </div>
+          <span class="font-display font-bold text-xl">${count}</span>
+        `;
+        dom.summaryEmojiBreakdown.appendChild(card);
+      });
+    }
+
+    // -------------------------------------------------------------------------
+    // 10. EVENT LISTENERS & KEYBOARD SHORTCUTS
+    // -------------------------------------------------------------------------
+    function bindEvents() {
+      // Team name sync & presets
+      dom.teamNameInput.addEventListener('input', syncTeamName);
+      document.querySelectorAll('.preset-team-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          dom.teamNameInput.value = btn.dataset.presetTeam;
+          syncTeamName();
+        });
+      });
+
+      // Sound toggle
+      dom.soundToggleBtn.addEventListener('click', () => {
+        soundFX.enabled = !soundFX.enabled;
+        dom.soundIcon.textContent = soundFX.enabled ? '🔊' : '🔇';
+        dom.soundLabel.textContent = soundFX.enabled ? 'Sound On' : 'Muted';
+        if (soundFX.enabled) {
+          soundFX.playPop();
+        }
+      });
+
+      // Dismiss banner
+      dom.dismissBannerBtn.addEventListener('click', hideBanner);
+
+      // Load URL & Demo Mode
+      dom.loadUrlBtn.addEventListener('click', handleLoadFromUrl);
+      dom.modelUrlInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          handleLoadFromUrl();
+        }
+      });
+      dom.startDemoModeBtn.addEventListener('click', handleStartDemoMode);
+
+      // File Picker & Drag-and-Drop
+      dom.dropZone.addEventListener('click', () => dom.modelFilesInput.click());
+      dom.dropZone.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          dom.modelFilesInput.click();
+        }
+      });
+
+      dom.modelFilesInput.addEventListener('change', (e) => {
+        handleFilesSelection(e.target.files);
+      });
+
+      ['dragenter', 'dragover'].forEach((eventName) => {
+        dom.dropZone.addEventListener(eventName, (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          dom.dropZone.classList.add('border-amber-500', 'bg-amber-50');
+        });
+      });
+
+      ['dragleave', 'drop'].forEach((eventName) => {
+        dom.dropZone.addEventListener(eventName, (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          dom.dropZone.classList.remove('border-amber-500', 'bg-amber-50');
+        });
+      });
+
+      dom.dropZone.addEventListener('drop', (e) => {
+        if (e.dataTransfer && e.dataTransfer.files) {
+          handleFilesSelection(e.dataTransfer.files);
+        }
+      });
+
+      dom.loadFilesBtn.addEventListener('click', handleLoadFromFiles);
+
+      // Mode buttons
+      document.querySelectorAll('.mode-btn').forEach((btn) => {
+        btn.addEventListener('click', () => setGameMode(btn.dataset.mode));
+      });
+
+      // Gameplay buttons
+      dom.startRoundBtn.addEventListener('click', startRound);
+      dom.skipEmojiBtn.addEventListener('click', skipCurrentEmoji);
+      dom.stopRoundBtn.addEventListener('click', finishRound);
+
+      // Demo face simulator buttons
+      document.querySelectorAll('.sim-face-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          triggerSimulatedFace(btn.dataset.simFace);
+        });
+      });
+
+      // Summary buttons & Change Model buttons
+      dom.playAgainBtn.addEventListener('click', () => {
+        switchScreen('game');
+        resetRoundHudToReady();
+        startPredictionLoop();
+        startRound();
+      });
+
+      const returnToSetup = async () => {
+        hideBanner();
+        await cleanupSessionResources();
+        switchScreen('setup');
+      };
+
+      dom.changeModelBtn.addEventListener('click', returnToSetup);
+      dom.summaryChangeModelBtn.addEventListener('click', returnToSetup);
+
+      // Number keys 1-4 in Demo Mode for quick teacher/student testing
+      // Number keys 1-3 in Demo Mode for quick teacher/student testing
+      window.addEventListener('keydown', (e) => {
+        if (state.screen === 'game' && state.isDemoMode) {
+          if (e.key === '1') triggerSimulatedFace('Happy');
+          if (e.key === '2') triggerSimulatedFace('Angry');
+          if (e.key === '3') triggerSimulatedFace('Silly');
+        }
+      });
+
+      // Clean up camera/timers when page unloads
+      window.addEventListener('beforeunload', () => {
+        cleanupSessionResources();
+      });
+    }
+
+    // Initialize app on load
+    document.addEventListener('DOMContentLoaded', () => {
+      bindEvents();
+      syncTeamName();
+      switchScreen('setup');
+    });
+  </script>
+</body>
+</html>
